@@ -314,6 +314,8 @@ public class SurveyService {
         if (!survey.getUser().getId().equals(user.getId())) {
             throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
         }
+        answerRepository.deleteBySurveyId(survey.getId());
+        responseRepository.deleteBySurveyId(survey.getId());
         surveyRepository.delete(survey);
     }
 
