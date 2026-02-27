@@ -51,13 +51,24 @@ class FileControllerTest extends BaseIntegrationTest {
 
     @Test
     @Order(2)
+    void upload_unauthorized() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "test.txt", "text/plain", "Hello World".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/upload").file(file))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Order(3)
     void download_success() throws Exception {
         mockMvc.perform(get("/api/files/" + uploadedFileName))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void download_notFound() throws Exception {
         mockMvc.perform(get("/api/files/nonexistent.txt"))
                 .andExpect(status().isNotFound());

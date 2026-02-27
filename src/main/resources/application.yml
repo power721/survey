@@ -20,8 +20,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 100MB
+      max-request-size: 100MB
 
   messages:
     basename: i18n/messages
@@ -30,9 +30,9 @@ spring:
 app:
   upload:
     dir: uploads
-    max-size: 10485760
+    max-size: 104857600
   jwt:
     secret: "YTJkNGY2ZjgtYzRiMC00YTg3LWE3ZmEtMjc2YzhhZTkwMDFhCg=="
-    expiration-ms: 86400000
+    expiration-ms: 604800000
   cors:
     allowed-origins: "http://localhost:5173"

@@ -128,7 +128,7 @@ survey/
 | **网址** (URL) | URL 格式验证 |
 | **手机号码** (PHONE) | 手机号格式验证 |
 | **身份证号** (ID_CARD) | 身份证号格式验证 |
-| **文件上传** (FILE) | 文件上传（最大 10MB） |
+| **文件上传** (FILE) | 文件上传（最大 100MB，需登录） |
 
 每个题目支持：
 - 设置为**必填**或选填
@@ -207,7 +207,7 @@ survey/
 
 | 功能 | 说明 |
 |------|------|
-| **文件上传** | 支持任意文件上传，最大 10MB，服务端生成唯一文件名 |
+| **文件上传** | 支持任意文件上传，最大 100MB，需要登录，服务端生成唯一文件名 |
 | **文件下载** | 通过文件名下载已上传的文件 |
 | **存储路径** | 可通过 `app.upload.dir` 配置存储目录 |
 
@@ -220,6 +220,7 @@ survey/
 | **接口鉴权** | Spring Security 过滤链 + 路径级权限控制 |
 | **CORS 跨域** | 可配置 `allowed-origins`，支持多域名 |
 | **API 限流** | Bucket4j 令牌桶算法，每分钟 10 次请求限制 |
+| **JWT 有效期** | 默认 7 天 |
 | **请求校验** | Bean Validation 参数校验（`@Valid`），全局异常处理 |
 | **防重复投票** | Redis + IP + 用户 ID + 设备 ID 多维度限制 |
 
@@ -228,7 +229,7 @@ survey/
 - 注册、登录
 - 公开问卷/投票列表
 - 通过分享链接填写问卷/投票
-- 文件上传/下载
+- 文件下载
 - WebSocket 连接
 
 ### 6. 前端特性
@@ -384,7 +385,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=postgresql
 
 | 方法 | 路径 | 说明 | 认证 |
 |------|------|------|------|
-| POST | `/api/files/upload` | 上传文件 | 否 |
+| POST | `/api/files/upload` | 上传文件 | 是 |
 | GET | `/api/files/{filename}` | 下载文件 | 否 |
 
 ### WebSocket
@@ -427,8 +428,8 @@ mvn test -Dtest="cn.har01d.survey.tests.AuthControllerTest,cn.har01d.survey.test
 | `AuthControllerTest` | 11 | 注册、登录、个人信息 CRUD |
 | `VoteControllerTest` | 24 | 投票 CRUD、发布/关闭、提交（单选/多选/计分）、权限 |
 | `SurveyControllerTest` | 26 | 问卷 CRUD、发布/关闭、填写、统计、导出、模板、权限 |
-| `FileControllerTest` | 3 | 文件上传、下载、404 |
-| **合计** | **64** | — |
+| `FileControllerTest` | 4 | 文件上传、上传鉴权、下载、404 |
+| **合计** | **65** | — |
 
 ---
 

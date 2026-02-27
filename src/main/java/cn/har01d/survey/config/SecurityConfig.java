@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/votes/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/votes/v/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/votes/v/*/submit").permitAll()
-                        .requestMatchers("/api/files/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
