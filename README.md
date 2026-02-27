@@ -1,121 +1,437 @@
-# 问卷调查与投票系统 / Survey & Vote System
+# 问卷调查与投票系统
 
-## 技术栈 / Tech Stack
+一个功能完善的在线问卷调查与投票平台，支持多种题型问卷、多种投票模式、实时结果推送、数据统计分析与 Excel 导出。
 
-| Layer    | Technology                                      |
-|----------|------------------------------------------------|
-| Frontend | Vue 3 + Vite + TypeScript + naive-ui           |
-| Backend  | Spring Boot 3.5 + Spring Security + Spring Data JPA |
-| Database | H2 (dev) / MySQL / PostgreSQL                  |
-| Cache    | Redis                                          |
-| Auth     | JWT                                            |
-| Deploy   | Docker + Nginx                                 |
+---
 
-## 功能 / Features
+## 目录
 
-### 问卷调查 / Survey
-- 创建问卷，支持多种题型：单选/多选/填空/文本/数字/评分/日期/邮箱/网址/手机号码/身份证ID
-- 发布/关闭问卷
-- 填写问卷（支持公开链接）
-- 统计分析（比例展示）
-- 导出 Excel
-- 问卷模板
+- [技术栈](#技术栈)
+- [项目结构](#项目结构)
+- [功能详细说明](#功能详细说明)
+  - [用户系统](#1-用户系统)
+  - [问卷调查](#2-问卷调查)
+  - [投票系统](#3-投票系统)
+  - [文件管理](#4-文件管理)
+  - [安全与防护](#5-安全与防护)
+  - [前端特性](#6-前端特性)
+- [本地开发](#本地开发)
+- [Docker 部署](#docker-部署)
+- [数据库配置](#数据库配置)
+- [API 接口文档](#api-接口文档)
+- [测试](#测试)
 
-### 投票系统 / Vote
-- 单选/多选投票
-- 一次性投票或每天可投票
-- 每个选项最大投票数量
-- 总共最大投票数量
-- 实时 WebSocket 结果推送
-- 防重复投票（Redis + IP + UA + 设备ID）
-- 截止时间控制
+---
 
-### 安全 / Security
-- Spring Security + JWT 认证
-- Redis 防刷（Bucket4j 限流）
-- IP / 用户 / 设备 限制
-- 服务端校验
+## 技术栈
 
-### 其他 / Other
-- 公开/私密访问权限
-- 随机生成分享ID
-- 匿名支持
-- I18N：中文 + 英文
-- 深色模式
-- 手机端适配
+| 层级 | 技术 |
+|------|------|
+| **前端框架** | Vue 3.5 + TypeScript + Vite 6 |
+| **UI 组件库** | Naive UI 2.40 |
+| **状态管理** | Pinia |
+| **国际化** | Vue I18n（中文 / English） |
+| **后端框架** | Spring Boot 3.5 + Java 21 |
+| **安全认证** | Spring Security + JWT（JJWT 0.12） |
+| **数据层** | Spring Data JPA + Hibernate 6 |
+| **数据库** | H2（开发）/ MySQL / PostgreSQL（生产） |
+| **缓存** | Redis 7 |
+| **限流** | Bucket4j |
+| **实时通信** | WebSocket（STOMP + SockJS） |
+| **Excel 导出** | Apache POI 5.3 |
+| **拖拽排序** | vuedraggable |
+| **部署** | Docker + Nginx |
 
-## 本地开发 / Local Development
+---
 
-### 前置条件 / Prerequisites
-- Java 21+
-- Node.js 18+
-- Redis (可选，本地开发可暂时不启动)
-- Maven 3.9+
+## 项目结构
 
-### 后端启动 / Start Backend
+```
+survey/
+├── frontend/                          # 前端项目
+│   ├── src/
+│   │   ├── api/                       # API 请求封装（Axios）
+│   │   ├── i18n/                      # 国际化语言包（zh-CN / en）
+│   │   ├── layouts/                   # 布局组件（侧边栏 + 顶部导航）
+│   │   ├── router/                    # 路由配置（含路由守卫）
+│   │   ├── stores/                    # Pinia 状态管理（auth / app）
+│   │   ├── types/                     # TypeScript 类型定义
+│   │   └── views/                     # 页面组件
+│   │       ├── auth/                  #   登录 / 注册 / 个人信息
+│   │       ├── survey/                #   问卷相关页面
+│   │       └── vote/                  #   投票相关页面
+│   └── package.json
+├── src/main/java/cn/har01d/survey/
+│   ├── config/                        # 配置类（Security / Redis / WebSocket / CORS）
+│   ├── controller/                    # REST 控制器（Auth / Survey / Vote / File）
+│   ├── dto/                           # 数据传输对象（请求 / 响应）
+│   ├── entity/                        # JPA 实体类
+│   ├── exception/                     # 自定义异常 + 全局异常处理
+│   ├── repository/                    # JPA Repository 接口
+│   ├── security/                      # JWT 过滤器 / Token 提供者 / UserDetails
+│   └── service/                       # 业务逻辑层
+├── src/main/resources/
+│   ├── application.yml                # 主配置文件
+│   ├── application-h2.yml             # H2 数据库配置
+│   ├── application-mysql.yml          # MySQL 配置
+│   ├── application-postgresql.yml     # PostgreSQL 配置
+│   └── i18n/                          # 后端国际化消息
+├── docker-compose.yml                 # Docker 编排（App + PG + Redis + Nginx）
+├── Dockerfile                         # 多阶段构建（前端 + 后端 + 运行时）
+├── nginx.conf                         # Nginx 反向代理 + WebSocket 支持
+└── pom.xml                            # Maven 依赖管理
+```
+
+---
+
+## 功能详细说明
+
+### 1. 用户系统
+
+| 功能 | 说明 |
+|------|------|
+| **用户注册** | 用户名 + 密码 + 昵称注册，密码使用 BCrypt 加密存储 |
+| **用户登录** | 用户名 + 密码登录，返回 JWT Token（有效期 24 小时） |
+| **个人信息** | 查看和编辑昵称、邮箱、头像 |
+| **修改密码** | 验证旧密码后设置新密码 |
+| **角色权限** | 支持 USER / ADMIN 两种角色 |
+
+### 2. 问卷调查
+
+#### 2.1 问卷管理
+
+| 功能 | 说明 |
+|------|------|
+| **创建问卷** | 设置标题、描述、访问权限（公开/私密）、是否匿名、起止时间 |
+| **编辑问卷** | 修改问卷信息、增删改题目和选项，支持拖拽排序 |
+| **发布问卷** | 草稿状态 → 已发布，生成唯一分享链接 |
+| **关闭问卷** | 停止接收新的回复 |
+| **删除问卷** | 删除问卷及其关联数据 |
+| **我的问卷** | 查看自己创建的所有问卷，支持关键字搜索、分页 |
+| **公开问卷** | 浏览所有公开发布的问卷列表 |
+| **问卷模板** | 提供预设模板，快速创建问卷 |
+
+#### 2.2 题型支持
+
+系统支持 **12 种题型**，覆盖常见的数据收集场景：
+
+| 题型 | 说明 |
+|------|------|
+| **单选题** (SINGLE_CHOICE) | 从多个选项中选择一个 |
+| **多选题** (MULTIPLE_CHOICE) | 从多个选项中选择多个 |
+| **填空题** (TEXT) | 单行文本输入 |
+| **文本题** (TEXTAREA) | 多行文本输入 |
+| **数字题** (NUMBER) | 数字输入 |
+| **评分题** (RATING) | 1-5 星评分 |
+| **日期题** (DATE) | 日期选择 |
+| **邮箱** (EMAIL) | 邮箱格式验证 |
+| **网址** (URL) | URL 格式验证 |
+| **手机号码** (PHONE) | 手机号格式验证 |
+| **身份证号** (ID_CARD) | 身份证号格式验证 |
+| **文件上传** (FILE) | 文件上传（最大 10MB） |
+
+每个题目支持：
+- 设置为**必填**或选填
+- 自定义**排序顺序**（拖拽排序）
+- 添加**题目描述**
+
+#### 2.3 问卷填写
+
+- 通过**唯一分享链接**（`/s/{shareId}`）访问，**无需登录**
+- 自动校验必填题、格式验证（邮箱/手机号/身份证等）
+- 提交后记录 IP 地址和用户信息（非匿名问卷）
+
+#### 2.4 数据统计与导出
+
+| 功能 | 说明 |
+|------|------|
+| **回复列表** | 分页查看所有回复详情，包含提交时间、IP、用户信息 |
+| **统计分析** | 按题目统计：单选/多选显示各选项选择比例，填空题汇总所有答案 |
+| **导出 Excel** | 生成 `.xlsx` 文件，包含序号、提交时间、IP、用户、各题答案列 |
+
+### 3. 投票系统
+
+#### 3.1 投票管理
+
+| 功能 | 说明 |
+|------|------|
+| **创建投票** | 设置标题、描述、投票类型、频率、访问权限、匿名、截止时间 |
+| **编辑投票** | 修改投票信息、增删改选项，支持拖拽排序 |
+| **发布投票** | 草稿 → 已发布，生成分享链接 |
+| **关闭投票** | 停止接收新投票 |
+| **删除投票** | 删除投票及关联记录 |
+| **我的投票** | 查看自己创建的投票列表 |
+| **公开投票** | 浏览所有公开投票 |
+
+#### 3.2 投票类型
+
+| 类型 | 说明 |
+|------|------|
+| **单选投票** (SINGLE) | 从多个选项中选择一个 |
+| **多选投票** (MULTIPLE) | 可选择多个选项，支持设置**最多可选项数** (`maxOptions`) |
+| **计分投票** (SCORED) | 每个选项可分配票数，支持**每项最多投票数** (`maxVotesPerOption`) 和**每人总票数** (`maxTotalVotes`) |
+
+#### 3.3 投票频率控制
+
+| 频率 | 说明 |
+|------|------|
+| **仅一次** (ONCE) | 每个用户/IP/设备仅可投票一次 |
+| **每天一次** (DAILY) | 每天可投票一次，基于 Redis 键值 + 日期后缀实现 |
+
+#### 3.4 投票选项
+
+每个选项支持：
+- **标题**（必填）
+- **描述**（选填）
+- **图片 URL**（选填，支持大图展示 + 点击全屏预览）
+- **排序**（拖拽排序）
+
+#### 3.5 防重复投票
+
+采用**多维度防重复**策略：
+
+| 维度 | 说明 |
+|------|------|
+| **用户 ID** | 已登录用户通过用户 ID 判重 |
+| **IP 地址** | 未登录用户通过客户端 IP 判重 |
+| **设备 ID** | 浏览器端生成唯一设备标识，存储在 localStorage |
+| **Redis 缓存** | 使用 Redis 键快速判断是否已投票，回退到数据库查询 |
+
+#### 3.6 实时结果推送
+
+- 使用 **WebSocket（STOMP 协议）** 实现投票结果实时推送
+- 投票提交后，服务端自动向 `/topic/vote/{shareId}` 频道广播最新结果
+- 前端自动更新投票计数和百分比进度条，**无需刷新页面**
+
+### 4. 文件管理
+
+| 功能 | 说明 |
+|------|------|
+| **文件上传** | 支持任意文件上传，最大 10MB，服务端生成唯一文件名 |
+| **文件下载** | 通过文件名下载已上传的文件 |
+| **存储路径** | 可通过 `app.upload.dir` 配置存储目录 |
+
+### 5. 安全与防护
+
+| 功能 | 技术方案 |
+|------|----------|
+| **身份认证** | JWT Token，无状态会话（STATELESS） |
+| **密码加密** | BCrypt 哈希算法 |
+| **接口鉴权** | Spring Security 过滤链 + 路径级权限控制 |
+| **CORS 跨域** | 可配置 `allowed-origins`，支持多域名 |
+| **API 限流** | Bucket4j 令牌桶算法，每分钟 10 次请求限制 |
+| **请求校验** | Bean Validation 参数校验（`@Valid`），全局异常处理 |
+| **防重复投票** | Redis + IP + 用户 ID + 设备 ID 多维度限制 |
+
+#### 公开访问的接口（无需登录）
+
+- 注册、登录
+- 公开问卷/投票列表
+- 通过分享链接填写问卷/投票
+- 文件上传/下载
+- WebSocket 连接
+
+### 6. 前端特性
+
+| 特性 | 说明 |
+|------|------|
+| **响应式布局** | 可折叠侧边栏，适配桌面和移动设备 |
+| **深色模式** | 一键切换深色/浅色主题，基于 Naive UI 主题系统 |
+| **国际化** | 支持中文 / English 切换，前后端均支持 i18n |
+| **拖拽排序** | 题目和选项支持拖拽排序（vuedraggable） |
+| **路由守卫** | 未登录自动跳转登录页，登录后重定向回目标页 |
+| **实时通信** | STOMP over WebSocket，自动重连（5 秒间隔） |
+| **图片预览** | 投票选项图片支持大图展示，点击可全屏查看 |
+| **表单验证** | 前端客户端验证 + 后端服务端校验双重保障 |
+
+---
+
+## 本地开发
+
+### 前置条件
+
+- **Java 21+**
+- **Node.js 18+**
+- **Maven 3.9+**
+- **Redis**（可选，未启动时防刷和投票限制功能不可用）
+
+### 后端启动
+
 ```bash
-# 使用H2数据库（默认），无需额外数据库
+# 默认使用 H2 文件数据库，数据存储在 ./data/survey
 mvn spring-boot:run
 ```
+
 后端运行在 http://localhost:8080
 
-### 前端启动 / Start Frontend
+H2 控制台：http://localhost:8080/h2-console （JDBC URL: `jdbc:h2:file:./data/survey`）
+
+### 前端启动
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-前端运行在 http://localhost:5173 （API请求自动代理到8080）
 
-### 注意 / Notes
-- 本地开发默认使用 H2 数据库，无需安装 MySQL/PostgreSQL
-- Redis 用于防刷和投票限制，如果未启动 Redis，相关功能可能报错
+前端运行在 http://localhost:5173（API 请求自动代理到 8080）
+
+### 注意事项
+
+- 本地开发默认使用 H2 文件数据库，无需安装 MySQL/PostgreSQL
+- Redis 用于投票防刷和限流，如果未启动，相关功能可能报错
 - 首次使用需注册账号
 
-## Docker 部署 / Docker Deployment
+---
+
+## Docker 部署
+
+### 一键启动
 
 ```bash
-# 一键启动（包含 PostgreSQL + Redis + Nginx）
 docker-compose up -d
 ```
 
+包含以下服务：
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| **nginx** | 80 | 反向代理，支持 WebSocket |
+| **app** | 8080 | Spring Boot 应用 |
+| **db** | 5432 | PostgreSQL 16 数据库 |
+| **redis** | 6379 | Redis 7 缓存 |
+
 访问 http://localhost
 
-## API 文档 / API Endpoints
+### Dockerfile 构建流程
 
-### Auth
-- `POST /api/auth/register` - 注册
-- `POST /api/auth/login` - 登录
-- `GET /api/auth/profile` - 获取用户信息
+采用**多阶段构建**，最终镜像仅包含 JRE：
 
-### Survey
-- `POST /api/surveys` - 创建问卷
-- `PUT /api/surveys/{id}` - 更新问卷
-- `GET /api/surveys/{id}` - 获取问卷详情
-- `GET /api/surveys/my` - 我的问卷列表
-- `GET /api/surveys/public` - 公开问卷列表
-- `GET /api/surveys/templates` - 问卷模板
-- `POST /api/surveys/{id}/publish` - 发布问卷
-- `POST /api/surveys/{id}/close` - 关闭问卷
-- `DELETE /api/surveys/{id}` - 删除问卷
-- `GET /api/surveys/s/{shareId}` - 通过分享ID获取问卷
-- `POST /api/surveys/s/{shareId}/submit` - 提交问卷
-- `GET /api/surveys/{id}/responses` - 获取回复列表
-- `GET /api/surveys/{id}/stats` - 统计分析
-- `GET /api/surveys/{id}/export` - 导出Excel
+1. **Stage 1**：Node.js 构建前端（`npm run build`）
+2. **Stage 2**：Maven 编译后端 + 打包前端静态资源到 `resources/static/`
+3. **Stage 3**：`eclipse-temurin:21-jre-alpine` 运行时镜像
 
-### Vote
-- `POST /api/votes` - 创建投票
-- `PUT /api/votes/{id}` - 更新投票
-- `GET /api/votes/{id}` - 获取投票详情
-- `GET /api/votes/my` - 我的投票列表
-- `GET /api/votes/public` - 公开投票列表
-- `POST /api/votes/{id}/publish` - 发布投票
-- `POST /api/votes/{id}/close` - 关闭投票
-- `DELETE /api/votes/{id}` - 删除投票
-- `GET /api/votes/v/{shareId}` - 通过分享ID获取投票
-- `POST /api/votes/v/{shareId}/submit` - 提交投票
+---
+
+## 数据库配置
+
+通过 Spring Profile 切换数据库：
+
+| Profile | 数据库 | 用途 |
+|---------|--------|------|
+| `h2`（默认） | H2 文件数据库 | 本地开发 |
+| `mysql` | MySQL | 生产环境 |
+| `postgresql` | PostgreSQL | Docker 部署 |
+
+切换方式：
+
+```bash
+# MySQL
+mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+
+# PostgreSQL
+mvn spring-boot:run -Dspring-boot.run.profiles=postgresql
+```
+
+---
+
+## API 接口文档
+
+### 用户认证 (Auth)
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/auth/register` | 用户注册 | 否 |
+| POST | `/api/auth/login` | 用户登录 | 否 |
+| GET | `/api/auth/profile` | 获取个人信息 | 否 |
+| PUT | `/api/auth/profile` | 更新个人信息 | 是 |
+
+### 问卷调查 (Survey)
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/surveys` | 创建问卷 | 是 |
+| PUT | `/api/surveys/{id}` | 更新问卷 | 是 |
+| GET | `/api/surveys/{id}` | 获取问卷详情 | 是 |
+| DELETE | `/api/surveys/{id}` | 删除问卷 | 是 |
+| POST | `/api/surveys/{id}/publish` | 发布问卷 | 是 |
+| POST | `/api/surveys/{id}/close` | 关闭问卷 | 是 |
+| GET | `/api/surveys/my` | 我的问卷列表（支持搜索、分页） | 是 |
+| GET | `/api/surveys/templates` | 问卷模板列表 | 是 |
+| GET | `/api/surveys/public` | 公开问卷列表 | 否 |
+| GET | `/api/surveys/s/{shareId}` | 通过分享链接获取问卷 | 否 |
+| POST | `/api/surveys/s/{shareId}/submit` | 提交问卷回复 | 否 |
+| GET | `/api/surveys/{id}/responses` | 获取回复列表（分页） | 是 |
+| GET | `/api/surveys/{id}/stats` | 获取统计分析数据 | 是 |
+| GET | `/api/surveys/{id}/export` | 导出回复为 Excel | 是 |
+
+### 投票 (Vote)
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/votes` | 创建投票 | 是 |
+| PUT | `/api/votes/{id}` | 更新投票 | 是 |
+| GET | `/api/votes/{id}` | 获取投票详情 | 是 |
+| DELETE | `/api/votes/{id}` | 删除投票 | 是 |
+| POST | `/api/votes/{id}/publish` | 发布投票 | 是 |
+| POST | `/api/votes/{id}/close` | 关闭投票 | 是 |
+| GET | `/api/votes/my` | 我的投票列表 | 是 |
+| GET | `/api/votes/public` | 公开投票列表 | 否 |
+| GET | `/api/votes/v/{shareId}` | 通过分享链接获取投票 | 否 |
+| POST | `/api/votes/v/{shareId}/submit` | 提交投票 | 否 |
+
+### 文件 (File)
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/files/upload` | 上传文件 | 否 |
+| GET | `/api/files/{filename}` | 下载文件 | 否 |
 
 ### WebSocket
-- `/ws` - WebSocket 端点
-- `/topic/vote/{shareId}` - 投票实时结果推送
+
+| 端点 | 说明 |
+|------|------|
+| `/ws` | WebSocket STOMP 连接端点（支持 SockJS 回退） |
+| `/topic/vote/{shareId}` | 订阅投票实时结果更新 |
+
+---
+
+## 测试
+
+### 单元测试
+
+```bash
+# 运行所有测试
+mvn test
+```
+
+| 测试类 | 测试数量 | 说明 |
+|--------|----------|------|
+| `AuthServiceTest` | — | 用户认证服务单元测试 |
+| `SurveyServiceTest` | — | 问卷服务单元测试 |
+| `VoteServiceTest` | — | 投票服务单元测试 |
+| `FileServiceTest` | — | 文件服务单元测试 |
+| `RateLimitServiceTest` | — | 限流服务单元测试 |
+| `ExcelExportServiceTest` | — | Excel 导出单元测试 |
+
+### 集成测试
+
+使用 H2 内存数据库 + Mock Redis，无需外部依赖：
+
+```bash
+mvn test -Dtest="cn.har01d.survey.tests.AuthControllerTest,cn.har01d.survey.tests.VoteControllerTest,cn.har01d.survey.tests.SurveyControllerTest,cn.har01d.survey.tests.FileControllerTest"
+```
+
+| 测试类 | 测试数量 | 说明 |
+|--------|----------|------|
+| `AuthControllerTest` | 11 | 注册、登录、个人信息 CRUD |
+| `VoteControllerTest` | 24 | 投票 CRUD、发布/关闭、提交（单选/多选/计分）、权限 |
+| `SurveyControllerTest` | 26 | 问卷 CRUD、发布/关闭、填写、统计、导出、模板、权限 |
+| `FileControllerTest` | 3 | 文件上传、下载、404 |
+| **合计** | **64** | — |
+
+---
+
+## License
+
+MIT
