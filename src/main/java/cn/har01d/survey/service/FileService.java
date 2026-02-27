@@ -14,11 +14,14 @@ import java.util.UUID;
 @Service
 public class FileService {
 
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
+    private final String uploadDir;
+    private final long maxSize;
 
-    @Value("${app.upload.max-size:10485760}")
-    private long maxSize;
+    public FileService(@Value("${app.upload.dir:uploads}") String uploadDir,
+                       @Value("${app.upload.max-size:10485760}") long maxSize) {
+        this.uploadDir = uploadDir;
+        this.maxSize = maxSize;
+    }
 
     public String upload(MultipartFile file) {
         if (file.isEmpty()) {
