@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,12 +40,12 @@ public class RateLimitService {
     }
 
     public void markVotedDaily(String pollId, String identifier) {
-        String key = "vote:daily:" + pollId + ":" + identifier;
+        String key = "vote:daily:" + pollId + ":" + identifier + ":" + LocalDate.now();
         redisTemplate.opsForValue().set(key, "1", Duration.ofDays(1));
     }
 
     public boolean hasVotedDaily(String pollId, String identifier) {
-        String key = "vote:daily:" + pollId + ":" + identifier;
+        String key = "vote:daily:" + pollId + ":" + identifier + ":" + LocalDate.now();
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 }

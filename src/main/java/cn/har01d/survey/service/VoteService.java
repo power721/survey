@@ -167,12 +167,6 @@ public class VoteService {
         if (poll.getStatus() != Survey.SurveyStatus.PUBLISHED) {
             throw new BusinessException("Vote poll is not published");
         }
-        if (poll.getAccessLevel() == Survey.AccessLevel.PRIVATE) {
-            User user = authService.getCurrentUser();
-            if (user == null || !poll.getUser().getId().equals(user.getId())) {
-                throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
-            }
-        }
 
         String ip = getClientIp(request);
         User user = authService.getCurrentUser();
