@@ -23,6 +23,8 @@ public class VotePollCreateRequest {
     private String accessLevel = "PUBLIC";
     private boolean anonymous = true;
     private Integer maxTotalVotes;
+    private Integer maxOptions;
+    private Integer maxVotesPerOption;
     private Instant endTime;
 
     @NotEmpty

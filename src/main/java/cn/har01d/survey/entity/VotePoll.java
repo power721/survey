@@ -54,6 +54,10 @@ public class VotePoll {
 
     private Integer maxTotalVotes;
 
+    private Integer maxOptions;
+
+    private Integer maxVotesPerOption;
+
     private Instant endTime;
 
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -69,7 +73,7 @@ public class VotePoll {
     private Instant updatedAt;
 
     public enum VoteType {
-        SINGLE, MULTIPLE
+        SINGLE, MULTIPLE, SCORED
     }
 
     public enum VoteFrequency {

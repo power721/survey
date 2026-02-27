@@ -74,6 +74,7 @@ export interface QuestionRequest {
   required: boolean
   sortOrder: number
   options: OptionRequest[]
+  _key?: string
 }
 
 export interface OptionRequest {
@@ -146,6 +147,8 @@ export interface VotePollDto {
   accessLevel: string
   anonymous: boolean
   maxTotalVotes: number | null
+  maxOptions: number | null
+  maxVotesPerOption: number | null
   endTime: string | null
   totalVoteCount: number
   options: VoteOptionDto[]
@@ -159,7 +162,6 @@ export interface VoteOptionDto {
   id: number
   content: string
   imageUrl: string
-  maxVotes: number | null
   voteCount: number
   percentage: number
   sortOrder: number
@@ -173,6 +175,8 @@ export interface VotePollCreateRequest {
   accessLevel: string
   anonymous: boolean
   maxTotalVotes: number | null
+  maxOptions: number | null
+  maxVotesPerOption: number | null
   endTime: string | null
   options: VoteOptionRequest[]
 }
@@ -181,12 +185,13 @@ export interface VoteOptionRequest {
   id?: number
   content: string
   imageUrl?: string
-  maxVotes?: number | null
   sortOrder: number
+  _key?: string
 }
 
 export interface VoteSubmitRequest {
-  optionIds: number[]
+  optionIds?: number[]
+  votes?: Record<number, number>
   deviceId?: string
 }
 

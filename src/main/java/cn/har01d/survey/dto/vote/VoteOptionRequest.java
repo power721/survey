@@ -15,6 +15,5 @@ public class VoteOptionRequest {
     @Size(max = 1000)
     private String imageUrl;
 
-    private Integer maxVotes;
     private int sortOrder = 0;
 }

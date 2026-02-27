@@ -5,9 +5,7 @@
         <n-card :title="poll.title">
           <template #header-extra>
             <n-space>
-              <n-tag :type="poll.voteType === 'SINGLE' ? 'info' : 'warning'" size="small">
-                {{ poll.voteType === 'SINGLE' ? t('vote.single') : t('vote.multiple') }}
-              </n-tag>
+              <n-tag :type="voteTypeTagType" size="small">{{ voteTypeLabel }}</n-tag>
               <n-tag size="small" type="success">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-tag>
             </n-space>
           </template>
@@ -21,6 +19,7 @@
           <!-- Voting form -->
           <template v-if="!hasVoted && !voted">
             <n-space vertical size="large" style="margin-bottom: 24px">
+              <!-- SINGLE: radio buttons -->
               <template v-if="poll.voteType === 'SINGLE'">
                 <n-radio-group v-model:value="selectedSingle">
                   <n-space vertical>
@@ -28,26 +27,57 @@
                       <n-space align="center">
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
                         <span>{{ opt.content }}</span>
-                        <n-text v-if="opt.maxVotes" depth="3" style="font-size: 12px">(max: {{ opt.maxVotes }})</n-text>
                       </n-space>
                     </n-radio>
                   </n-space>
                 </n-radio-group>
               </template>
 
-              <template v-else>
+              <!-- MULTIPLE: checkboxes -->
+              <template v-else-if="poll.voteType === 'MULTIPLE'">
                 <n-checkbox-group v-model:value="selectedMultiple">
                   <n-space vertical>
                     <n-checkbox v-for="opt in poll.options" :key="opt.id" :value="opt.id">
                       <n-space align="center">
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
                         <span>{{ opt.content }}</span>
-                        <n-text v-if="opt.maxVotes" depth="3" style="font-size: 12px">(max: {{ opt.maxVotes }})</n-text>
                       </n-space>
                     </n-checkbox>
                   </n-space>
                 </n-checkbox-group>
               </template>
+
+              <!-- SCORED: input-number per option -->
+              <template v-else-if="poll.voteType === 'SCORED'">
+                <div v-for="opt in poll.options" :key="opt.id" style="margin-bottom: 12px">
+                  <n-space align="center" justify="space-between">
+                    <n-space align="center">
+                      <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
+                      <span>{{ opt.content }}</span>
+                    </n-space>
+                    <n-input-number
+                      :value="scoredVotes[opt.id] || 0"
+                      :min="0"
+                      :max="perOptionMax"
+                      size="small"
+                      style="width: 120px"
+                      @update:value="(v: number | null) => setScoredVote(opt.id, v ?? 0)"
+                    />
+                  </n-space>
+                </div>
+              </template>
+            </n-space>
+
+            <n-space vertical align="center" style="margin-bottom: 12px">
+              <n-text v-if="poll.voteType === 'MULTIPLE' && poll.maxOptions" depth="3">
+                {{ t('vote.maxOptions') }}: {{ poll.maxOptions }}
+              </n-text>
+              <n-text v-if="poll.voteType === 'SCORED' && poll.maxTotalVotes" depth="3">
+                {{ t('vote.remainingVotes') }}: {{ remainingVotes }}
+              </n-text>
+              <n-text v-if="poll.voteType === 'SCORED' && poll.maxVotesPerOption" depth="3">
+                {{ t('vote.maxVotesPerOption') }}: {{ poll.maxVotesPerOption }}
+              </n-text>
             </n-space>
 
             <n-button type="primary" block size="large" :loading="submitting" @click="handleVote">
@@ -82,15 +112,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import { voteApi } from '@/api/vote'
 import type { VotePollDto } from '@/types'
 import { Client } from '@stomp/stompjs'
 
-const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 const message = useMessage()
@@ -101,9 +130,45 @@ const poll = ref<VotePollDto | null>(null)
 const voted = ref(false)
 const selectedSingle = ref<number | null>(null)
 const selectedMultiple = ref<number[]>([])
+const scoredVotes = reactive<Record<number, number>>({})
 let stompClient: Client | null = null
 
 const hasVoted = computed(() => poll.value?.hasVoted ?? false)
+
+const voteTypeLabel = computed(() => {
+  if (!poll.value) return ''
+  if (poll.value.voteType === 'SINGLE') return t('vote.single')
+  if (poll.value.voteType === 'MULTIPLE') return t('vote.multiple')
+  return t('vote.scored')
+})
+
+const voteTypeTagType = computed(() => {
+  if (!poll.value) return 'default'
+  if (poll.value.voteType === 'SINGLE') return 'info'
+  if (poll.value.voteType === 'MULTIPLE') return 'warning'
+  return 'success'
+})
+
+const totalScoredVotes = computed(() => {
+  return Object.values(scoredVotes).reduce((sum, v) => sum + (v || 0), 0)
+})
+
+const remainingVotes = computed(() => {
+  if (!poll.value?.maxTotalVotes) return Infinity
+  return poll.value.maxTotalVotes - totalScoredVotes.value
+})
+
+const perOptionMax = computed(() => {
+  return poll.value?.maxVotesPerOption ?? poll.value?.maxTotalVotes ?? 999
+})
+
+function setScoredVote(optionId: number, value: number) {
+  if (!poll.value) return
+  const maxPerOption = poll.value.maxVotesPerOption ?? poll.value.maxTotalVotes ?? 999
+  const currentOther = totalScoredVotes.value - (scoredVotes[optionId] || 0)
+  const maxAllowed = poll.value.maxTotalVotes ? Math.min(maxPerOption, poll.value.maxTotalVotes - currentOther) : maxPerOption
+  scoredVotes[optionId] = Math.max(0, Math.min(value, maxAllowed))
+}
 
 const colors = ['#18a058', '#2080f0', '#f0a020', '#d03050', '#8a2be2', '#ff6347']
 
@@ -163,28 +228,61 @@ function connectWebSocket() {
 async function handleVote() {
   if (!poll.value) return
 
-  const optionIds: number[] = poll.value.voteType === 'SINGLE'
-    ? (selectedSingle.value ? [selectedSingle.value] : [])
-    : selectedMultiple.value
+  if (poll.value.voteType === 'SCORED') {
+    // Scored mode: send votes map
+    const votes: Record<number, number> = {}
+    for (const [k, v] of Object.entries(scoredVotes)) {
+      if (v > 0) votes[Number(k)] = v
+    }
+    if (Object.keys(votes).length === 0) {
+      message.warning(t('survey.options'))
+      return
+    }
 
-  if (optionIds.length === 0) {
-    message.warning(t('survey.options'))
-    return
-  }
+    submitting.value = true
+    try {
+      const res = await voteApi.submit(route.params.shareId as string, {
+        votes,
+        deviceId: getDeviceId(),
+      })
+      poll.value = res.data.data
+      voted.value = true
+      message.success(t('vote.voteSuccess'))
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Error')
+    } finally {
+      submitting.value = false
+    }
+  } else {
+    // SINGLE or MULTIPLE mode
+    const optionIds: number[] = poll.value.voteType === 'SINGLE'
+      ? (selectedSingle.value ? [selectedSingle.value] : [])
+      : selectedMultiple.value
 
-  submitting.value = true
-  try {
-    const res = await voteApi.submit(route.params.shareId as string, {
-      optionIds,
-      deviceId: getDeviceId(),
-    })
-    poll.value = res.data.data
-    voted.value = true
-    message.success(t('vote.voteSuccess'))
-  } catch (e: any) {
-    message.error(e?.response?.data?.message || 'Error')
-  } finally {
-    submitting.value = false
+    if (optionIds.length === 0) {
+      message.warning(t('survey.options'))
+      return
+    }
+
+    if (poll.value.voteType === 'MULTIPLE' && poll.value.maxOptions && optionIds.length > poll.value.maxOptions) {
+      message.warning(`${t('vote.maxOptions')}: ${poll.value.maxOptions}`)
+      return
+    }
+
+    submitting.value = true
+    try {
+      const res = await voteApi.submit(route.params.shareId as string, {
+        optionIds,
+        deviceId: getDeviceId(),
+      })
+      poll.value = res.data.data
+      voted.value = true
+      message.success(t('vote.voteSuccess'))
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || 'Error')
+    } finally {
+      submitting.value = false
+    }
   }
 }
 

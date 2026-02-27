@@ -14,9 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class VoteService {
@@ -57,6 +56,8 @@ public class VoteService {
                 .accessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()))
                 .anonymous(request.isAnonymous())
                 .maxTotalVotes(request.getMaxTotalVotes())
+                .maxOptions(request.getMaxOptions())
+                .maxVotesPerOption(request.getMaxVotesPerOption())
                 .endTime(request.getEndTime())
                 .options(new ArrayList<>())
                 .build();
@@ -67,7 +68,6 @@ public class VoteService {
                     .poll(poll)
                     .content(or.getContent())
                     .imageUrl(or.getImageUrl())
-                    .maxVotes(or.getMaxVotes())
                     .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i)
                     .build();
             poll.getOptions().add(option);
@@ -93,19 +93,52 @@ public class VoteService {
         poll.setAccessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()));
         poll.setAnonymous(request.isAnonymous());
         poll.setMaxTotalVotes(request.getMaxTotalVotes());
+        poll.setMaxOptions(request.getMaxOptions());
+        poll.setMaxVotesPerOption(request.getMaxVotesPerOption());
         poll.setEndTime(request.getEndTime());
 
-        poll.getOptions().clear();
+        // Build map of existing options by ID
+        Map<Long, VoteOption> existingOptionMap = poll.getOptions().stream()
+                .filter(o -> o.getId() != null)
+                .collect(Collectors.toMap(VoteOption::getId, o -> o));
+
+        // Collect IDs of options in the request
+        Set<Long> requestOptionIds = new HashSet<>();
+        for (VoteOptionRequest or : request.getOptions()) {
+            if (or.getId() != null) {
+                requestOptionIds.add(or.getId());
+            }
+        }
+
+        // Delete vote records for removed options to avoid FK constraint violation
+        for (VoteOption existingOption : poll.getOptions()) {
+            if (existingOption.getId() != null && !requestOptionIds.contains(existingOption.getId())) {
+                recordRepository.deleteByOptionId(existingOption.getId());
+            }
+        }
+
+        // Remove deleted options
+        poll.getOptions().removeIf(o -> o.getId() != null && !requestOptionIds.contains(o.getId()));
+
+        // Update existing and add new options
         for (int i = 0; i < request.getOptions().size(); i++) {
             VoteOptionRequest or = request.getOptions().get(i);
-            VoteOption option = VoteOption.builder()
-                    .poll(poll)
-                    .content(or.getContent())
-                    .imageUrl(or.getImageUrl())
-                    .maxVotes(or.getMaxVotes())
-                    .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i)
-                    .build();
-            poll.getOptions().add(option);
+            if (or.getId() != null && existingOptionMap.containsKey(or.getId())) {
+                // Update existing option (preserve voteCount)
+                VoteOption option = existingOptionMap.get(or.getId());
+                option.setContent(or.getContent());
+                option.setImageUrl(or.getImageUrl());
+                option.setSortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i);
+            } else {
+                // New option
+                VoteOption option = VoteOption.builder()
+                        .poll(poll)
+                        .content(or.getContent())
+                        .imageUrl(or.getImageUrl())
+                        .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i)
+                        .build();
+                poll.getOptions().add(option);
+            }
         }
 
         poll = pollRepository.save(poll);
@@ -189,6 +222,7 @@ public class VoteService {
         if (!poll.getUser().getId().equals(user.getId())) {
             throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
         }
+        recordRepository.deleteByPollId(poll.getId());
         pollRepository.delete(poll);
     }
 
@@ -220,17 +254,67 @@ public class VoteService {
             throw new BusinessException("You have already voted");
         }
 
-        // Check total votes
-        if (poll.getMaxTotalVotes() != null && poll.getTotalVoteCount() >= poll.getMaxTotalVotes()) {
-            throw new BusinessException("Maximum total votes reached");
+        // Build per-option vote counts
+        Map<Long, Integer> voteMap;
+        if (poll.getVoteType() == VotePoll.VoteType.SCORED) {
+            voteMap = request.getVotes();
+            if (voteMap == null || voteMap.isEmpty()) {
+                throw new BusinessException("No votes provided");
+            }
+        } else {
+            if (request.getOptionIds() == null || request.getOptionIds().isEmpty()) {
+                throw new BusinessException("No options selected");
+            }
+            voteMap = new HashMap<>();
+            for (Long optionId : request.getOptionIds()) {
+                voteMap.put(optionId, 1);
+            }
         }
 
-        // Validate vote type
-        if (poll.getVoteType() == VotePoll.VoteType.SINGLE && request.getOptionIds().size() != 1) {
+        int totalVotesInRequest = voteMap.values().stream().mapToInt(Integer::intValue).sum();
+
+        // Validate vote type constraints
+        if (poll.getVoteType() == VotePoll.VoteType.SINGLE && voteMap.size() != 1) {
             throw new BusinessException("Single choice vote allows only one option");
         }
+        if (poll.getVoteType() == VotePoll.VoteType.MULTIPLE && poll.getMaxOptions() != null
+                && voteMap.size() > poll.getMaxOptions()) {
+            throw new BusinessException("You can select at most " + poll.getMaxOptions() + " options");
+        }
 
-        for (Long optionId : request.getOptionIds()) {
+        // Validate maxVotesPerOption
+        if (poll.getMaxVotesPerOption() != null) {
+            for (Map.Entry<Long, Integer> entry : voteMap.entrySet()) {
+                if (entry.getValue() > poll.getMaxVotesPerOption()) {
+                    throw new BusinessException("Maximum " + poll.getMaxVotesPerOption() + " votes per option");
+                }
+                if (entry.getValue() < 0) {
+                    throw new BusinessException("Vote count cannot be negative");
+                }
+            }
+        }
+
+        // Check per-user total votes
+        if (poll.getMaxTotalVotes() != null) {
+            long userTotalVotes;
+            if (user != null) {
+                userTotalVotes = recordRepository.countByPollIdAndUserId(poll.getId(), user.getId());
+            } else if (deviceId != null && !deviceId.isBlank()) {
+                userTotalVotes = recordRepository.countByPollIdAndDeviceId(poll.getId(), deviceId);
+            } else {
+                userTotalVotes = recordRepository.countByPollIdAndIp(poll.getId(), ip);
+            }
+            if (userTotalVotes + totalVotesInRequest > poll.getMaxTotalVotes()) {
+                throw new BusinessException("Maximum total votes reached");
+            }
+        }
+
+        // Process votes
+        for (Map.Entry<Long, Integer> entry : voteMap.entrySet()) {
+            Long optionId = entry.getKey();
+            int count = entry.getValue();
+            if (count <= 0) continue;
+
             VoteOption option = optionRepository.findById(optionId)
                     .orElseThrow(() -> new ResourceNotFoundException("Vote option not found"));
 
@@ -238,25 +322,23 @@ public class VoteService {
                 throw new BusinessException("Option does not belong to this poll");
             }
 
-            if (option.getMaxVotes() != null && option.getVoteCount() >= option.getMaxVotes()) {
-                throw new BusinessException("Maximum votes for option '" + option.getContent() + "' reached");
-            }
-
-            option.setVoteCount(option.getVoteCount() + 1);
+            option.setVoteCount(option.getVoteCount() + count);
             optionRepository.save(option);
 
-            VoteRecord record = VoteRecord.builder()
-                    .poll(poll)
-                    .option(option)
-                    .user(user)
-                    .ip(ip)
-                    .userAgent(ua)
-                    .deviceId(deviceId)
-                    .build();
-            recordRepository.save(record);
+            for (int i = 0; i < count; i++) {
+                VoteRecord record = VoteRecord.builder()
+                        .poll(poll)
+                        .option(option)
+                        .user(user)
+                        .ip(ip)
+                        .userAgent(ua)
+                        .deviceId(deviceId)
+                        .build();
+                recordRepository.save(record);
+            }
         }
 
-        poll.setTotalVoteCount(poll.getTotalVoteCount() + 1);
+        poll.setTotalVoteCount(poll.getTotalVoteCount() + totalVotesInRequest);
         poll = pollRepository.save(poll);
 
         // Mark as voted in Redis
@@ -325,6 +407,8 @@ public class VoteService {
         dto.setAccessLevel(poll.getAccessLevel().name());
         dto.setAnonymous(poll.isAnonymous());
         dto.setMaxTotalVotes(poll.getMaxTotalVotes());
+        dto.setMaxOptions(poll.getMaxOptions());
+        dto.setMaxVotesPerOption(poll.getMaxVotesPerOption());
         dto.setEndTime(poll.getEndTime());
         dto.setTotalVoteCount(poll.getTotalVoteCount());
         dto.setCreatorName(poll.getUser().getNickname());
@@ -338,7 +422,6 @@ public class VoteService {
             od.setId(opt.getId());
             od.setContent(opt.getContent());
             od.setImageUrl(opt.getImageUrl());
-            od.setMaxVotes(opt.getMaxVotes());
             od.setVoteCount(opt.getVoteCount());
             od.setPercentage(totalVotes > 0 ? (double) opt.getVoteCount() / totalVotes * 100 : 0);
             od.setSortOrder(opt.getSortOrder());

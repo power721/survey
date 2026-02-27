@@ -14,4 +14,12 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     boolean existsByPollIdAndIpAndCreatedAtAfter(Long pollId, String ip, Instant after);
     List<VoteRecord> findByPollId(Long pollId);
     long countByPollId(Long pollId);
+    long countByPollIdAndUserId(Long pollId, Long userId);
+    long countByPollIdAndIp(Long pollId, String ip);
+    long countByPollIdAndDeviceId(Long pollId, String deviceId);
+    long countByOptionIdAndUserId(Long optionId, Long userId);
+    long countByOptionIdAndIp(Long optionId, String ip);
+    long countByOptionIdAndDeviceId(Long optionId, String deviceId);
+    void deleteByOptionId(Long optionId);
+    void deleteByPollId(Long pollId);
 }

@@ -28,45 +28,47 @@
 
         <n-divider>{{ t('survey.questions') }}</n-divider>
 
-        <n-space vertical size="large">
-          <n-card v-for="(q, qi) in form.questions" :key="qi" size="small" closable @close="removeQuestion(qi)">
-            <template #header>
-              <n-space align="center">
-                <span>{{ t('survey.questions') }} {{ qi + 1 }}</span>
-                <n-tag size="small">{{ t(`survey.types.${q.type}`) }}</n-tag>
-              </n-space>
-            </template>
-            <template #header-extra>
-              <n-button size="tiny" quaternary @click.stop="copyQuestion(qi)">{{ t('survey.copyQuestion') }}</n-button>
-            </template>
-
-            <n-form-item :label="t('survey.questionType')">
-              <n-select v-model:value="q.type" :options="questionTypeOptions" />
-            </n-form-item>
-
-            <n-form-item :label="t('survey.questionTitle')">
-              <n-input v-model:value="q.title" :placeholder="t('survey.questionTitle')" />
-            </n-form-item>
-
-            <n-form-item :label="t('common.required')">
-              <n-switch v-model:value="q.required" />
-            </n-form-item>
-
-            <template v-if="q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE'">
-              <n-form-item :label="t('survey.options')">
-                <n-space vertical style="width: 100%">
-                  <n-input-group v-for="(opt, oi) in q.options" :key="oi">
-                    <n-input v-model:value="opt.content" :placeholder="`${t('survey.options')} ${oi + 1}`" />
-                    <n-button @click="removeOption(qi, oi)" type="error" ghost>✕</n-button>
-                  </n-input-group>
-                  <n-button dashed block @click="addOption(qi)">+ {{ t('survey.addOption') }}</n-button>
+        <draggable v-model="form.questions" item-key="_key" handle=".drag-handle" animation="200">
+          <template #item="{ element: q, index: qi }">
+            <n-card size="small" closable style="margin-bottom: 12px" @close="removeQuestion(qi)">
+              <template #header>
+                <n-space align="center" size="small">
+                  <span class="drag-handle" style="cursor: grab; font-size: 18px; color: #999; user-select: none">&#x2630;</span>
+                  <span>{{ t('survey.questions') }} {{ qi + 1 }}</span>
+                  <n-tag size="small">{{ t(`survey.types.${q.type}`) }}</n-tag>
                 </n-space>
-              </n-form-item>
-            </template>
-          </n-card>
+              </template>
+              <template #header-extra>
+                <n-button size="tiny" quaternary @click.stop="copyQuestion(qi)">{{ t('survey.copyQuestion') }}</n-button>
+              </template>
 
-          <n-button dashed block size="large" @click="addQuestion">+ {{ t('survey.addQuestion') }}</n-button>
-        </n-space>
+              <n-form-item :label="t('survey.questionType')">
+                <n-select v-model:value="q.type" :options="questionTypeOptions" />
+              </n-form-item>
+
+              <n-form-item :label="t('survey.questionTitle')">
+                <n-input v-model:value="q.title" :placeholder="t('survey.questionTitle')" />
+              </n-form-item>
+
+              <n-form-item :label="t('common.required')">
+                <n-switch v-model:value="q.required" />
+              </n-form-item>
+
+              <template v-if="q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE'">
+                <n-form-item :label="t('survey.options')">
+                  <n-space vertical style="width: 100%">
+                    <n-input-group v-for="(opt, oi) in q.options" :key="oi">
+                      <n-input v-model:value="opt.content" :placeholder="`${t('survey.options')} ${oi + 1}`" />
+                      <n-button @click="removeOption(qi, oi)" type="error" ghost>✕</n-button>
+                    </n-input-group>
+                    <n-button dashed block @click="addOption(qi)">+ {{ t('survey.addOption') }}</n-button>
+                  </n-space>
+                </n-form-item>
+              </template>
+            </n-card>
+          </template>
+        </draggable>
+        <n-button dashed block size="large" @click="addQuestion" style="margin-top: 8px">+ {{ t('survey.addQuestion') }}</n-button>
 
         <n-space justify="end" style="margin-top: 24px">
           <n-button @click="router.back()">{{ t('common.cancel') }}</n-button>
@@ -82,6 +84,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
+import draggable from 'vuedraggable'
 import { surveyApi } from '@/api/survey'
 import type { SurveyCreateRequest, QuestionRequest, OptionRequest } from '@/types'
 
@@ -92,8 +95,9 @@ const message = useMessage()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
-
 const endTimeTs = ref<number | null>(null)
+let keySeq = 0
+function nextKey() { return `q_${++keySeq}` }
 
 const form = ref<SurveyCreateRequest>({
   title: '',
@@ -134,6 +138,7 @@ function addQuestion() {
     required: false,
     sortOrder: form.value.questions.length,
     options: [{ content: '', sortOrder: 0 }, { content: '', sortOrder: 1 }],
+    _key: nextKey(),
   })
 }
 
@@ -150,6 +155,7 @@ function copyQuestion(index: number) {
     required: source.required,
     sortOrder: form.value.questions.length,
     options: source.options.map((o) => ({ content: o.content, sortOrder: o.sortOrder })),
+    _key: nextKey(),
   }
   form.value.questions.splice(index + 1, 0, copy)
 }
@@ -184,6 +190,7 @@ async function loadSurvey() {
         required: q.required,
         sortOrder: q.sortOrder,
         options: q.options.map((o) => ({ id: o.id, content: o.content, sortOrder: o.sortOrder })),
+        _key: nextKey(),
       })),
     }
     if (survey.endTime) {

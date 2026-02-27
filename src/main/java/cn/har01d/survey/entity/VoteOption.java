@@ -25,8 +25,6 @@ public class VoteOption {
     @Column(length = 1000)
     private String imageUrl;
 
-    private Integer maxVotes;
-
     private int voteCount = 0;
 
     private int sortOrder = 0;

@@ -37,41 +37,51 @@
 
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
+            <n-form-item :label="t('vote.endTime')">
+              <n-date-picker v-model:value="endTimeTs" type="datetime" clearable style="width: 100%" />
+            </n-form-item>
+          </n-gi>
+          <n-gi v-if="form.voteType === 'MULTIPLE'">
+            <n-form-item :label="t('vote.maxOptions')">
+              <n-input-number v-model:value="form.maxOptions" :min="2" clearable style="width: 100%" />
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+
+        <n-grid v-if="form.voteType === 'SCORED'" :cols="2" :x-gap="16">
+          <n-gi>
             <n-form-item :label="t('vote.maxTotalVotes')">
-              <n-input-number v-model:value="form.maxTotalVotes" :min="0" clearable style="width: 100%" />
+              <n-input-number v-model:value="form.maxTotalVotes" :min="1" clearable style="width: 100%" />
             </n-form-item>
           </n-gi>
           <n-gi>
-            <n-form-item :label="t('vote.endTime')">
-              <n-date-picker v-model:value="endTimeTs" type="datetime" clearable style="width: 100%" />
+            <n-form-item :label="t('vote.maxVotesPerOption')">
+              <n-input-number v-model:value="form.maxVotesPerOption" :min="1" clearable style="width: 100%" />
             </n-form-item>
           </n-gi>
         </n-grid>
 
         <n-divider>{{ t('survey.options') }}</n-divider>
 
-        <n-space vertical style="width: 100%">
-          <n-card v-for="(opt, oi) in form.options" :key="oi" size="small" closable @close="removeOption(oi)">
-            <n-grid :cols="2" :x-gap="12">
-              <n-gi span="2">
-                <n-form-item :label="`${t('survey.options')} ${oi + 1}`">
-                  <n-input v-model:value="opt.content" />
-                </n-form-item>
-              </n-gi>
-              <n-gi>
-                <n-form-item :label="t('vote.maxOptionVotes')">
-                  <n-input-number v-model:value="opt.maxVotes" :min="0" clearable style="width: 100%" />
-                </n-form-item>
-              </n-gi>
-              <n-gi>
-                <n-form-item label="Image URL">
-                  <n-input v-model:value="opt.imageUrl" placeholder="https://..." />
-                </n-form-item>
-              </n-gi>
-            </n-grid>
-          </n-card>
-          <n-button dashed block @click="addOption">+ {{ t('survey.addOption') }}</n-button>
-        </n-space>
+        <draggable v-model="form.options" item-key="_key" handle=".drag-handle" animation="200" style="width: 100%">
+          <template #item="{ element: opt, index: oi }">
+            <n-card size="small" closable style="margin-bottom: 8px" @close="removeOption(oi)">
+              <template #header>
+                <n-space align="center" size="small">
+                  <span class="drag-handle" style="cursor: grab; font-size: 18px; color: #999; user-select: none">&#x2630;</span>
+                  <span>{{ t('survey.options') }} {{ oi + 1 }}</span>
+                </n-space>
+              </template>
+              <n-form-item :label="t('survey.options')" :show-label="false">
+                <n-input v-model:value="opt.content" />
+              </n-form-item>
+              <n-form-item label="Image URL">
+                <n-input v-model:value="opt.imageUrl" placeholder="https://..." />
+              </n-form-item>
+            </n-card>
+          </template>
+        </draggable>
+        <n-button dashed block @click="addOption" style="margin-top: 8px">+ {{ t('survey.addOption') }}</n-button>
 
         <n-space justify="end" style="margin-top: 24px">
           <n-button @click="router.back()">{{ t('common.cancel') }}</n-button>
@@ -87,6 +97,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
+import draggable from 'vuedraggable'
 import { voteApi } from '@/api/vote'
 import type { VotePollCreateRequest } from '@/types'
 
@@ -98,6 +109,8 @@ const message = useMessage()
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
 const endTimeTs = ref<number | null>(null)
+let keySeq = 0
+function nextKey() { return `opt_${++keySeq}` }
 
 const form = ref<VotePollCreateRequest>({
   title: '',
@@ -107,16 +120,19 @@ const form = ref<VotePollCreateRequest>({
   accessLevel: 'PUBLIC',
   anonymous: true,
   maxTotalVotes: null,
+  maxOptions: null,
+  maxVotesPerOption: null,
   endTime: null,
   options: [
-    { content: '', sortOrder: 0 },
-    { content: '', sortOrder: 1 },
+    { content: '', sortOrder: 0, _key: nextKey() },
+    { content: '', sortOrder: 1, _key: nextKey() },
   ],
 })
 
 const voteTypeOptions = [
   { label: t('vote.single'), value: 'SINGLE' },
   { label: t('vote.multiple'), value: 'MULTIPLE' },
+  { label: t('vote.scored'), value: 'SCORED' },
 ]
 
 const frequencyOptions = [
@@ -130,7 +146,7 @@ const accessOptions = [
 ]
 
 function addOption() {
-  form.value.options.push({ content: '', sortOrder: form.value.options.length })
+  form.value.options.push({ content: '', sortOrder: form.value.options.length, _key: nextKey() })
 }
 
 function removeOption(index: number) {
@@ -154,13 +170,15 @@ async function loadPoll() {
       accessLevel: poll.accessLevel,
       anonymous: poll.anonymous,
       maxTotalVotes: poll.maxTotalVotes,
+      maxOptions: poll.maxOptions,
+      maxVotesPerOption: poll.maxVotesPerOption,
       endTime: poll.endTime,
       options: poll.options.map((o) => ({
         id: o.id,
         content: o.content,
         imageUrl: o.imageUrl || '',
-        maxVotes: o.maxVotes,
         sortOrder: o.sortOrder,
+        _key: nextKey(),
       })),
     }
     if (poll.endTime) {

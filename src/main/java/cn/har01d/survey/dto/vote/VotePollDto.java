@@ -17,6 +17,8 @@ public class VotePollDto {
     private String accessLevel;
     private boolean anonymous;
     private Integer maxTotalVotes;
+    private Integer maxOptions;
+    private Integer maxVotesPerOption;
     private Instant endTime;
     private int totalVoteCount;
     private List<VoteOptionDto> options;
