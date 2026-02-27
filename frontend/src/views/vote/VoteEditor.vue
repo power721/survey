@@ -81,6 +81,7 @@
               <n-form-item label="Image URL">
                 <n-input v-model:value="opt.imageUrl" placeholder="https://..." />
               </n-form-item>
+              <img v-if="opt.imageUrl" :src="opt.imageUrl" class="option-image-preview" @click="openPreview(opt.imageUrl)" />
             </n-card>
           </template>
         </draggable>
@@ -92,6 +93,12 @@
         </n-space>
       </n-form>
     </n-card>
+  </div>
+
+  <!-- Fullscreen image preview -->
+  <div v-if="previewImage" class="image-preview-overlay" @click="closePreview">
+    <img :src="previewImage" class="image-preview-full" @click.stop />
+    <span class="image-preview-close" @click="closePreview">&times;</span>
   </div>
 </template>
 
@@ -111,6 +118,15 @@ const message = useMessage()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
+const previewImage = ref<string | null>(null)
+
+function openPreview(url: string) {
+  previewImage.value = url
+}
+
+function closePreview() {
+  previewImage.value = null
+}
 const endTimeTs = ref<number | null>(null)
 let keySeq = 0
 function nextKey() { return `opt_${++keySeq}` }
@@ -224,3 +240,50 @@ async function handleSave() {
 
 onMounted(loadPoll)
 </script>
+
+<style scoped>
+.option-image-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  margin-top: 4px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.option-image-preview:hover {
+  opacity: 0.85;
+}
+
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.image-preview-full {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  cursor: default;
+}
+
+.image-preview-close {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  font-size: 36px;
+  color: #fff;
+  cursor: pointer;
+  line-height: 1;
+  user-select: none;
+}
+</style>
