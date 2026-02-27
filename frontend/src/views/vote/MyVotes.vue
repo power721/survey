@@ -29,7 +29,7 @@
               <n-text depth="3">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-text>
               <n-text depth="3">{{ t('vote.frequency') }}: {{ poll.frequency === 'ONCE' ? t('vote.once') : t('vote.daily') }}</n-text>
               <n-text depth="3" v-if="poll.status === 'PUBLISHED'">
-                {{ t('vote.submitVote') }}: {{ baseUrl }}/v/{{ poll.shareId }}
+                {{ t('vote.submitVote') }}: <a :href="`/v/${poll.shareId}`" target="_blank">{{ baseUrl }}/v/{{ poll.shareId }}</a>
               </n-text>
             </n-space>
           </n-space>
