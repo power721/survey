@@ -33,7 +33,7 @@ public class FileService {
         }
 
         try {
-            Path dir = Paths.get(uploadDir);
+            Path dir = Paths.get(uploadDir).toAbsolutePath();
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
             }
@@ -55,6 +55,6 @@ public class FileService {
     }
 
     public Path getFilePath(String fileName) {
-        return Paths.get(uploadDir).resolve(fileName);
+        return Paths.get(uploadDir).toAbsolutePath().resolve(fileName);
     }
 }
