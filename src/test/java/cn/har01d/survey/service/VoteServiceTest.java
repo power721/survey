@@ -19,9 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -55,6 +54,7 @@ class VoteServiceTest {
     private User otherUser;
     private VotePoll testPoll;
     private VoteOption testOption;
+    private VoteOption testOption2;
 
     @BeforeEach
     void setUp() {
@@ -62,6 +62,7 @@ class VoteServiceTest {
         otherUser = User.builder().id(2L).username("other").nickname("Other").role(User.Role.USER).build();
 
         testOption = VoteOption.builder().id(1L).content("Option A").sortOrder(0).voteCount(0).build();
+        testOption2 = VoteOption.builder().id(2L).content("Option B").sortOrder(1).voteCount(0).build();
         testPoll = VotePoll.builder()
                 .id(1L).shareId("vote123").title("Test Poll").description("desc")
                 .user(testUser).voteType(VotePoll.VoteType.SINGLE)
@@ -69,8 +70,9 @@ class VoteServiceTest {
                 .status(Survey.SurveyStatus.DRAFT)
                 .accessLevel(Survey.AccessLevel.PUBLIC).anonymous(true)
                 .totalVoteCount(0)
-                .options(new ArrayList<>(List.of(testOption))).build();
+                .options(new ArrayList<>(List.of(testOption, testOption2))).build();
         testOption.setPoll(testPoll);
+        testOption2.setPoll(testPoll);
     }
 
     // --- createPoll ---
@@ -339,5 +341,198 @@ class VoteServiceTest {
         request.setOptions(List.of());
 
         assertThrows(BusinessException.class, () -> voteService.updatePoll(1L, request));
+    }
+
+    // --- SCORED vote type ---
+
+    @Test
+    void submitVote_scored_success() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SCORED);
+        testPoll.setMaxVotesPerOption(5);
+        testPoll.setMaxTotalVotes(10);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+        when(recordRepository.countByPollIdAndUserId(1L, 1L)).thenReturn(0L);
+        when(optionRepository.findById(1L)).thenReturn(Optional.of(testOption));
+        when(optionRepository.findById(2L)).thenReturn(Optional.of(testOption2));
+        when(optionRepository.save(any(VoteOption.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(recordRepository.save(any(VoteRecord.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(pollRepository.save(any(VotePoll.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        Map<Long, Integer> votes = new HashMap<>();
+        votes.put(1L, 3);
+        votes.put(2L, 2);
+        request.setVotes(votes);
+
+        VotePollDto dto = voteService.submitVote("vote123", request, httpRequest);
+
+        assertNotNull(dto);
+        assertEquals(3, testOption.getVoteCount());
+        assertEquals(2, testOption2.getVoteCount());
+        assertEquals(5, testPoll.getTotalVoteCount());
+    }
+
+    @Test
+    void submitVote_scored_exceedsMaxVotesPerOption() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SCORED);
+        testPoll.setMaxVotesPerOption(3);
+        testPoll.setMaxTotalVotes(10);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        Map<Long, Integer> votes = new HashMap<>();
+        votes.put(1L, 5); // exceeds maxVotesPerOption=3
+        request.setVotes(votes);
+
+        assertThrows(BusinessException.class, () -> voteService.submitVote("vote123", request, httpRequest));
+    }
+
+    @Test
+    void submitVote_scored_exceedsMaxTotalVotes() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SCORED);
+        testPoll.setMaxVotesPerOption(10);
+        testPoll.setMaxTotalVotes(5);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+        when(recordRepository.countByPollIdAndUserId(1L, 1L)).thenReturn(0L);
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        Map<Long, Integer> votes = new HashMap<>();
+        votes.put(1L, 3);
+        votes.put(2L, 3); // total 6, exceeds maxTotalVotes=5
+        request.setVotes(votes);
+
+        assertThrows(BusinessException.class, () -> voteService.submitVote("vote123", request, httpRequest));
+    }
+
+    @Test
+    void submitVote_scored_emptyVotes() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SCORED);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        request.setVotes(new HashMap<>());
+
+        assertThrows(BusinessException.class, () -> voteService.submitVote("vote123", request, httpRequest));
+    }
+
+    @Test
+    void submitVote_scored_nullVotes() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SCORED);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        request.setVotes(null);
+
+        assertThrows(BusinessException.class, () -> voteService.submitVote("vote123", request, httpRequest));
+    }
+
+    @Test
+    void submitVote_singleChoice_noOptionsSelected() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SINGLE);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        request.setOptionIds(List.of());
+
+        assertThrows(BusinessException.class, () -> voteService.submitVote("vote123", request, httpRequest));
+    }
+
+    @Test
+    void createPoll_withMaxVotesPerOption() {
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(pollRepository.save(any(VotePoll.class))).thenAnswer(inv -> {
+            VotePoll p = inv.getArgument(0);
+            p.setId(1L);
+            return p;
+        });
+
+        VoteOptionRequest vor = new VoteOptionRequest();
+        vor.setContent("Option A");
+
+        VotePollCreateRequest request = new VotePollCreateRequest();
+        request.setTitle("Scored Poll");
+        request.setVoteType("SCORED");
+        request.setFrequency("ONCE");
+        request.setAccessLevel("PUBLIC");
+        request.setMaxVotesPerOption(5);
+        request.setMaxTotalVotes(10);
+        request.setOptions(List.of(vor));
+
+        VotePollDto dto = voteService.createPoll(request);
+
+        assertNotNull(dto);
+        assertEquals("SCORED", dto.getVoteType());
+        assertEquals(5, dto.getMaxVotesPerOption());
+        assertEquals(10, dto.getMaxTotalVotes());
+    }
+
+    @Test
+    void submitVote_scored_negativeVoteCount() {
+        testPoll.setStatus(Survey.SurveyStatus.PUBLISHED);
+        testPoll.setVoteType(VotePoll.VoteType.SCORED);
+        testPoll.setMaxVotesPerOption(5);
+        when(pollRepository.findByShareId("vote123")).thenReturn(Optional.of(testPoll));
+
+        HttpServletRequest httpRequest = mock(HttpServletRequest.class);
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(rateLimitService.isRateLimited(anyString())).thenReturn(false);
+        when(authService.getCurrentUser()).thenReturn(testUser);
+        when(rateLimitService.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(recordRepository.existsByPollIdAndUserId(1L, 1L)).thenReturn(false);
+
+        VoteSubmitRequest request = new VoteSubmitRequest();
+        Map<Long, Integer> votes = new HashMap<>();
+        votes.put(1L, -1);
+        request.setVotes(votes);
+
+        assertThrows(BusinessException.class, () -> voteService.submitVote("vote123", request, httpRequest));
     }
 }
