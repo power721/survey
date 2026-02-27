@@ -1,8 +1,8 @@
 package cn.har01d.survey.dto.auth;
 
-import lombok.Data;
-
 import java.time.Instant;
+
+import lombok.Data;
 
 @Data
 public class UserDto {

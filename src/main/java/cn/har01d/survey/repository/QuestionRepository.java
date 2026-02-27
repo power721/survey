@@ -1,9 +1,10 @@
 package cn.har01d.survey.repository;
 
-import cn.har01d.survey.entity.Question;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import cn.har01d.survey.entity.Question;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findBySurveyIdOrderBySortOrderAsc(Long surveyId);

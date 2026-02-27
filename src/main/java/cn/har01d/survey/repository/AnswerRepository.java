@@ -1,13 +1,13 @@
 package cn.har01d.survey.repository;
 
-import cn.har01d.survey.entity.Answer;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import org.springframework.data.jpa.repository.Modifying;
-
-import java.util.List;
+import cn.har01d.survey.entity.Answer;
 
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
     List<Answer> findByResponseId(Long responseId);

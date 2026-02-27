@@ -1,9 +1,8 @@
 package cn.har01d.survey.dto.survey;
 
-import lombok.Data;
-
 import java.util.List;
-import java.util.Map;
+
+import lombok.Data;
 
 @Data
 public class QuestionStatsDto {

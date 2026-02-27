@@ -1,11 +1,22 @@
 package cn.har01d.survey.controller;
 
-import cn.har01d.survey.dto.ApiResponse;
-import cn.har01d.survey.dto.auth.*;
-import cn.har01d.survey.service.AuthService;
 import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import cn.har01d.survey.dto.ApiResponse;
+import cn.har01d.survey.dto.auth.AuthResponse;
+import cn.har01d.survey.dto.auth.LoginRequest;
+import cn.har01d.survey.dto.auth.RegisterRequest;
+import cn.har01d.survey.dto.auth.UpdateProfileRequest;
+import cn.har01d.survey.dto.auth.UserDto;
+import cn.har01d.survey.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")

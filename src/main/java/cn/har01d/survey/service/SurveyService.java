@@ -1,20 +1,49 @@
 package cn.har01d.survey.service;
 
-import cn.har01d.survey.dto.survey.*;
-import cn.har01d.survey.entity.*;
-import cn.har01d.survey.exception.BusinessException;
-import cn.har01d.survey.exception.ResourceNotFoundException;
-import cn.har01d.survey.repository.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import cn.har01d.survey.dto.survey.AnswerDto;
+import cn.har01d.survey.dto.survey.AnswerRequest;
+import cn.har01d.survey.dto.survey.OptionDto;
+import cn.har01d.survey.dto.survey.OptionRequest;
+import cn.har01d.survey.dto.survey.QuestionDto;
+import cn.har01d.survey.dto.survey.QuestionRequest;
+import cn.har01d.survey.dto.survey.QuestionStatsDto;
+import cn.har01d.survey.dto.survey.SurveyCreateRequest;
+import cn.har01d.survey.dto.survey.SurveyDto;
+import cn.har01d.survey.dto.survey.SurveyResponseDto;
+import cn.har01d.survey.dto.survey.SurveyStatsDto;
+import cn.har01d.survey.dto.survey.SurveySubmitRequest;
+import cn.har01d.survey.entity.Answer;
+import cn.har01d.survey.entity.Question;
+import cn.har01d.survey.entity.QuestionOption;
+import cn.har01d.survey.entity.Survey;
+import cn.har01d.survey.entity.SurveyResponse;
+import cn.har01d.survey.entity.User;
+import cn.har01d.survey.exception.BusinessException;
+import cn.har01d.survey.exception.ResourceNotFoundException;
+import cn.har01d.survey.repository.AnswerRepository;
+import cn.har01d.survey.repository.QuestionOptionRepository;
+import cn.har01d.survey.repository.QuestionRepository;
+import cn.har01d.survey.repository.SurveyRepository;
+import cn.har01d.survey.repository.SurveyResponseRepository;
 
 @Service
 public class SurveyService {

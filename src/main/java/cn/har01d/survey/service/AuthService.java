@@ -1,5 +1,13 @@
 package cn.har01d.survey.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import cn.har01d.survey.dto.auth.AuthResponse;
 import cn.har01d.survey.dto.auth.LoginRequest;
 import cn.har01d.survey.dto.auth.RegisterRequest;
@@ -9,13 +17,6 @@ import cn.har01d.survey.entity.User;
 import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.repository.UserRepository;
 import cn.har01d.survey.security.JwtTokenProvider;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {

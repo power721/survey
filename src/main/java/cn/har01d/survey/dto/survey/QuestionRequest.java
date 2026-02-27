@@ -1,10 +1,11 @@
 package cn.har01d.survey.dto.survey;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
-import java.util.List;
+import lombok.Data;
 
 @Data
 public class QuestionRequest {

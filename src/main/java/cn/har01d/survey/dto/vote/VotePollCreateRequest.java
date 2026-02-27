@@ -1,13 +1,14 @@
 package cn.har01d.survey.dto.vote;
 
+import java.time.Instant;
+import java.util.List;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
-import java.time.Instant;
-import java.util.List;
+import lombok.Data;
 
 @Data
 public class VotePollCreateRequest {

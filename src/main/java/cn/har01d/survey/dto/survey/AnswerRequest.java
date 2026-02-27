@@ -1,9 +1,10 @@
 package cn.har01d.survey.dto.survey;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-
 import java.util.List;
+
+import jakarta.validation.constraints.NotNull;
+
+import lombok.Data;
 
 @Data
 public class AnswerRequest {
