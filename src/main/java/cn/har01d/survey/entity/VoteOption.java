@@ -19,7 +19,10 @@ public class VoteOption {
     @JoinColumn(name = "poll_id", nullable = false)
     private VotePoll poll;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 200)
+    private String title;
+
+    @Column(length = 500)
     private String content;
 
     @Column(length = 1000)

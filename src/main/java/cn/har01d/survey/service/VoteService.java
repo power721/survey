@@ -66,6 +66,7 @@ public class VoteService {
             VoteOptionRequest or = request.getOptions().get(i);
             VoteOption option = VoteOption.builder()
                     .poll(poll)
+                    .title(or.getTitle())
                     .content(or.getContent())
                     .imageUrl(or.getImageUrl())
                     .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i)
@@ -126,6 +127,7 @@ public class VoteService {
             if (or.getId() != null && existingOptionMap.containsKey(or.getId())) {
                 // Update existing option (preserve voteCount)
                 VoteOption option = existingOptionMap.get(or.getId());
+                option.setTitle(or.getTitle());
                 option.setContent(or.getContent());
                 option.setImageUrl(or.getImageUrl());
                 option.setSortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i);
@@ -133,6 +135,7 @@ public class VoteService {
                 // New option
                 VoteOption option = VoteOption.builder()
                         .poll(poll)
+                        .title(or.getTitle())
                         .content(or.getContent())
                         .imageUrl(or.getImageUrl())
                         .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : i)
@@ -420,6 +423,7 @@ public class VoteService {
         List<VoteOptionDto> optionDtos = poll.getOptions().stream().map(opt -> {
             VoteOptionDto od = new VoteOptionDto();
             od.setId(opt.getId());
+            od.setTitle(opt.getTitle());
             od.setContent(opt.getContent());
             od.setImageUrl(opt.getImageUrl());
             od.setVoteCount(opt.getVoteCount());

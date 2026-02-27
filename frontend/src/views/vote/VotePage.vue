@@ -26,7 +26,8 @@
                     <n-radio v-for="opt in poll.options" :key="opt.id" :value="opt.id">
                       <n-space align="center">
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
-                        <span>{{ opt.content }}</span>
+                        <span>{{ opt.title }}</span>
+                        <n-text v-if="opt.content" depth="3" style="font-size: 12px">{{ opt.content }}</n-text>
                       </n-space>
                     </n-radio>
                   </n-space>
@@ -40,7 +41,8 @@
                     <n-checkbox v-for="opt in poll.options" :key="opt.id" :value="opt.id">
                       <n-space align="center">
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
-                        <span>{{ opt.content }}</span>
+                        <span>{{ opt.title }}</span>
+                        <n-text v-if="opt.content" depth="3" style="font-size: 12px">{{ opt.content }}</n-text>
                       </n-space>
                     </n-checkbox>
                   </n-space>
@@ -51,9 +53,12 @@
               <template v-else-if="poll.voteType === 'SCORED'">
                 <div v-for="opt in poll.options" :key="opt.id" style="margin-bottom: 12px">
                   <n-space align="center" justify="space-between">
-                    <n-space align="center">
-                      <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
-                      <span>{{ opt.content }}</span>
+                    <n-space vertical :size="0">
+                      <n-space align="center">
+                        <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
+                        <span>{{ opt.title }}</span>
+                      </n-space>
+                      <n-text v-if="opt.content" depth="3" style="font-size: 12px">{{ opt.content }}</n-text>
                     </n-space>
                     <n-input-number
                       :value="scoredVotes[opt.id] || 0"
@@ -97,7 +102,7 @@
               <n-space justify="space-between" style="margin-bottom: 4px">
                 <n-space align="center">
                   <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 40px; max-height: 30px; border-radius: 2px" />
-                  <span>{{ opt.content }}</span>
+                  <span>{{ opt.title }}</span>
                 </n-space>
                 <span>{{ opt.voteCount }} {{ t('vote.votes') }} ({{ opt.percentage.toFixed(1) }}%)</span>
               </n-space>

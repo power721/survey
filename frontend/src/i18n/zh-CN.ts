@@ -111,6 +111,8 @@ export default {
     maxVotesPerOption: '每项最多投票数',
     maxOptions: '最多可选项数',
     remainingVotes: '剩余票数',
+    optionTitle: '选项标题',
+    optionContent: '选项描述',
     publish: '发布',
     close: '关闭',
     submitVote: '投票',

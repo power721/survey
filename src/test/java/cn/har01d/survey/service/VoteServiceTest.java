@@ -61,8 +61,8 @@ class VoteServiceTest {
         testUser = User.builder().id(1L).username("testuser").nickname("TestNick").role(User.Role.USER).build();
         otherUser = User.builder().id(2L).username("other").nickname("Other").role(User.Role.USER).build();
 
-        testOption = VoteOption.builder().id(1L).content("Option A").sortOrder(0).voteCount(0).build();
-        testOption2 = VoteOption.builder().id(2L).content("Option B").sortOrder(1).voteCount(0).build();
+        testOption = VoteOption.builder().id(1L).title("Option A").sortOrder(0).voteCount(0).build();
+        testOption2 = VoteOption.builder().id(2L).title("Option B").sortOrder(1).voteCount(0).build();
         testPoll = VotePoll.builder()
                 .id(1L).shareId("vote123").title("Test Poll").description("desc")
                 .user(testUser).voteType(VotePoll.VoteType.SINGLE)
@@ -87,7 +87,7 @@ class VoteServiceTest {
         });
 
         VoteOptionRequest vor = new VoteOptionRequest();
-        vor.setContent("Yes");
+        vor.setTitle("Yes");
 
         VotePollCreateRequest request = new VotePollCreateRequest();
         request.setTitle("New Poll");
@@ -317,7 +317,7 @@ class VoteServiceTest {
         when(pollRepository.save(any(VotePoll.class))).thenAnswer(inv -> inv.getArgument(0));
 
         VoteOptionRequest vor = new VoteOptionRequest();
-        vor.setContent("Updated Option");
+        vor.setTitle("Updated Option");
 
         VotePollCreateRequest request = new VotePollCreateRequest();
         request.setTitle("Updated Poll");
@@ -495,7 +495,7 @@ class VoteServiceTest {
         });
 
         VoteOptionRequest vor = new VoteOptionRequest();
-        vor.setContent("Option A");
+        vor.setTitle("Option A");
 
         VotePollCreateRequest request = new VotePollCreateRequest();
         request.setTitle("Scored Poll");

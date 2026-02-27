@@ -160,6 +160,7 @@ export interface VotePollDto {
 
 export interface VoteOptionDto {
   id: number
+  title: string
   content: string
   imageUrl: string
   voteCount: number
@@ -183,7 +184,8 @@ export interface VotePollCreateRequest {
 
 export interface VoteOptionRequest {
   id?: number
-  content: string
+  title: string
+  content?: string
   imageUrl?: string
   sortOrder: number
   _key?: string

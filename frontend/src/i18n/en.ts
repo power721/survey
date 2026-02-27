@@ -111,6 +111,8 @@ export default {
     maxVotesPerOption: 'Max Votes Per Option',
     maxOptions: 'Max Options To Select',
     remainingVotes: 'Remaining Votes',
+    optionTitle: 'Option Title',
+    optionContent: 'Option Description',
     publish: 'Publish',
     close: 'Close',
     submitVote: 'Vote',

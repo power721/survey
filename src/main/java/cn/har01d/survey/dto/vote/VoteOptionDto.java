@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class VoteOptionDto {
     private Long id;
+    private String title;
     private String content;
     private String imageUrl;
     private int voteCount;

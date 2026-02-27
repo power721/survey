@@ -9,6 +9,9 @@ public class VoteOptionRequest {
     private Long id;
 
     @NotBlank
+    @Size(max = 200)
+    private String title;
+
     @Size(max = 500)
     private String content;
 

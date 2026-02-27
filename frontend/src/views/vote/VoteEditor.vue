@@ -72,8 +72,11 @@
                   <span>{{ t('survey.options') }} {{ oi + 1 }}</span>
                 </n-space>
               </template>
-              <n-form-item :label="t('survey.options')" :show-label="false">
-                <n-input v-model:value="opt.content" />
+              <n-form-item :label="t('vote.optionTitle')" required>
+                <n-input v-model:value="opt.title" :placeholder="t('vote.optionTitle')" />
+              </n-form-item>
+              <n-form-item :label="t('vote.optionContent')">
+                <n-input v-model:value="opt.content" type="textarea" :rows="2" :placeholder="t('vote.optionContent')" />
               </n-form-item>
               <n-form-item label="Image URL">
                 <n-input v-model:value="opt.imageUrl" placeholder="https://..." />
@@ -124,8 +127,8 @@ const form = ref<VotePollCreateRequest>({
   maxVotesPerOption: null,
   endTime: null,
   options: [
-    { content: '', sortOrder: 0, _key: nextKey() },
-    { content: '', sortOrder: 1, _key: nextKey() },
+    { title: '', sortOrder: 0, _key: nextKey() },
+    { title: '', sortOrder: 1, _key: nextKey() },
   ],
 })
 
@@ -146,7 +149,7 @@ const accessOptions = [
 ]
 
 function addOption() {
-  form.value.options.push({ content: '', sortOrder: form.value.options.length, _key: nextKey() })
+  form.value.options.push({ title: '', sortOrder: form.value.options.length, _key: nextKey() })
 }
 
 function removeOption(index: number) {
@@ -175,7 +178,8 @@ async function loadPoll() {
       endTime: poll.endTime,
       options: poll.options.map((o) => ({
         id: o.id,
-        content: o.content,
+        title: o.title,
+        content: o.content || '',
         imageUrl: o.imageUrl || '',
         sortOrder: o.sortOrder,
         _key: nextKey(),
@@ -195,8 +199,8 @@ async function handleSave() {
     message.warning(t('vote.voteTitle'))
     return
   }
-  if (form.value.options.some((o) => !o.content.trim())) {
-    message.warning(t('survey.options'))
+  if (form.value.options.some((o) => !o.title.trim())) {
+    message.warning(t('vote.optionTitle'))
     return
   }
 
