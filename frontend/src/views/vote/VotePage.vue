@@ -36,9 +36,10 @@
 
               <!-- MULTIPLE: checkboxes -->
               <template v-else-if="poll.voteType === 'MULTIPLE'">
-                <n-checkbox-group v-model:value="selectedMultiple">
+                <n-checkbox-group :value="selectedMultiple" @update:value="onMultipleChange">
                   <n-space vertical>
-                    <n-checkbox v-for="opt in poll.options" :key="opt.id" :value="opt.id">
+                    <n-checkbox v-for="opt in poll.options" :key="opt.id" :value="opt.id"
+                      :disabled="multipleReachedMax && !selectedMultiple.includes(opt.id)">
                       <n-space align="center">
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" style="max-width: 100px; max-height: 60px; border-radius: 4px" />
                         <span>{{ opt.title }}</span>
@@ -153,6 +154,19 @@ const voteTypeTagType = computed(() => {
   if (poll.value.voteType === 'MULTIPLE') return 'warning'
   return 'success'
 })
+
+const multipleReachedMax = computed(() => {
+  if (!poll.value?.maxOptions) return false
+  return selectedMultiple.value.length >= poll.value.maxOptions
+})
+
+function onMultipleChange(values: number[]) {
+  if (poll.value?.maxOptions && values.length > poll.value.maxOptions) {
+    message.warning(`${t('vote.maxOptions')}: ${poll.value.maxOptions}`)
+    return
+  }
+  selectedMultiple.value = values
+}
 
 const totalScoredVotes = computed(() => {
   return Object.values(scoredVotes).reduce((sum, v) => sum + (v || 0), 0)
