@@ -1,0 +1,25 @@
+package cn.har01d.survey.dto.survey;
+
+import lombok.Data;
+
+import java.time.Instant;
+import java.util.List;
+
+@Data
+public class SurveyDto {
+    private Long id;
+    private String shareId;
+    private String title;
+    private String description;
+    private String status;
+    private String accessLevel;
+    private boolean anonymous;
+    private boolean template;
+    private Instant startTime;
+    private Instant endTime;
+    private int responseCount;
+    private List<QuestionDto> questions;
+    private String creatorName;
+    private Instant createdAt;
+    private Instant updatedAt;
+}

@@ -1,0 +1,47 @@
+package cn.har01d.survey.controller;
+
+import cn.har01d.survey.dto.ApiResponse;
+import cn.har01d.survey.service.FileService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/files")
+public class FileController {
+
+    private final FileService fileService;
+
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponse<Map<String, String>>> upload(@RequestParam("file") MultipartFile file) {
+        String url = fileService.upload(file);
+        String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
+        return ResponseEntity.ok(ApiResponse.ok("File uploaded", Map.of("url", url, "name", originalName)));
+    }
+
+    @GetMapping("/{fileName}")
+    public ResponseEntity<Resource> download(@PathVariable String fileName) throws MalformedURLException {
+        Path filePath = fileService.getFilePath(fileName);
+        Resource resource = new UrlResource(filePath.toUri());
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(resource);
+    }
+}

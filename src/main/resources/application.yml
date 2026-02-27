@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: h2
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+
+app:
+  upload:
+    dir: uploads
+    max-size: 10485760
+  jwt:
+    secret: "YTJkNGY2ZjgtYzRiMC00YTg3LWE3ZmEtMjc2YzhhZTkwMDFhCg=="
+    expiration-ms: 86400000
+  cors:
+    allowed-origins: "http://localhost:5173"
