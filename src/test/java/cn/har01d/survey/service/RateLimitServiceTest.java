@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -91,21 +92,21 @@ class RateLimitServiceTest {
 
         rateLimitService.markVotedDaily("1", "user:1");
 
-        verify(valueOperations).set("vote:daily:1:user:1", "1", Duration.ofDays(1));
+        verify(valueOperations).set("vote:daily:1:user:1:" + LocalDate.now(), "1", Duration.ofDays(1));
     }
 
     // --- hasVotedDaily ---
 
     @Test
     void hasVotedDaily_true() {
-        when(redisTemplate.hasKey("vote:daily:1:user:1")).thenReturn(true);
+        when(redisTemplate.hasKey("vote:daily:1:user:1:" + LocalDate.now())).thenReturn(true);
 
         assertTrue(rateLimitService.hasVotedDaily("1", "user:1"));
     }
 
     @Test
     void hasVotedDaily_false() {
-        when(redisTemplate.hasKey("vote:daily:1:user:1")).thenReturn(false);
+        when(redisTemplate.hasKey("vote:daily:1:user:1:" + LocalDate.now())).thenReturn(false);
 
         assertFalse(rateLimitService.hasVotedDaily("1", "user:1"));
     }

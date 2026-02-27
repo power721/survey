@@ -39,3 +39,6 @@ build/
 
 frontend/node_modules/
 *.db
+
+test-uploads/
+uploads/
