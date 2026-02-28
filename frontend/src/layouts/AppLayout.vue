@@ -120,11 +120,17 @@ function handleMenuSelect(key: string) {
 }
 
 const langOptions = [
-  { label: '中文', key: 'zh-CN' },
+  { label: '简体中文', key: 'zh-CN' },
+  { label: '繁體中文', key: 'zh-TW' },
   { label: 'English', key: 'en' },
+  { label: '日本語', key: 'ja' },
+  { label: '한국어', key: 'ko' },
 ]
 
-const currentLangLabel = computed(() => locale.value === 'zh-CN' ? '中文' : 'EN')
+const langLabelMap: Record<string, string> = {
+  'zh-CN': '简中', 'zh-TW': '繁中', 'en': 'EN', 'ja': 'JA', 'ko': 'KO',
+}
+const currentLangLabel = computed(() => langLabelMap[locale.value] || 'EN')
 
 function handleLangSelect(key: string) {
   locale.value = key
