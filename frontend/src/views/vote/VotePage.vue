@@ -6,6 +6,7 @@
           <template #header-extra>
             <n-space>
               <n-tag :type="voteTypeTagType" size="small">{{ voteTypeLabel }}</n-tag>
+              <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
               <n-tag size="small" type="success">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-tag>
             </n-space>
           </template>

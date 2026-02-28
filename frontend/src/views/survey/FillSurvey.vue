@@ -49,9 +49,7 @@
       <template v-else-if="survey">
         <n-card :title="survey.title">
           <template #header-extra>
-            <n-tag :type="survey.anonymous ? 'info' : 'warning'" size="small">
-              {{ survey.anonymous ? t('survey.anonymous') : '' }}
-            </n-tag>
+            <n-tag v-if="survey.anonymous" type="info" size="small">{{ t('survey.anonymous') }}</n-tag>
           </template>
           <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
 
