@@ -82,6 +82,8 @@ export default {
     loginRequired: 'You need to log in to fill out non-anonymous surveys',
     alreadySubmitted: 'Submitted',
     viewMyResponse: 'You have already submitted this survey. Below is your response.',
+    allowUpdate: 'Allow Update Response',
+    updateResponse: 'Update Response',
     types: {
       SINGLE_CHOICE: 'Single Choice',
       MULTIPLE_CHOICE: 'Multiple Choice',

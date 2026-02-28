@@ -9,7 +9,7 @@
         </n-result>
       </template>
 
-      <template v-else-if="myResponse && survey">
+      <template v-else-if="myResponse && survey && !editing">
         <n-card :title="survey.title">
           <template #header-extra>
             <n-tag type="success" size="small">{{ t('survey.alreadySubmitted') }}</n-tag>
@@ -41,6 +41,7 @@
           </div>
 
           <n-space justify="center" style="margin-top: 24px">
+            <n-button v-if="survey.allowUpdate" type="primary" @click="startEditing">{{ t('survey.updateResponse') }}</n-button>
             <n-button @click="router.push('/')">{{ t('common.home') }}</n-button>
           </n-space>
         </n-card>
@@ -150,6 +151,7 @@ const authStore = useAuthStore()
 const loading = ref(true)
 const submitting = ref(false)
 const submitted = ref(false)
+const editing = ref(false)
 const survey = ref<SurveyDto | null>(null)
 const myResponse = ref<SurveyResponseDto | null>(null)
 
@@ -179,6 +181,29 @@ function getPlaceholder(type: string): string {
     ID_CARD: t('survey.types.ID_CARD'),
   }
   return map[type] || ''
+}
+
+function startEditing() {
+  if (!survey.value || !myResponse.value) return
+  for (const answer of myResponse.value.answers) {
+    const a = answers[answer.questionId]
+    if (!a) continue
+    if (answer.selectedOptionId) {
+      a.selectedOptionId = answer.selectedOptionId
+    }
+    if (answer.selectedOptionIds && answer.selectedOptionIds.length > 0) {
+      a.selectedOptionIds = [...answer.selectedOptionIds]
+    }
+    if (answer.textValue) {
+      const question = survey.value.questions.find(q => q.id === answer.questionId)
+      if (question && ['NUMBER', 'RATING'].includes(question.type)) {
+        a.numberValue = Number(answer.textValue)
+      } else {
+        a.textValue = answer.textValue
+      }
+    }
+  }
+  editing.value = true
 }
 
 async function loadSurvey() {

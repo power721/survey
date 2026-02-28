@@ -30,6 +30,7 @@ export interface SurveyDto {
   accessLevel: string
   anonymous: boolean
   template: boolean
+  allowUpdate: boolean
   startTime: string | null
   endTime: string | null
   responseCount: number
@@ -61,6 +62,7 @@ export interface SurveyCreateRequest {
   accessLevel: string
   anonymous: boolean
   template: boolean
+  allowUpdate: boolean
   startTime: string | null
   endTime: string | null
   questions: QuestionRequest[]

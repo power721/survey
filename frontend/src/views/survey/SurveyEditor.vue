@@ -9,7 +9,7 @@
           <n-input v-model:value="form.description" type="textarea" :rows="3" :placeholder="t('survey.description')" />
         </n-form-item>
 
-        <n-grid :cols="2" :x-gap="16">
+        <n-grid :cols="3" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('survey.accessLevel')">
               <n-select v-model:value="form.accessLevel" :options="accessOptions" />
@@ -18,6 +18,11 @@
           <n-gi>
             <n-form-item :label="t('survey.anonymous')">
               <n-switch v-model:value="form.anonymous" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item :label="t('survey.allowUpdate')">
+              <n-switch v-model:value="form.allowUpdate" />
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -105,6 +110,7 @@ const form = ref<SurveyCreateRequest>({
   accessLevel: 'PUBLIC',
   anonymous: true,
   template: false,
+  allowUpdate: false,
   startTime: null,
   endTime: null,
   questions: [],
@@ -180,6 +186,7 @@ async function loadSurvey() {
       accessLevel: survey.accessLevel,
       anonymous: survey.anonymous,
       template: survey.template,
+      allowUpdate: survey.allowUpdate,
       startTime: survey.startTime,
       endTime: survey.endTime,
       questions: survey.questions.map((q) => ({

@@ -21,6 +21,7 @@ public class SurveyCreateRequest {
     private String accessLevel = "PUBLIC";
     private boolean anonymous = true;
     private boolean template = false;
+    private boolean allowUpdate = false;
     private Instant startTime;
     private Instant endTime;
 

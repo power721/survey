@@ -82,6 +82,8 @@ export default {
     loginRequired: '非匿名問卷需要登入後才能填寫',
     alreadySubmitted: '已提交',
     viewMyResponse: '您已提交過此問卷，以下是您的回覆內容。',
+    allowUpdate: '允許更新回覆',
+    updateResponse: '更新回覆',
     types: {
       SINGLE_CHOICE: '單選',
       MULTIPLE_CHOICE: '多選',

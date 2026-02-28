@@ -15,6 +15,7 @@ public class SurveyDto {
     private String accessLevel;
     private boolean anonymous;
     private boolean template;
+    private boolean allowUpdate;
     private Instant startTime;
     private Instant endTime;
     private int responseCount;

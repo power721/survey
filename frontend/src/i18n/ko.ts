@@ -82,6 +82,8 @@ export default {
     loginRequired: '비익명 설문은 로그인 후 작성할 수 있습니다',
     alreadySubmitted: '제출 완료',
     viewMyResponse: '이미 이 설문에 응답하셨습니다. 아래는 귀하의 응답 내용입니다.',
+    allowUpdate: '응답 수정 허용',
+    updateResponse: '응답 수정',
     types: {
       SINGLE_CHOICE: '단일 선택',
       MULTIPLE_CHOICE: '다중 선택',

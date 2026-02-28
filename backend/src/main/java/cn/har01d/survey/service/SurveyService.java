@@ -82,6 +82,7 @@ public class SurveyService {
                 .accessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()))
                 .anonymous(request.isAnonymous())
                 .template(request.isTemplate())
+                .allowUpdate(request.isAllowUpdate())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .questions(new ArrayList<>())
@@ -134,6 +135,7 @@ public class SurveyService {
         survey.setAccessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()));
         survey.setAnonymous(request.isAnonymous());
         survey.setTemplate(request.isTemplate());
+        survey.setAllowUpdate(request.isAllowUpdate());
         survey.setStartTime(request.getStartTime());
         survey.setEndTime(request.getEndTime());
 
@@ -337,13 +339,29 @@ public class SurveyService {
         }
         String ip = getClientIp(httpRequest);
 
-        SurveyResponse response = SurveyResponse.builder()
-                .survey(survey)
-                .user(user)
-                .ip(ip)
-                .userAgent(httpRequest.getHeader("User-Agent"))
-                .answers(new ArrayList<>())
-                .build();
+        boolean isUpdate = false;
+        SurveyResponse response = null;
+
+        if (survey.isAllowUpdate() && user != null) {
+            response = responseRepository.findFirstBySurveyIdAndUserIdOrderByCreatedAtDesc(survey.getId(), user.getId())
+                    .orElse(null);
+            if (response != null) {
+                isUpdate = true;
+                response.getAnswers().clear();
+                response.setIp(ip);
+                response.setUserAgent(httpRequest.getHeader("User-Agent"));
+            }
+        }
+
+        if (response == null) {
+            response = SurveyResponse.builder()
+                    .survey(survey)
+                    .user(user)
+                    .ip(ip)
+                    .userAgent(httpRequest.getHeader("User-Agent"))
+                    .answers(new ArrayList<>())
+                    .build();
+        }
 
         Map<Long, Question> questionMap = survey.getQuestions().stream()
                 .collect(Collectors.toMap(Question::getId, q -> q));
@@ -377,7 +395,9 @@ public class SurveyService {
             response.getAnswers().add(answer);
         }
 
-        survey.setResponseCount(survey.getResponseCount() + 1);
+        if (!isUpdate) {
+            survey.setResponseCount(survey.getResponseCount() + 1);
+        }
         surveyRepository.save(survey);
         response = responseRepository.save(response);
         return toResponseDto(response, survey.isAnonymous());
@@ -519,6 +539,7 @@ public class SurveyService {
         dto.setAccessLevel(survey.getAccessLevel().name());
         dto.setAnonymous(survey.isAnonymous());
         dto.setTemplate(survey.isTemplate());
+        dto.setAllowUpdate(survey.isAllowUpdate());
         dto.setStartTime(survey.getStartTime());
         dto.setEndTime(survey.getEndTime());
         dto.setResponseCount(survey.getResponseCount());

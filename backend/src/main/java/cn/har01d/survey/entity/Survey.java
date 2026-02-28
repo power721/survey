@@ -65,6 +65,8 @@ public class Survey {
 
     private boolean template = false;
 
+    private boolean allowUpdate = false;
+
     private Instant startTime;
 
     private Instant endTime;

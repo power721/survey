@@ -82,6 +82,8 @@ export default {
     loginRequired: '非匿名アンケートにはログインが必要です',
     alreadySubmitted: '送信済み',
     viewMyResponse: 'このアンケートは既に回答済みです。以下があなたの回答内容です。',
+    allowUpdate: '回答の更新を許可',
+    updateResponse: '回答を更新',
     types: {
       SINGLE_CHOICE: '単一選択',
       MULTIPLE_CHOICE: '複数選択',
