@@ -26,10 +26,10 @@ public class FileService {
 
     public String upload(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new BusinessException("File is empty");
+            throw new BusinessException("file.empty");
         }
         if (file.getSize() > maxSize) {
-            throw new BusinessException("File size exceeds limit");
+            throw new BusinessException("file.size.exceeded");
         }
 
         try {
@@ -50,7 +50,7 @@ public class FileService {
 
             return "/api/files/" + fileName;
         } catch (IOException e) {
-            throw new BusinessException("File upload failed: " + e.getMessage());
+            throw new BusinessException("file.upload.failed");
         }
     }
 

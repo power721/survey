@@ -53,11 +53,11 @@ public class ExcelExportService {
     @Transactional(readOnly = true)
     public void exportSurveyResponses(Long surveyId, HttpServletResponse response) throws IOException {
         Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
 
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
 
         List<SurveyResponse> responses = responseRepository.findBySurveyId(surveyId);

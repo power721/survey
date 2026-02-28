@@ -45,7 +45,7 @@ class FileServiceTest {
         when(file.isEmpty()).thenReturn(true);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> fileService.upload(file));
-        assertEquals("File is empty", ex.getMessage());
+        assertEquals("file.empty", ex.getMessage());
     }
 
     @Test
@@ -55,7 +55,7 @@ class FileServiceTest {
         when(file.getSize()).thenReturn(20_000_000L);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> fileService.upload(file));
-        assertEquals("File size exceeds limit", ex.getMessage());
+        assertEquals("file.size.exceeded", ex.getMessage());
     }
 
     @Test

@@ -1,7 +1,7 @@
 <template>
   <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh">
     <n-card :title="t('auth.registerTitle')" style="max-width: 420px; width: 100%">
-      <n-form ref="formRef" :model="form" :rules="rules" label-placement="left" label-width="auto">
+      <n-form ref="formRef" :key="locale" :model="form" :rules="rules" label-placement="left" label-width="auto">
         <n-form-item :label="t('auth.username')" path="username">
           <n-input v-model:value="form.username" :placeholder="t('auth.username')" />
         </n-form-item>
@@ -37,7 +37,7 @@ import { useMessage, type FormInst } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
 

@@ -70,7 +70,7 @@ public class SurveyService {
     public SurveyDto createSurvey(SurveyCreateRequest request) {
         User user = authService.getCurrentUser();
         if (user == null) {
-            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
         Survey survey = Survey.builder()
@@ -122,11 +122,11 @@ public class SurveyService {
     @Transactional
     public SurveyDto updateSurvey(Long id, SurveyCreateRequest request) {
         Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
 
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
 
         survey.setTitle(request.getTitle());
@@ -240,10 +240,10 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyDto getSurveyById(Long id) {
         Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
         return toDto(survey);
     }
@@ -251,13 +251,13 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyDto getSurveyByShareId(String shareId) {
         Survey survey = surveyRepository.findByShareId(shareId)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
 
         if (survey.getStatus() != Survey.SurveyStatus.PUBLISHED) {
-            throw new BusinessException("Survey is not published");
+            throw new BusinessException("survey.not.published");
         }
         if (survey.getEndTime() != null && survey.getEndTime().isBefore(Instant.now())) {
-            throw new BusinessException("Survey is closed");
+            throw new BusinessException("survey.closed");
         }
         return toDto(survey);
     }
@@ -285,10 +285,10 @@ public class SurveyService {
     @Transactional
     public SurveyDto publishSurvey(Long id) {
         Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
         survey.setStatus(Survey.SurveyStatus.PUBLISHED);
         return toDto(surveyRepository.save(survey));
@@ -297,10 +297,10 @@ public class SurveyService {
     @Transactional
     public SurveyDto closeSurvey(Long id) {
         Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
         survey.setStatus(Survey.SurveyStatus.CLOSED);
         return toDto(surveyRepository.save(survey));
@@ -309,10 +309,10 @@ public class SurveyService {
     @Transactional
     public void deleteSurvey(Long id) {
         Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
         answerRepository.deleteBySurveyId(survey.getId());
         responseRepository.deleteBySurveyId(survey.getId());
@@ -322,18 +322,18 @@ public class SurveyService {
     @Transactional
     public SurveyResponseDto submitSurvey(String shareId, SurveySubmitRequest request, HttpServletRequest httpRequest) {
         Survey survey = surveyRepository.findByShareId(shareId)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
 
         if (survey.getStatus() != Survey.SurveyStatus.PUBLISHED) {
-            throw new BusinessException("Survey is not published");
+            throw new BusinessException("survey.not.published");
         }
         if (survey.getEndTime() != null && survey.getEndTime().isBefore(Instant.now())) {
-            throw new BusinessException("Survey is closed");
+            throw new BusinessException("survey.closed");
         }
 
         User user = authService.getCurrentUser();
         if (!survey.isAnonymous() && user == null) {
-            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
         String ip = getClientIp(httpRequest);
 
@@ -386,7 +386,7 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyResponseDto getMyResponse(String shareId) {
         Survey survey = surveyRepository.findByShareId(shareId)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
 
         User user = authService.getCurrentUser();
         if (user == null) {
@@ -401,10 +401,10 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public Page<SurveyResponseDto> getResponses(Long surveyId, Pageable pageable) {
         Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
         boolean anonymous = survey.isAnonymous();
         return responseRepository.findBySurveyId(surveyId, pageable).map(r -> toResponseDto(r, anonymous));
@@ -413,10 +413,10 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyStatsDto getStatistics(Long surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("survey.not.found"));
         User user = authService.getCurrentUser();
         if (!survey.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
 
         SurveyStatsDto stats = new SurveyStatsDto();

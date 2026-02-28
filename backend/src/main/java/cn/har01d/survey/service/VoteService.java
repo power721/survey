@@ -68,7 +68,7 @@ public class VoteService {
     public VotePollDto createPoll(VotePollCreateRequest request) {
         User user = authService.getCurrentUser();
         if (user == null) {
-            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
         VotePoll poll = VotePoll.builder()
@@ -108,10 +108,10 @@ public class VoteService {
     @Transactional
     public VotePollDto updatePoll(Long id, VotePollCreateRequest request) {
         VotePoll poll = pollRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
         User user = authService.getCurrentUser();
         if (!poll.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
         }
 
         poll.setTitle(request.getTitle());
@@ -179,10 +179,10 @@ public class VoteService {
     @Transactional(readOnly = true)
     public VotePollDto getPollById(Long id) {
         VotePoll poll = pollRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
         User user = authService.getCurrentUser();
         if (!poll.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
         }
         return toDto(poll, null);
     }
@@ -190,10 +190,10 @@ public class VoteService {
     @Transactional(readOnly = true)
     public VotePollDto getPollByShareId(String shareId, HttpServletRequest request) {
         VotePoll poll = pollRepository.findByShareId(shareId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
 
         if (poll.getStatus() != Survey.SurveyStatus.PUBLISHED) {
-            throw new BusinessException("Vote poll is not published");
+            throw new BusinessException("vote.not.published");
         }
 
         String ip = getClientIp(request);
@@ -218,10 +218,10 @@ public class VoteService {
     @Transactional
     public VotePollDto publishPoll(Long id) {
         VotePoll poll = pollRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
         User user = authService.getCurrentUser();
         if (!poll.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
         }
         poll.setStatus(Survey.SurveyStatus.PUBLISHED);
         return toDto(pollRepository.save(poll), null);
@@ -230,10 +230,10 @@ public class VoteService {
     @Transactional
     public VotePollDto closePoll(Long id) {
         VotePoll poll = pollRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
         User user = authService.getCurrentUser();
         if (!poll.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
         }
         poll.setStatus(Survey.SurveyStatus.CLOSED);
         return toDto(pollRepository.save(poll), null);
@@ -242,10 +242,10 @@ public class VoteService {
     @Transactional
     public void deletePoll(Long id) {
         VotePoll poll = pollRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
         User user = authService.getCurrentUser();
         if (!poll.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
+            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
         }
         recordRepository.deleteByPollId(poll.getId());
         pollRepository.delete(poll);
@@ -254,13 +254,13 @@ public class VoteService {
     @Transactional
     public VotePollDto submitVote(String shareId, VoteSubmitRequest request, HttpServletRequest httpRequest) {
         VotePoll poll = pollRepository.findByShareId(shareId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vote poll not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
 
         if (poll.getStatus() != Survey.SurveyStatus.PUBLISHED) {
-            throw new BusinessException("Voting is not open");
+            throw new BusinessException("vote.not.published");
         }
         if (poll.getEndTime() != null && poll.getEndTime().isBefore(Instant.now())) {
-            throw new BusinessException("Voting is closed");
+            throw new BusinessException("vote.closed");
         }
 
         String ip = getClientIp(httpRequest);
@@ -268,19 +268,19 @@ public class VoteService {
         User user = authService.getCurrentUser();
 
         if (!poll.isAnonymous() && user == null) {
-            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
         String deviceId = request.getDeviceId();
 
         // Rate limiting
         String rateLimitKey = "vote:" + ip;
         if (rateLimitService.isRateLimited(rateLimitKey)) {
-            throw new BusinessException("Too many requests, please try again later", HttpStatus.TOO_MANY_REQUESTS);
+            throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
 
         // Check duplicate voting
         if (checkHasVoted(poll, user, ip, deviceId)) {
-            throw new BusinessException("You have already voted");
+            throw new BusinessException("vote.already.voted");
         }
 
         // Build per-option vote counts
@@ -334,7 +334,7 @@ public class VoteService {
                 userTotalVotes = recordRepository.countByPollIdAndIp(poll.getId(), ip);
             }
             if (userTotalVotes + totalVotesInRequest > poll.getMaxTotalVotes()) {
-                throw new BusinessException("Maximum total votes reached");
+                throw new BusinessException("vote.max.reached");
             }
         }
 
@@ -345,7 +345,7 @@ public class VoteService {
             if (count <= 0) continue;
 
             VoteOption option = optionRepository.findById(optionId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Vote option not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
 
             if (!option.getPoll().getId().equals(poll.getId())) {
                 throw new BusinessException("Option does not belong to this poll");

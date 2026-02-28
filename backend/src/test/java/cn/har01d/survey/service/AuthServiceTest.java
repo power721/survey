@@ -92,7 +92,7 @@ class AuthServiceTest {
         when(userRepository.existsByUsername("existing")).thenReturn(true);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> authService.register(request));
-        assertEquals("Username already exists", ex.getMessage());
+        assertEquals("auth.user.exists", ex.getMessage());
     }
 
     @Test
@@ -106,7 +106,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> authService.register(request));
-        assertEquals("Email already exists", ex.getMessage());
+        assertEquals("auth.email.exists", ex.getMessage());
     }
 
     @Test

@@ -36,11 +36,11 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BusinessException("Username already exists", HttpStatus.CONFLICT);
+            throw new BusinessException("auth.user.exists", HttpStatus.CONFLICT);
         }
         String email = request.getEmail() != null && !request.getEmail().isBlank() ? request.getEmail().trim() : null;
         if (email != null && userRepository.existsByEmail(email)) {
-            throw new BusinessException("Email already exists", HttpStatus.CONFLICT);
+            throw new BusinessException("auth.email.exists", HttpStatus.CONFLICT);
         }
 
         User user = User.builder()
@@ -64,7 +64,7 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new BusinessException("User not found"));
+                .orElseThrow(() -> new BusinessException("auth.user.not.found"));
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole().name());
         return new AuthResponse(token, user.getUsername(), user.getNickname(), user.getRole().name());
     }
@@ -81,7 +81,7 @@ public class AuthService {
     public UserDto getUserProfile() {
         User user = getCurrentUser();
         if (user == null) {
-            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
         return toDto(user);
     }
@@ -89,7 +89,7 @@ public class AuthService {
     public UserDto updateProfile(UpdateProfileRequest request) {
         User user = getCurrentUser();
         if (user == null) {
-            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
         if (request.getNickname() != null) {
@@ -99,7 +99,7 @@ public class AuthService {
         String email = request.getEmail() != null && !request.getEmail().isBlank() ? request.getEmail().trim() : null;
         if (email != null && !email.equals(user.getEmail())) {
             if (userRepository.existsByEmail(email)) {
-                throw new BusinessException("Email already exists", HttpStatus.CONFLICT);
+                throw new BusinessException("auth.email.exists", HttpStatus.CONFLICT);
             }
             user.setEmail(email);
         } else if (request.getEmail() != null && request.getEmail().isBlank()) {
@@ -112,7 +112,7 @@ public class AuthService {
 
         if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
             if (request.getOldPassword() == null || !passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-                throw new BusinessException("Old password is incorrect");
+                throw new BusinessException("auth.old.password.incorrect");
             }
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         }

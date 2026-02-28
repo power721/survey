@@ -1,8 +1,12 @@
 package cn.har01d.survey.exception;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,15 +20,30 @@ import cn.har01d.survey.dto.ApiResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final MessageSource messageSource;
+
+    public GlobalExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
+    private String resolveMessage(String messageKey) {
+        Locale locale = LocaleContextHolder.getLocale();
+        try {
+            return messageSource.getMessage(messageKey, null, locale);
+        } catch (NoSuchMessageException e) {
+            return messageKey;
+        }
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
-        return ResponseEntity.status(e.getStatus()).body(ApiResponse.error(e.getMessage()));
+        return ResponseEntity.status(e.getStatus()).body(ApiResponse.error(resolveMessage(e.getMessage())));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("Invalid username or password"));
+                .body(ApiResponse.error(resolveMessage("auth.invalid.credentials")));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -33,13 +52,13 @@ public class GlobalExceptionHandler {
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        ApiResponse<Map<String, String>> response = new ApiResponse<>(false, "Validation failed", errors);
+        ApiResponse<Map<String, String>> response = new ApiResponse<>(false, resolveMessage("error.validation"), errors);
         return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
+                .body(ApiResponse.error(resolveMessage("error.internal")));
     }
 }
