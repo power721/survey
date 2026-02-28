@@ -54,16 +54,18 @@ public class SurveyService {
     private final SurveyResponseRepository responseRepository;
     private final AnswerRepository answerRepository;
     private final AuthService authService;
+    private final FileService fileService;
 
     public SurveyService(SurveyRepository surveyRepository, QuestionRepository questionRepository,
                          QuestionOptionRepository optionRepository, SurveyResponseRepository responseRepository,
-                         AnswerRepository answerRepository, AuthService authService) {
+                         AnswerRepository answerRepository, AuthService authService, FileService fileService) {
         this.surveyRepository = surveyRepository;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
         this.responseRepository = responseRepository;
         this.answerRepository = answerRepository;
         this.authService = authService;
+        this.fileService = fileService;
     }
 
     @Transactional
@@ -316,9 +318,30 @@ public class SurveyService {
         if (!survey.getUser().getId().equals(user.getId())) {
             throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
+        deleteFileAnswers(survey.getId());
         answerRepository.deleteBySurveyId(survey.getId());
         responseRepository.deleteBySurveyId(survey.getId());
         surveyRepository.delete(survey);
+    }
+
+    private void deleteFileAnswers(Long surveyId) {
+        List<SurveyResponse> responses = responseRepository.findBySurveyId(surveyId);
+        for (SurveyResponse response : responses) {
+            deleteFileAttachments(response);
+        }
+    }
+
+    private void deleteFileAttachments(SurveyResponse response) {
+        for (Answer answer : response.getAnswers()) {
+            if (answer.getTextValue() != null && answer.getTextValue().startsWith("/api/files/")) {
+                String fileName = answer.getTextValue().substring("/api/files/".length());
+                try {
+                    fileService.delete(fileName);
+                } catch (Exception e) {
+                    // ignore deletion errors
+                }
+            }
+        }
     }
 
     @Transactional
@@ -347,6 +370,7 @@ public class SurveyService {
                     .orElse(null);
             if (response != null) {
                 isUpdate = true;
+                deleteFileAttachments(response);
                 response.getAnswers().clear();
                 response.setIp(ip);
                 response.setUserAgent(httpRequest.getHeader("User-Agent"));

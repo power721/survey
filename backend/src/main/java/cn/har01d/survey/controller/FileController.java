@@ -9,6 +9,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +36,18 @@ public class FileController {
         String url = fileService.upload(file);
         String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
         return ResponseEntity.ok(ApiResponse.ok("File uploaded", Map.of("url", url, "name", originalName)));
+    }
+
+    @DeleteMapping("/{fileName}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String fileName) {
+        fileService.delete(fileName);
+        return ResponseEntity.ok(ApiResponse.ok("File deleted", null));
+    }
+
+    @PostMapping("/{fileName}/delete")
+    public ResponseEntity<ApiResponse<Void>> deleteByPost(@PathVariable String fileName) {
+        fileService.delete(fileName);
+        return ResponseEntity.ok(ApiResponse.ok("File deleted", null));
     }
 
     @GetMapping("/{fileName}")

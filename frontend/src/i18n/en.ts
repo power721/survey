@@ -96,7 +96,7 @@ export default {
       URL: 'URL',
       PHONE: 'Phone',
       ID_CARD: 'ID Card',
-      FILE: 'File Upload',
+      FILE: 'Attachment',
     },
   },
   vote: {

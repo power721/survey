@@ -25,4 +25,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     @Query("SELECT a.textValue FROM Answer a WHERE a.question.id = :questionId AND a.textValue IS NOT NULL")
     List<String> findTextValuesByQuestionId(@Param("questionId") Long questionId);
+
+    @Query("SELECT a.textValue FROM Answer a WHERE a.textValue LIKE '/api/files/%'")
+    List<String> findAllFileUrls();
 }

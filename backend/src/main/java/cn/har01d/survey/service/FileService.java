@@ -4,7 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,6 +57,38 @@ public class FileService {
         } catch (IOException e) {
             throw new BusinessException("file.upload.failed");
         }
+    }
+
+    public void delete(String fileName) {
+        try {
+            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(fileName);
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new BusinessException("file.delete.failed");
+        }
+    }
+
+    public List<String> listOldFiles(int hours) {
+        List<String> fileNames = new ArrayList<>();
+        Path dir = Paths.get(uploadDir).toAbsolutePath();
+        if (!Files.exists(dir)) {
+            return fileNames;
+        }
+        Instant cutoff = Instant.now().minus(hours, ChronoUnit.HOURS);
+        try (Stream<Path> stream = Files.list(dir)) {
+            stream.filter(Files::isRegularFile)
+                    .filter(p -> {
+                        try {
+                            return Files.getLastModifiedTime(p).toInstant().isBefore(cutoff);
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    })
+                    .forEach(p -> fileNames.add(p.getFileName().toString()));
+        } catch (IOException e) {
+            // ignore
+        }
+        return fileNames;
     }
 
     public Path getFilePath(String fileName) {

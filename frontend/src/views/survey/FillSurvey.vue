@@ -103,16 +103,19 @@
                 </template>
 
                 <template v-else-if="question.type === 'FILE'">
-                  <n-upload
-                    :max="1"
-                    :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
-                    @remove="answers[question.id].textValue = ''"
-                  >
-                    <n-button>{{ t('survey.uploadFile') }}</n-button>
-                  </n-upload>
-                  <n-text v-if="answers[question.id].textValue" depth="3" style="margin-top: 4px; display: block">
-                    {{ answers[question.id].textValue.split('/').pop() }}
-                  </n-text>
+                  <n-space vertical>
+                    <n-space v-if="answers[question.id].textValue" align="center">
+                      <a :href="answers[question.id].textValue" target="_blank">{{ answers[question.id].textValue.split('/').pop() }}</a>
+                      <n-button size="tiny" type="error" quaternary @click="handleFileRemove(question.id)">{{ t('common.delete') }}</n-button>
+                    </n-space>
+                    <n-upload
+                      :max="1"
+                      :show-file-list="false"
+                      :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
+                    >
+                      <n-button>{{ t('survey.uploadFile') }}</n-button>
+                    </n-upload>
+                  </n-space>
                 </template>
 
                 <template v-else>
@@ -122,9 +125,14 @@
               </n-form-item>
             </div>
 
-            <n-button type="primary" block size="large" :loading="submitting" @click="handleSubmit">
-              {{ t('common.submit') }}
-            </n-button>
+            <n-space justify="center">
+              <n-button type="primary" size="large" :loading="submitting" @click="handleSubmit">
+                {{ t('common.submit') }}
+              </n-button>
+              <n-button v-if="editing" size="large" @click="cancelEditing">
+                {{ t('common.cancel') }}
+              </n-button>
+            </n-space>
           </n-form>
         </n-card>
       </template>
@@ -133,8 +141,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import { surveyApi } from '@/api/survey'
@@ -160,16 +168,40 @@ const loginRequired = computed(() => {
 })
 
 const answers = reactive<Record<number, { textValue: string; selectedOptionId: number | null; selectedOptionIds: number[]; numberValue: number | null }>>({})
+const pendingFileDeletes = ref<string[]>([])
+const newUploadedFiles = ref<string[]>([])
 
 async function handleFileUpload(questionId: number, file: any, onFinish: () => void, onError: () => void) {
   try {
+    const oldUrl = answers[questionId].textValue
+    if (oldUrl) {
+      const oldFileName = oldUrl.split('/').pop()
+      if (oldFileName) {
+        pendingFileDeletes.value.push(oldFileName)
+      }
+    }
     const res = await fileApi.upload(file.file)
     answers[questionId].textValue = res.data.data.url
+    const newFileName = res.data.data.url.split('/').pop()
+    if (newFileName) {
+      newUploadedFiles.value.push(newFileName)
+    }
     onFinish()
   } catch (e) {
     message.error('Upload failed')
     onError()
   }
+}
+
+function handleFileRemove(questionId: number) {
+  const url = answers[questionId].textValue
+  if (url) {
+    const fileName = url.split('/').pop()
+    if (fileName) {
+      pendingFileDeletes.value.push(fileName)
+    }
+  }
+  answers[questionId].textValue = ''
 }
 
 function getPlaceholder(type: string): string {
@@ -181,6 +213,20 @@ function getPlaceholder(type: string): string {
     ID_CARD: t('survey.types.ID_CARD'),
   }
   return map[type] || ''
+}
+
+function cancelEditing() {
+  for (const fileName of newUploadedFiles.value) {
+    fileApi.delete(fileName).catch(() => {})
+  }
+  pendingFileDeletes.value = []
+  newUploadedFiles.value = []
+  editing.value = false
+  if (survey.value) {
+    for (const q of survey.value.questions) {
+      answers[q.id] = { textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null }
+    }
+  }
 }
 
 function startEditing() {
@@ -270,6 +316,11 @@ async function handleSubmit() {
       }),
     }
     await surveyApi.submit(route.params.shareId as string, request)
+    for (const fileName of pendingFileDeletes.value) {
+      await fileApi.delete(fileName).catch(() => {})
+    }
+    pendingFileDeletes.value = []
+    newUploadedFiles.value = []
     submitted.value = true
   } catch (e: any) {
     message.error(e?.response?.data?.message || 'Error')
@@ -277,6 +328,33 @@ async function handleSubmit() {
     submitting.value = false
   }
 }
+
+function cleanupUnsubmittedFiles() {
+  if (submitted.value) return
+  for (const fileName of newUploadedFiles.value) {
+    fileApi.delete(fileName).catch(() => {})
+  }
+  newUploadedFiles.value = []
+  pendingFileDeletes.value = []
+}
+
+function onBeforeUnload() {
+  if (submitted.value || newUploadedFiles.value.length === 0) return
+  for (const fileName of newUploadedFiles.value) {
+    navigator.sendBeacon(`/api/files/${fileName}/delete`)
+  }
+}
+
+window.addEventListener('beforeunload', onBeforeUnload)
+
+onBeforeRouteLeave(() => {
+  cleanupUnsubmittedFiles()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', onBeforeUnload)
+  cleanupUnsubmittedFiles()
+})
 
 onMounted(loadSurvey)
 </script>

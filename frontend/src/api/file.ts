@@ -9,4 +9,7 @@ export const fileApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
+  delete(fileName: string) {
+    return http.delete<ApiResponse<void>>(`/files/${fileName}`)
+  },
 }
