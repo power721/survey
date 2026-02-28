@@ -14,10 +14,15 @@
 
           <div v-if="poll.endTime" style="margin-bottom: 16px">
             <n-text depth="3">{{ t('vote.endTime') }}: {{ formatTime(poll.endTime) }}</n-text>
+            <n-tag v-if="isExpired" type="error" size="small" style="margin-left: 8px">{{ t('vote.expired') }}</n-tag>
           </div>
 
+          <n-alert v-if="isExpired && !hasVoted && !voted" type="warning" style="margin-bottom: 16px">
+            {{ t('vote.votingClosed') }}
+          </n-alert>
+
           <!-- Voting form -->
-          <template v-if="!hasVoted && !voted">
+          <template v-if="!hasVoted && !voted && !isExpired">
             <n-space vertical size="large" style="margin-bottom: 24px">
               <!-- SINGLE: radio buttons -->
               <template v-if="poll.voteType === 'SINGLE'">
@@ -95,7 +100,7 @@
           </n-alert>
 
           <!-- Results -->
-          <template v-if="hasVoted || voted">
+          <template v-if="hasVoted || voted || isExpired">
             <n-divider>{{ t('vote.results') }}</n-divider>
             <div v-for="opt in poll.options" :key="opt.id" style="margin-bottom: 16px">
               <img v-if="opt.imageUrl" :src="opt.imageUrl" class="vote-option-image" style="margin-bottom: 6px" @click="openPreview(opt.imageUrl)" />
@@ -143,6 +148,11 @@ const scoredVotes = reactive<Record<number, number>>({})
 let stompClient: Client | null = null
 
 const hasVoted = computed(() => poll.value?.hasVoted ?? false)
+
+const isExpired = computed(() => {
+  if (!poll.value?.endTime) return false
+  return new Date(poll.value.endTime).getTime() < Date.now()
+})
 
 function openPreview(url: string) {
   previewImage.value = url

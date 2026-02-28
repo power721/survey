@@ -1,5 +1,6 @@
 package cn.har01d.survey.service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,10 +13,13 @@ import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,12 +42,16 @@ import cn.har01d.survey.repository.VoteRecordRepository;
 @Service
 public class VoteService {
 
+    private static final Logger log = LoggerFactory.getLogger(VoteService.class);
+
     private final VotePollRepository pollRepository;
     private final VoteOptionRepository optionRepository;
     private final VoteRecordRepository recordRepository;
     private final AuthService authService;
     private final RateLimitService rateLimitService;
     private final SimpMessagingTemplate messagingTemplate;
+
+    private static final Duration DEFAULT_DEADLINE = Duration.ofDays(7);
 
     public VoteService(VotePollRepository pollRepository, VoteOptionRepository optionRepository,
                        VoteRecordRepository recordRepository, AuthService authService,
@@ -76,7 +84,7 @@ public class VoteService {
                 .maxTotalVotes(request.getMaxTotalVotes())
                 .maxOptions(request.getMaxOptions())
                 .maxVotesPerOption(request.getMaxVotesPerOption())
-                .endTime(request.getEndTime())
+                .endTime(request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE))
                 .options(new ArrayList<>())
                 .build();
 
@@ -114,7 +122,7 @@ public class VoteService {
         poll.setMaxTotalVotes(request.getMaxTotalVotes());
         poll.setMaxOptions(request.getMaxOptions());
         poll.setMaxVotesPerOption(request.getMaxVotesPerOption());
-        poll.setEndTime(request.getEndTime());
+        poll.setEndTime(request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE));
 
         // Build map of existing options by ID
         Map<Long, VoteOption> existingOptionMap = poll.getOptions().stream()
@@ -361,7 +369,7 @@ public class VoteService {
         if (poll.getFrequency() == VotePoll.VoteFrequency.DAILY) {
             rateLimitService.markVotedDaily(String.valueOf(poll.getId()), identifier);
         } else {
-            rateLimitService.markVoted(String.valueOf(poll.getId()), identifier);
+            rateLimitService.markVoted(String.valueOf(poll.getId()), identifier, poll.getEndTime());
         }
 
         VotePollDto result = toDto(poll, true, null);
@@ -446,5 +454,20 @@ public class VoteService {
         dto.setOptions(optionDtos);
 
         return dto;
+    }
+
+    @Scheduled(fixedRate = 300000)
+    @Transactional
+    public void closeExpiredPolls() {
+        List<VotePoll> expiredPolls = pollRepository.findByStatusAndEndTimeBefore(
+                Survey.SurveyStatus.PUBLISHED, Instant.now());
+        for (VotePoll poll : expiredPolls) {
+            poll.setStatus(Survey.SurveyStatus.CLOSED);
+            pollRepository.save(poll);
+            log.info("Auto-closed expired poll: id={}, title={}", poll.getId(), poll.getTitle());
+        }
+        if (!expiredPolls.isEmpty()) {
+            log.info("Auto-closed {} expired poll(s)", expiredPolls.size());
+        }
     }
 }

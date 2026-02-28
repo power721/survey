@@ -123,6 +123,8 @@ export default {
     realtime: '实时结果',
     endTime: '截止时间',
     totalVotes: '总票数',
+    expired: '已截止',
+    votingClosed: '投票已截止，无法继续投票',
   },
   nav: {
     home: '首页',

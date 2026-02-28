@@ -28,6 +28,7 @@
             <n-space>
               <n-text depth="3">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-text>
               <n-text depth="3">{{ t('vote.frequency') }}: {{ poll.frequency === 'ONCE' ? t('vote.once') : t('vote.daily') }}</n-text>
+              <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ new Date(poll.endTime).toLocaleString() }}</n-text>
               <n-text depth="3" v-if="poll.status === 'PUBLISHED'">
                 {{ t('vote.submitVote') }}: <a :href="`/v/${poll.shareId}`" target="_blank">{{ baseUrl }}/v/{{ poll.shareId }}</a>
               </n-text>

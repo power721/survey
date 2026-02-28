@@ -79,9 +79,9 @@ class RateLimitServiceTest {
     void markVoted() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        rateLimitService.markVoted("1", "user:1");
+        rateLimitService.markVoted("1", "user:1", null);
 
-        verify(valueOperations).set("vote:1:user:1", "1");
+        verify(valueOperations).set("vote:1:user:1", "1", Duration.ofDays(7));
     }
 
     // --- markVotedDaily ---

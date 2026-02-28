@@ -123,6 +123,8 @@ export default {
     realtime: 'Real-time Results',
     endTime: 'End Time',
     totalVotes: 'Total Votes',
+    expired: 'Expired',
+    votingClosed: 'Voting has ended, no more votes can be submitted',
   },
   nav: {
     home: 'Home',

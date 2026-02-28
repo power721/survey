@@ -38,7 +38,7 @@
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('vote.endTime')">
-              <n-date-picker v-model:value="endTimeTs" type="datetime" clearable style="width: 100%" />
+              <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%" />
             </n-form-item>
           </n-gi>
           <n-gi v-if="form.voteType === 'MULTIPLE'">
@@ -127,7 +127,8 @@ function openPreview(url: string) {
 function closePreview() {
   previewImage.value = null
 }
-const endTimeTs = ref<number | null>(null)
+const defaultEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000
+const endTimeTs = ref<number | null>(defaultEndTime)
 let keySeq = 0
 function nextKey() { return `opt_${++keySeq}` }
 

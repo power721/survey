@@ -1,5 +1,7 @@
 package cn.har01d.survey.repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,4 +18,6 @@ public interface VotePollRepository extends JpaRepository<VotePoll, Long> {
     Page<VotePoll> findByUser(User user, Pageable pageable);
 
     Page<VotePoll> findByStatusAndAccessLevel(Survey.SurveyStatus status, Survey.AccessLevel accessLevel, Pageable pageable);
+
+    List<VotePoll> findByStatusAndEndTimeBefore(Survey.SurveyStatus status, Instant time);
 }
