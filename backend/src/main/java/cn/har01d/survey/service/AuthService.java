@@ -43,12 +43,13 @@ public class AuthService {
             throw new BusinessException("auth.email.exists", HttpStatus.CONFLICT);
         }
 
+        User.Role role = userRepository.count() == 0 ? User.Role.ADMIN : User.Role.USER;
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(email)
                 .nickname(request.getNickname() != null && !request.getNickname().isBlank() ? request.getNickname().trim() : generateNickname())
-                .role(User.Role.USER)
+                .role(role)
                 .enabled(true)
                 .build();
         userRepository.save(user);
