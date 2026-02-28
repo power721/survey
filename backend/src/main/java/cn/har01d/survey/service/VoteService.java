@@ -439,6 +439,19 @@ public class VoteService {
         dto.setCreatedAt(poll.getCreatedAt());
         dto.setUpdatedAt(poll.getUpdatedAt());
 
+        boolean showVoters = !poll.isAnonymous() && poll.getVoteType() != VotePoll.VoteType.SCORED;
+        Map<Long, List<String>> votersByOption = new HashMap<>();
+        if (showVoters) {
+            List<VoteRecord> records = recordRepository.findByPollId(poll.getId());
+            for (VoteRecord record : records) {
+                if (record.getUser() != null) {
+                    votersByOption
+                            .computeIfAbsent(record.getOption().getId(), k -> new ArrayList<>())
+                            .add(record.getUser().getNickname());
+                }
+            }
+        }
+
         int totalVotes = poll.getOptions().stream().mapToInt(VoteOption::getVoteCount).sum();
         List<VoteOptionDto> optionDtos = poll.getOptions().stream().map(opt -> {
             VoteOptionDto od = new VoteOptionDto();
@@ -449,6 +462,9 @@ public class VoteService {
             od.setVoteCount(opt.getVoteCount());
             od.setPercentage(totalVotes > 0 ? (double) opt.getVoteCount() / totalVotes * 100 : 0);
             od.setSortOrder(opt.getSortOrder());
+            if (showVoters) {
+                od.setVoters(votersByOption.getOrDefault(opt.getId(), List.of()));
+            }
             return od;
         }).toList();
         dto.setOptions(optionDtos);

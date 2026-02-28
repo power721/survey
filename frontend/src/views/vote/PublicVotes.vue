@@ -12,6 +12,7 @@
                 <n-tag :type="poll.voteType === 'SINGLE' ? 'info' : 'warning'" size="small">
                   {{ poll.voteType === 'SINGLE' ? t('vote.single') : t('vote.multiple') }}
                 </n-tag>
+                <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
                 <n-tag size="small" type="success">{{ poll.totalVoteCount }} {{ t('vote.votes') }}</n-tag>
                 <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ new Date(poll.endTime).toLocaleString() }}</n-text>
                 <n-text depth="3">{{ poll.creatorName }}</n-text>

@@ -166,6 +166,7 @@ export interface VoteOptionDto {
   voteCount: number
   percentage: number
   sortOrder: number
+  voters?: string[]
 }
 
 export interface VotePollCreateRequest {

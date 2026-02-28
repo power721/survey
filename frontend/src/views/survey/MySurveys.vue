@@ -19,6 +19,7 @@
               <n-tag :type="statusType(survey.status)" size="small">
                 {{ statusLabel(survey.status) }}
               </n-tag>
+              <n-tag v-if="survey.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
             </n-space>
           </template>
           <template #header-extra>

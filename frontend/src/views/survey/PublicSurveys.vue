@@ -9,6 +9,7 @@
             <template #header>{{ survey.title }}</template>
             <template #header-extra>
               <n-space>
+                <n-tag v-if="survey.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
                 <n-tag size="small" type="info">{{ survey.responseCount }} {{ t('survey.responses') }}</n-tag>
                 <n-text depth="3">{{ survey.creatorName }}</n-text>
               </n-space>

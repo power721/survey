@@ -110,6 +110,9 @@
               </n-space>
               <n-progress type="line" :percentage="opt.percentage" :show-indicator="false"
                           :color="getBarColor(opt.percentage)" />
+              <n-space v-if="opt.voters && opt.voters.length > 0" size="small" style="margin-top: 6px; flex-wrap: wrap">
+                <n-tag v-for="(voter, vi) in opt.voters" :key="vi" size="tiny" :bordered="false" type="info">{{ voter }}</n-tag>
+              </n-space>
             </div>
           </template>
         </n-card>

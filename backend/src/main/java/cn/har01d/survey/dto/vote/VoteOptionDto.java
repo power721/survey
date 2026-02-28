@@ -1,5 +1,7 @@
 package cn.har01d.survey.dto.vote;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -11,4 +13,5 @@ public class VoteOptionDto {
     private int voteCount;
     private double percentage;
     private int sortOrder;
+    private List<String> voters;
 }

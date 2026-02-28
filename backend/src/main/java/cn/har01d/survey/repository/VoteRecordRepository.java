@@ -20,6 +20,8 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
 
     List<VoteRecord> findByPollId(Long pollId);
 
+    List<VoteRecord> findByOptionId(Long optionId);
+
     long countByPollId(Long pollId);
 
     long countByPollIdAndUserId(Long pollId, Long userId);

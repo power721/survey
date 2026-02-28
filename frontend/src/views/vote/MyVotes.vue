@@ -13,6 +13,7 @@
               <span>{{ poll.title }}</span>
               <n-tag :type="statusType(poll.status)" size="small">{{ statusLabel(poll.status) }}</n-tag>
               <n-tag size="small">{{ poll.voteType === 'SINGLE' ? t('vote.single') : t('vote.multiple') }}</n-tag>
+              <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
             </n-space>
           </template>
           <template #header-extra>
