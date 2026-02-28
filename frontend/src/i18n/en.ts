@@ -79,6 +79,7 @@ export default {
     submitSuccess: 'Survey submitted successfully',
     thankYou: 'Thank you for your response!',
     uploadFile: 'Upload File',
+    loginRequired: 'You need to log in to fill out non-anonymous surveys',
     alreadySubmitted: 'Submitted',
     viewMyResponse: 'You have already submitted this survey. Below is your response.',
     types: {
@@ -132,6 +133,7 @@ export default {
     maxTotalVotesRequired: 'Please set max total votes per person',
     maxVotesPerOptionRequired: 'Please set max votes per option',
     expired: 'Expired',
+    loginRequired: 'You need to log in to participate in non-anonymous votes',
     votingClosed: 'Voting has ended, no more votes can be submitted',
   },
   nav: {

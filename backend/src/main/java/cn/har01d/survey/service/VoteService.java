@@ -102,7 +102,7 @@ public class VoteService {
         }
 
         poll = pollRepository.save(poll);
-        return toDto(poll, null, null);
+        return toDto(poll, null);
     }
 
     @Transactional
@@ -173,7 +173,7 @@ public class VoteService {
         }
 
         poll = pollRepository.save(poll);
-        return toDto(poll, null, null);
+        return toDto(poll, null);
     }
 
     @Transactional(readOnly = true)
@@ -184,7 +184,7 @@ public class VoteService {
         if (!poll.getUser().getId().equals(user.getId())) {
             throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
         }
-        return toDto(poll, null, null);
+        return toDto(poll, null);
     }
 
     @Transactional(readOnly = true)
@@ -198,21 +198,21 @@ public class VoteService {
 
         String ip = getClientIp(request);
         User user = authService.getCurrentUser();
-        boolean hasVoted = checkHasVoted(poll, user, ip, null);
+        boolean hasVoted = (poll.isAnonymous() || user != null) && checkHasVoted(poll, user, ip, null);
 
-        return toDto(poll, hasVoted, null);
+        return toDto(poll, hasVoted);
     }
 
     @Transactional(readOnly = true)
     public Page<VotePollDto> getMyPolls(Pageable pageable) {
         User user = authService.getCurrentUser();
-        return pollRepository.findByUser(user, pageable).map(p -> toDto(p, null, null));
+        return pollRepository.findByUser(user, pageable).map(p -> toDto(p, null));
     }
 
     @Transactional(readOnly = true)
     public Page<VotePollDto> getPublicPolls(Pageable pageable) {
         return pollRepository.findByStatusAndAccessLevel(Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, pageable)
-                .map(p -> toDto(p, null, null));
+                .map(p -> toDto(p, null));
     }
 
     @Transactional
@@ -224,7 +224,7 @@ public class VoteService {
             throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
         }
         poll.setStatus(Survey.SurveyStatus.PUBLISHED);
-        return toDto(pollRepository.save(poll), null, null);
+        return toDto(pollRepository.save(poll), null);
     }
 
     @Transactional
@@ -236,7 +236,7 @@ public class VoteService {
             throw new BusinessException("Access denied", HttpStatus.FORBIDDEN);
         }
         poll.setStatus(Survey.SurveyStatus.CLOSED);
-        return toDto(pollRepository.save(poll), null, null);
+        return toDto(pollRepository.save(poll), null);
     }
 
     @Transactional
@@ -266,6 +266,10 @@ public class VoteService {
         String ip = getClientIp(httpRequest);
         String ua = httpRequest.getHeader("User-Agent");
         User user = authService.getCurrentUser();
+
+        if (!poll.isAnonymous() && user == null) {
+            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+        }
         String deviceId = request.getDeviceId();
 
         // Rate limiting
@@ -374,7 +378,7 @@ public class VoteService {
             rateLimitService.markVoted(String.valueOf(poll.getId()), identifier, poll.getEndTime());
         }
 
-        VotePollDto result = toDto(poll, true, null);
+        VotePollDto result = toDto(poll, true);
 
         // WebSocket push real-time results
         messagingTemplate.convertAndSend("/topic/vote/" + poll.getShareId(), result);
@@ -420,7 +424,7 @@ public class VoteService {
         return ip;
     }
 
-    private VotePollDto toDto(VotePoll poll, Boolean hasVoted, User currentUser) {
+    private VotePollDto toDto(VotePoll poll, Boolean hasVoted) {
         VotePollDto dto = new VotePollDto();
         dto.setId(poll.getId());
         dto.setShareId(poll.getShareId());

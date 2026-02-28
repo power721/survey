@@ -332,6 +332,9 @@ public class SurveyService {
         }
 
         User user = authService.getCurrentUser();
+        if (!survey.isAnonymous() && user == null) {
+            throw new BusinessException("Not authenticated", HttpStatus.UNAUTHORIZED);
+        }
         String ip = getClientIp(httpRequest);
 
         SurveyResponse response = SurveyResponse.builder()

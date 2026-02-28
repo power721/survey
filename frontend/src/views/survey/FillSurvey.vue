@@ -55,7 +55,12 @@
           </template>
           <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
 
-          <n-form label-placement="top">
+          <n-alert v-if="loginRequired" type="warning" style="margin-bottom: 16px">
+            {{ t('survey.loginRequired') }}
+            <n-button text type="primary" @click="router.push('/login')" style="margin-left: 8px">{{ t('common.login') }}</n-button>
+          </n-alert>
+
+          <n-form v-if="!loginRequired" label-placement="top">
             <div v-for="(question, qi) in survey.questions" :key="question.id" style="margin-bottom: 24px">
               <n-form-item>
                 <template #label>
@@ -129,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
@@ -149,6 +154,10 @@ const submitting = ref(false)
 const submitted = ref(false)
 const survey = ref<SurveyDto | null>(null)
 const myResponse = ref<SurveyResponseDto | null>(null)
+
+const loginRequired = computed(() => {
+  return survey.value && !survey.value.anonymous && !authStore.isLoggedIn
+})
 
 const answers = reactive<Record<number, { textValue: string; selectedOptionId: number | null; selectedOptionIds: number[]; numberValue: number | null }>>({})
 

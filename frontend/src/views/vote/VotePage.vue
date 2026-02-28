@@ -21,8 +21,13 @@
             {{ t('vote.votingClosed') }}
           </n-alert>
 
+          <n-alert v-if="loginRequired" type="warning" style="margin-bottom: 16px">
+            {{ t('vote.loginRequired') }}
+            <n-button text type="primary" @click="router.push('/login')" style="margin-left: 8px">{{ t('common.login') }}</n-button>
+          </n-alert>
+
           <!-- Voting form -->
-          <template v-if="!hasVoted && !voted && !isExpired">
+          <template v-if="!hasVoted && !voted && !isExpired && !loginRequired">
             <n-space vertical size="large" style="margin-bottom: 24px">
               <!-- SINGLE: radio buttons -->
               <template v-if="poll.voteType === 'SINGLE'">
@@ -129,16 +134,19 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import { voteApi } from '@/api/vote'
 import type { VotePollDto } from '@/types'
 import { Client } from '@stomp/stompjs'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const message = useMessage()
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const previewImage = ref<string | null>(null)
@@ -155,6 +163,10 @@ const hasVoted = computed(() => poll.value?.hasVoted ?? false)
 const isExpired = computed(() => {
   if (!poll.value?.endTime) return false
   return new Date(poll.value.endTime).getTime() < Date.now()
+})
+
+const loginRequired = computed(() => {
+  return poll.value && !poll.value.anonymous && !authStore.isLoggedIn
 })
 
 function openPreview(url: string) {

@@ -79,6 +79,7 @@ export default {
     submitSuccess: '问卷提交成功',
     thankYou: '感谢您的参与！',
     uploadFile: '文件上传',
+    loginRequired: '非匿名问卷需要登录后才能填写',
     alreadySubmitted: '已提交',
     viewMyResponse: '您已提交过此问卷，以下是您的回复内容。',
     types: {
@@ -132,6 +133,7 @@ export default {
     maxTotalVotesRequired: '请设置每人最多投票数',
     maxVotesPerOptionRequired: '请设置每项最多投票数',
     expired: '已截止',
+    loginRequired: '非匿名投票需要登录后才能参与',
     votingClosed: '投票已截止，无法继续投票',
   },
   nav: {
