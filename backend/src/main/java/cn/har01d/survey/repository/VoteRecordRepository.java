@@ -3,11 +3,14 @@ package cn.har01d.survey.repository;
 import java.time.Instant;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import cn.har01d.survey.entity.VoteRecord;
 
 public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
+    Page<VoteRecord> findByPollId(Long pollId, Pageable pageable);
     boolean existsByPollIdAndUserId(Long pollId, Long userId);
 
     boolean existsByPollIdAndIp(Long pollId, String ip);

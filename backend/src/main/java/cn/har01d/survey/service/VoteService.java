@@ -27,6 +27,7 @@ import cn.har01d.survey.dto.vote.VoteOptionDto;
 import cn.har01d.survey.dto.vote.VoteOptionRequest;
 import cn.har01d.survey.dto.vote.VotePollCreateRequest;
 import cn.har01d.survey.dto.vote.VotePollDto;
+import cn.har01d.survey.dto.vote.VoteRecordDto;
 import cn.har01d.survey.dto.vote.VoteSubmitRequest;
 import cn.har01d.survey.entity.Survey;
 import cn.har01d.survey.entity.User;
@@ -207,6 +208,71 @@ public class VoteService {
     public Page<VotePollDto> getMyPolls(Pageable pageable) {
         User user = authService.getCurrentUser();
         return pollRepository.findByUser(user, pageable).map(p -> toDto(p, null));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VoteRecordDto> getVoteRecords(Long pollId, Pageable pageable) {
+        VotePoll poll = pollRepository.findById(pollId)
+                .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
+        User user = authService.getCurrentUser();
+        if (!poll.getUser().getId().equals(user.getId())) {
+            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
+        }
+        boolean anonymous = poll.isAnonymous();
+
+        if (poll.getVoteType() == VotePoll.VoteType.SCORED) {
+            return getAggregatedVoteRecords(poll, anonymous, pageable);
+        }
+
+        return recordRepository.findByPollId(pollId, pageable).map(r -> toRecordDto(r, anonymous));
+    }
+
+    private Page<VoteRecordDto> getAggregatedVoteRecords(VotePoll poll, boolean anonymous, Pageable pageable) {
+        List<VoteRecord> allRecords = recordRepository.findByPollId(poll.getId());
+
+        // Group by (userId or ip) + optionId
+        Map<String, List<VoteRecord>> grouped = allRecords.stream()
+                .collect(Collectors.groupingBy(r -> {
+                    String key = r.getUser() != null ? "u:" + r.getUser().getId() : "ip:" + r.getIp();
+                    return key + "|" + r.getOption().getId();
+                }));
+
+        List<VoteRecordDto> aggregated = grouped.values().stream()
+                .map(records -> {
+                    VoteRecord first = records.get(0);
+                    VoteRecordDto dto = new VoteRecordDto();
+                    dto.setId(first.getId());
+                    dto.setOptionTitle(first.getOption().getTitle());
+                    dto.setVoteCount(records.size());
+                    dto.setCreatedAt(first.getCreatedAt());
+                    dto.setIp(first.getIp());
+                    if (!anonymous && first.getUser() != null) {
+                        dto.setUsername(first.getUser().getUsername());
+                        dto.setNickname(first.getUser().getNickname());
+                    }
+                    return dto;
+                })
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), aggregated.size());
+        List<VoteRecordDto> pageContent = start >= aggregated.size() ? List.of() : aggregated.subList(start, end);
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, aggregated.size());
+    }
+
+    private VoteRecordDto toRecordDto(VoteRecord r, boolean anonymous) {
+        VoteRecordDto dto = new VoteRecordDto();
+        dto.setId(r.getId());
+        dto.setOptionTitle(r.getOption().getTitle());
+        dto.setVoteCount(1);
+        dto.setCreatedAt(r.getCreatedAt());
+        dto.setIp(r.getIp());
+        if (!anonymous && r.getUser() != null) {
+            dto.setUsername(r.getUser().getUsername());
+            dto.setNickname(r.getUser().getNickname());
+        }
+        return dto;
     }
 
     @Transactional(readOnly = true)

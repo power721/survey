@@ -135,6 +135,11 @@ export default {
     expired: 'Expired',
     loginRequired: 'You need to log in to participate in non-anonymous votes',
     votingClosed: 'Voting has ended, no more votes can be submitted',
+    records: 'Vote Records',
+    voter: 'Voter',
+    votedOption: 'Voted Option',
+    votedAt: 'Voted At',
+    anonymous: 'Anonymous',
   },
   nav: {
     home: 'Home',

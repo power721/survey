@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cn.har01d.survey.dto.ApiResponse;
 import cn.har01d.survey.dto.vote.VotePollCreateRequest;
 import cn.har01d.survey.dto.vote.VotePollDto;
+import cn.har01d.survey.dto.vote.VoteRecordDto;
 import cn.har01d.survey.dto.vote.VoteSubmitRequest;
 import cn.har01d.survey.service.VoteService;
 
@@ -89,6 +90,14 @@ public class VoteController {
     public ResponseEntity<ApiResponse<Void>> deletePoll(@PathVariable Long id) {
         voteService.deletePoll(id);
         return ResponseEntity.ok(ApiResponse.ok("Vote poll deleted", null));
+    }
+
+    @GetMapping("/{id}/records")
+    public ResponseEntity<ApiResponse<Page<VoteRecordDto>>> getVoteRecords(
+            @PathVariable Long id,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<VoteRecordDto> records = voteService.getVoteRecords(id, pageable);
+        return ResponseEntity.ok(ApiResponse.ok(records));
     }
 
     @PostMapping("/v/{shareId}/submit")

@@ -34,6 +34,9 @@
                 {{ t('vote.submitVote') }}: <a :href="`/v/${poll.shareId}`" target="_blank">{{ baseUrl }}/v/{{ poll.shareId }}</a>
               </n-text>
             </n-space>
+            <n-button text type="primary" size="small" @click="router.push(`/votes/${poll.id}/records`)">
+              {{ t('vote.records') }} ({{ poll.totalVoteCount }}) →
+            </n-button>
           </n-space>
         </n-card>
 

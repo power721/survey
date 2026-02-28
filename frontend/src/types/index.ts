@@ -200,6 +200,16 @@ export interface VoteSubmitRequest {
   deviceId?: string
 }
 
+export interface VoteRecordDto {
+  id: number
+  optionTitle: string
+  voteCount: number
+  username: string | null
+  nickname: string | null
+  ip: string
+  createdAt: string
+}
+
 export interface Page<T> {
   content: T[]
   totalElements: number

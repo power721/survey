@@ -1,6 +1,6 @@
 import http from './http'
 import type {
-  ApiResponse, VotePollDto, VotePollCreateRequest, VoteSubmitRequest, Page
+  ApiResponse, VotePollDto, VotePollCreateRequest, VoteSubmitRequest, VoteRecordDto, Page
 } from '@/types'
 
 export const voteApi = {
@@ -33,5 +33,8 @@ export const voteApi = {
   },
   submit(shareId: string, data: VoteSubmitRequest) {
     return http.post<ApiResponse<VotePollDto>>(`/votes/v/${shareId}/submit`, data)
+  },
+  getRecords(id: number, params?: { page?: number; size?: number }) {
+    return http.get<ApiResponse<Page<VoteRecordDto>>>(`/votes/${id}/records`, { params })
   },
 }

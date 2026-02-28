@@ -82,6 +82,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/votes/:id/records',
+      name: 'VoteRecords',
+      component: () => import('@/views/vote/VoteRecords.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/v/:shareId',
       name: 'VotePage',
       component: () => import('@/views/vote/VotePage.vue'),
