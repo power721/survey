@@ -28,10 +28,10 @@
               <template v-if="poll.voteType === 'SINGLE'">
                 <n-radio-group v-model:value="selectedSingle">
                   <n-space vertical>
-                    <n-radio v-for="opt in poll.options" :key="opt.id" :value="opt.id">
+                    <n-radio v-for="(opt, oi) in poll.options" :key="opt.id" :value="opt.id">
                       <div>
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" class="vote-option-image" @click.prevent.stop="openPreview(opt.imageUrl)" />
-                        <span>{{ opt.title }}</span>
+                        <span>{{ oi + 1 }}. {{ opt.title }}</span>
                         <n-text v-if="opt.content" depth="3" style="font-size: 12px; display: block">{{ opt.content }}</n-text>
                       </div>
                     </n-radio>
@@ -43,11 +43,11 @@
               <template v-else-if="poll.voteType === 'MULTIPLE'">
                 <n-checkbox-group :value="selectedMultiple" @update:value="onMultipleChange">
                   <n-space vertical>
-                    <n-checkbox v-for="opt in poll.options" :key="opt.id" :value="opt.id"
+                    <n-checkbox v-for="(opt, oi) in poll.options" :key="opt.id" :value="opt.id"
                       :disabled="multipleReachedMax && !selectedMultiple.includes(opt.id)">
                       <div>
                         <img v-if="opt.imageUrl" :src="opt.imageUrl" class="vote-option-image" @click.prevent.stop="openPreview(opt.imageUrl)" />
-                        <span>{{ opt.title }}</span>
+                        <span>{{ oi + 1 }}. {{ opt.title }}</span>
                         <n-text v-if="opt.content" depth="3" style="font-size: 12px; display: block">{{ opt.content }}</n-text>
                       </div>
                     </n-checkbox>
@@ -57,11 +57,11 @@
 
               <!-- SCORED: input-number per option -->
               <template v-else-if="poll.voteType === 'SCORED'">
-                <div v-for="opt in poll.options" :key="opt.id" style="margin-bottom: 12px">
+                <div v-for="(opt, oi) in poll.options" :key="opt.id" style="margin-bottom: 12px">
                   <n-space align="center" justify="space-between">
                     <n-space vertical :size="4">
                       <img v-if="opt.imageUrl" :src="opt.imageUrl" class="vote-option-image" @click="openPreview(opt.imageUrl)" />
-                      <span>{{ opt.title }}</span>
+                      <span>{{ oi + 1 }}. {{ opt.title }}</span>
                       <n-text v-if="opt.content" depth="3" style="font-size: 12px">{{ opt.content }}</n-text>
                     </n-space>
                     <n-input-number
@@ -102,10 +102,10 @@
           <!-- Results -->
           <template v-if="hasVoted || voted || isExpired">
             <n-divider>{{ t('vote.results') }}</n-divider>
-            <div v-for="opt in poll.options" :key="opt.id" style="margin-bottom: 16px">
+            <div v-for="(opt, oi) in poll.options" :key="opt.id" style="margin-bottom: 16px">
               <img v-if="opt.imageUrl" :src="opt.imageUrl" class="vote-option-image" style="margin-bottom: 6px" @click="openPreview(opt.imageUrl)" />
               <n-space justify="space-between" style="margin-bottom: 4px">
-                <span>{{ opt.title }}</span>
+                <span>{{ oi + 1 }}. {{ opt.title }}</span>
                 <span>{{ opt.voteCount }} {{ t('vote.votes') }} ({{ opt.percentage.toFixed(1) }}%)</span>
               </n-space>
               <n-progress type="line" :percentage="opt.percentage" :show-indicator="false"

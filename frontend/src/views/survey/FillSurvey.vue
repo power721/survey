@@ -104,7 +104,7 @@
                     :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
                     @remove="answers[question.id].textValue = ''"
                   >
-                    <n-button>{{ t('survey.types.FILE') }}</n-button>
+                    <n-button>{{ t('survey.uploadFile') }}</n-button>
                   </n-upload>
                   <n-text v-if="answers[question.id].textValue" depth="3" style="margin-top: 4px; display: block">
                     {{ answers[question.id].textValue.split('/').pop() }}

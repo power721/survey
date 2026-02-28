@@ -83,7 +83,7 @@
               <n-form-item :label="t('vote.optionContent')">
                 <n-input v-model:value="opt.content" type="textarea" :rows="2" :placeholder="t('vote.optionContent')" />
               </n-form-item>
-              <n-form-item label="Image URL">
+              <n-form-item :label="t('vote.imageUrl')">
                 <n-input v-model:value="opt.imageUrl" placeholder="https://..." />
               </n-form-item>
               <img v-if="opt.imageUrl" :src="opt.imageUrl" class="option-image-preview" @click="openPreview(opt.imageUrl)" />

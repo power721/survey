@@ -111,8 +111,8 @@ const form = ref<SurveyCreateRequest>({
 })
 
 const accessOptions = [
-  { label: 'Public', value: 'PUBLIC' },
-  { label: 'Private', value: 'PRIVATE' },
+  { label: t('common.public'), value: 'PUBLIC' },
+  { label: t('common.private'), value: 'PRIVATE' },
 ]
 
 const questionTypeOptions = [

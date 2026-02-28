@@ -78,6 +78,7 @@ export default {
     responseCount: 'Response Count',
     submitSuccess: 'Survey submitted successfully',
     thankYou: 'Thank you for your response!',
+    uploadFile: 'Upload File',
     alreadySubmitted: 'Submitted',
     viewMyResponse: 'You have already submitted this survey. Below is your response.',
     types: {
@@ -115,6 +116,7 @@ export default {
     remainingVotes: 'Remaining Votes',
     optionTitle: 'Option Title',
     optionContent: 'Option Description',
+    imageUrl: 'Image URL',
     publish: 'Publish',
     close: 'Close',
     submitVote: 'Vote',
