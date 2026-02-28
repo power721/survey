@@ -23,6 +23,7 @@ public class VotePollCreateRequest {
     private String frequency = "ONCE";
     private String accessLevel = "PUBLIC";
     private boolean anonymous = true;
+    private boolean showVoters = false;
     private Integer maxTotalVotes;
     private Integer maxOptions;
     private Integer maxVotesPerOption;

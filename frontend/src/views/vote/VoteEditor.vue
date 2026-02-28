@@ -33,11 +33,16 @@
               <n-switch v-model:value="form.anonymous" />
             </n-form-item>
           </n-gi>
+          <n-gi v-if="!form.anonymous && form.voteType !== 'SCORED'">
+            <n-form-item :label="t('vote.showVoters')">
+              <n-switch v-model:value="form.showVoters" />
+            </n-form-item>
+          </n-gi>
         </n-grid>
 
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
-            <n-form-item :label="t('vote.endTime')">
+            <n-form-item :label="t('vote.endTime')" required>
               <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%" />
             </n-form-item>
           </n-gi>
@@ -50,13 +55,13 @@
 
         <n-grid v-if="form.voteType === 'SCORED'" :cols="2" :x-gap="16">
           <n-gi>
-            <n-form-item :label="t('vote.maxTotalVotes')">
-              <n-input-number v-model:value="form.maxTotalVotes" :min="1" clearable style="width: 100%" />
+            <n-form-item :label="t('vote.maxTotalVotes')" required>
+              <n-input-number v-model:value="form.maxTotalVotes" :min="1" style="width: 100%" />
             </n-form-item>
           </n-gi>
           <n-gi>
-            <n-form-item :label="t('vote.maxVotesPerOption')">
-              <n-input-number v-model:value="form.maxVotesPerOption" :min="1" clearable style="width: 100%" />
+            <n-form-item :label="t('vote.maxVotesPerOption')" required>
+              <n-input-number v-model:value="form.maxVotesPerOption" :min="1" style="width: 100%" />
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -103,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
@@ -138,7 +143,8 @@ const form = ref<VotePollCreateRequest>({
   voteType: 'SINGLE',
   frequency: 'ONCE',
   accessLevel: 'PUBLIC',
-  anonymous: true,
+  anonymous: false,
+  showVoters: true,
   maxTotalVotes: null,
   maxOptions: null,
   maxVotesPerOption: null,
@@ -147,6 +153,13 @@ const form = ref<VotePollCreateRequest>({
     { title: '', sortOrder: 0, _key: nextKey() },
     { title: '', sortOrder: 1, _key: nextKey() },
   ],
+})
+
+watch(() => form.value.voteType, (newType) => {
+  if (newType === 'SCORED') {
+    if (!form.value.maxTotalVotes) form.value.maxTotalVotes = 10
+    if (!form.value.maxVotesPerOption) form.value.maxVotesPerOption = 3
+  }
 })
 
 const voteTypeOptions = [
@@ -189,6 +202,7 @@ async function loadPoll() {
       frequency: poll.frequency,
       accessLevel: poll.accessLevel,
       anonymous: poll.anonymous,
+      showVoters: poll.showVoters,
       maxTotalVotes: poll.maxTotalVotes,
       maxOptions: poll.maxOptions,
       maxVotesPerOption: poll.maxVotesPerOption,
@@ -219,6 +233,20 @@ async function handleSave() {
   if (form.value.options.some((o) => !o.title.trim())) {
     message.warning(t('vote.optionTitle'))
     return
+  }
+  if (!endTimeTs.value) {
+    message.warning(t('vote.endTimeRequired'))
+    return
+  }
+  if (form.value.voteType === 'SCORED') {
+    if (!form.value.maxTotalVotes || form.value.maxTotalVotes < 1) {
+      message.warning(t('vote.maxTotalVotesRequired'))
+      return
+    }
+    if (!form.value.maxVotesPerOption || form.value.maxVotesPerOption < 1) {
+      message.warning(t('vote.maxVotesPerOptionRequired'))
+      return
+    }
   }
 
   saving.value = true

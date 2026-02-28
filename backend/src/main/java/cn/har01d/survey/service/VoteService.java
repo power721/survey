@@ -81,6 +81,7 @@ public class VoteService {
                 .status(Survey.SurveyStatus.DRAFT)
                 .accessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()))
                 .anonymous(request.isAnonymous())
+                .showVoters(request.isShowVoters())
                 .maxTotalVotes(request.getMaxTotalVotes())
                 .maxOptions(request.getMaxOptions())
                 .maxVotesPerOption(request.getMaxVotesPerOption())
@@ -119,6 +120,7 @@ public class VoteService {
         poll.setFrequency(VotePoll.VoteFrequency.valueOf(request.getFrequency()));
         poll.setAccessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()));
         poll.setAnonymous(request.isAnonymous());
+        poll.setShowVoters(request.isShowVoters());
         poll.setMaxTotalVotes(request.getMaxTotalVotes());
         poll.setMaxOptions(request.getMaxOptions());
         poll.setMaxVotesPerOption(request.getMaxVotesPerOption());
@@ -429,6 +431,7 @@ public class VoteService {
         dto.setStatus(poll.getStatus().name());
         dto.setAccessLevel(poll.getAccessLevel().name());
         dto.setAnonymous(poll.isAnonymous());
+        dto.setShowVoters(poll.isShowVoters());
         dto.setMaxTotalVotes(poll.getMaxTotalVotes());
         dto.setMaxOptions(poll.getMaxOptions());
         dto.setMaxVotesPerOption(poll.getMaxVotesPerOption());
@@ -439,7 +442,7 @@ public class VoteService {
         dto.setCreatedAt(poll.getCreatedAt());
         dto.setUpdatedAt(poll.getUpdatedAt());
 
-        boolean showVoters = !poll.isAnonymous() && poll.getVoteType() != VotePoll.VoteType.SCORED;
+        boolean showVoters = poll.isShowVoters() && !poll.isAnonymous() && poll.getVoteType() != VotePoll.VoteType.SCORED;
         Map<Long, List<String>> votersByOption = new HashMap<>();
         if (showVoters) {
             List<VoteRecord> records = recordRepository.findByPollId(poll.getId());

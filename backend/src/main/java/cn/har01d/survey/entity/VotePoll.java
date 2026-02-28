@@ -71,6 +71,8 @@ public class VotePoll {
 
     private boolean anonymous = true;
 
+    private boolean showVoters = false;
+
     private Integer maxTotalVotes;
 
     private Integer maxOptions;

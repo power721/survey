@@ -146,6 +146,7 @@ export interface VotePollDto {
   status: string
   accessLevel: string
   anonymous: boolean
+  showVoters: boolean
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
@@ -176,6 +177,7 @@ export interface VotePollCreateRequest {
   frequency: string
   accessLevel: string
   anonymous: boolean
+  showVoters: boolean
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
