@@ -36,6 +36,8 @@ export default {
     newPassword: '新密碼',
     changePassword: '修改密碼',
     saveSuccess: '儲存成功',
+    creator: '建立者',
+    createdAt: '建立時間',
   },
   auth: {
     username: '使用者名稱',

@@ -36,6 +36,8 @@ export default {
     newPassword: '新密码',
     changePassword: '修改密码',
     profile: '个人信息',
+    creator: '创建者',
+    createdAt: '创建时间',
   },
   auth: {
     username: '用户名',

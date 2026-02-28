@@ -14,6 +14,12 @@
           <template #header-extra>
             <n-tag type="success" size="small">{{ t('survey.alreadySubmitted') }}</n-tag>
           </template>
+
+          <n-space style="margin-bottom: 16px">
+            <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
+            <n-text v-if="survey.createdAt" depth="3">{{ t('common.createdAt') }}: {{ new Date(survey.createdAt).toLocaleString() }}</n-text>
+          </n-space>
+
           <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
 
           <n-alert type="info" style="margin-bottom: 16px">{{ t('survey.viewMyResponse') }}</n-alert>

@@ -152,7 +152,7 @@ export interface VotePollDto {
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
-  endTime: string | null
+  endTime: string
   totalVoteCount: number
   options: VoteOptionDto[]
   creatorName: string

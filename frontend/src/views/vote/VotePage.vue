@@ -11,12 +11,14 @@
             </n-space>
           </template>
 
-          <p v-if="poll.description" style="margin-bottom: 16px; color: #666">{{ poll.description }}</p>
-
-          <div v-if="poll.endTime" style="margin-bottom: 16px">
+          <n-space style="margin-bottom: 16px">
+            <n-text v-if="poll.creatorName" depth="3">{{ t('common.creator') }}: {{ poll.creatorName }}</n-text>
+            <n-text v-if="poll.createdAt" depth="3">{{ t('common.createdAt') }}: {{ new Date(poll.createdAt).toLocaleString() }}</n-text>
             <n-text depth="3">{{ t('vote.endTime') }}: {{ formatTime(poll.endTime) }}</n-text>
             <n-tag v-if="isExpired" type="error" size="small" style="margin-left: 8px">{{ t('vote.expired') }}</n-tag>
-          </div>
+          </n-space>
+
+          <p v-if="poll.description" style="margin-bottom: 16px; color: #666">{{ poll.description }}</p>
 
           <n-alert v-if="isExpired && !hasVoted && !voted" type="warning" style="margin-bottom: 16px">
             {{ t('vote.votingClosed') }}

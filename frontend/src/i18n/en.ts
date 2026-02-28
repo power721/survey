@@ -36,6 +36,8 @@ export default {
     newPassword: 'New Password',
     changePassword: 'Change Password',
     saveSuccess: 'Saved successfully',
+    creator: 'Creator',
+    createdAt: 'Created At',
   },
   auth: {
     username: 'Username',
