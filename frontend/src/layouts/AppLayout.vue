@@ -59,12 +59,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue'
+import { computed, h, type Component } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NIcon } from 'naive-ui'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
+import {
+  HomeOutline,
+  GlobeOutline,
+  DocumentTextOutline,
+  AddCircleOutline,
+  ListOutline,
+  CreateOutline,
+  MegaphoneOutline,
+} from '@vicons/ionicons5'
+
+function renderIcon(icon: Component) {
+  return () => h(NIcon, null, { default: () => h(icon) })
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -88,18 +101,18 @@ const activeKey = computed(() => {
 
 const menuOptions = computed(() => {
   const items: any[] = [
-    { label: t('nav.home'), key: 'home' },
-    { label: t('survey.publicSurveys'), key: 'public-surveys' },
-    { label: t('vote.publicVotes'), key: 'public-votes' },
+    { label: t('nav.home'), key: 'home', icon: renderIcon(HomeOutline) },
+    { label: t('survey.publicSurveys'), key: 'public-surveys', icon: renderIcon(GlobeOutline) },
+    { label: t('vote.publicVotes'), key: 'public-votes', icon: renderIcon(MegaphoneOutline) },
   ]
   if (authStore.isLoggedIn) {
     items.push(
       { type: 'divider', key: 'd1' },
-      { label: t('survey.mySurveys'), key: 'surveys' },
-      { label: t('survey.createSurvey'), key: 'create-survey' },
+      { label: t('survey.mySurveys'), key: 'surveys', icon: renderIcon(DocumentTextOutline) },
+      { label: t('survey.createSurvey'), key: 'create-survey', icon: renderIcon(AddCircleOutline) },
       { type: 'divider', key: 'd2' },
-      { label: t('vote.myVotes'), key: 'votes' },
-      { label: t('vote.createVote'), key: 'create-vote' },
+      { label: t('vote.myVotes'), key: 'votes', icon: renderIcon(ListOutline) },
+      { label: t('vote.createVote'), key: 'create-vote', icon: renderIcon(CreateOutline) },
     )
   }
   return items
