@@ -78,6 +78,8 @@ export default {
     responseCount: '回复数量',
     submitSuccess: '问卷提交成功',
     thankYou: '感谢您的参与！',
+    alreadySubmitted: '已提交',
+    viewMyResponse: '您已提交过此问卷，以下是您的回复内容。',
     types: {
       SINGLE_CHOICE: '单选题',
       MULTIPLE_CHOICE: '多选题',

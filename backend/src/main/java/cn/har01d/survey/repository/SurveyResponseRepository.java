@@ -1,6 +1,7 @@
 package cn.har01d.survey.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,6 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     long countBySurveyId(Long surveyId);
 
     void deleteBySurveyId(Long surveyId);
+
+    Optional<SurveyResponse> findFirstBySurveyIdAndUserIdOrderByCreatedAtDesc(Long surveyId, Long userId);
 }

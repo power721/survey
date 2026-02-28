@@ -381,6 +381,21 @@ public class SurveyService {
     }
 
     @Transactional(readOnly = true)
+    public SurveyResponseDto getMyResponse(String shareId) {
+        Survey survey = surveyRepository.findByShareId(shareId)
+                .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));
+
+        User user = authService.getCurrentUser();
+        if (user == null) {
+            return null;
+        }
+
+        return responseRepository.findFirstBySurveyIdAndUserIdOrderByCreatedAtDesc(survey.getId(), user.getId())
+                .map(r -> toResponseDto(r, false))
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
     public Page<SurveyResponseDto> getResponses(Long surveyId, Pageable pageable) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Survey not found"));

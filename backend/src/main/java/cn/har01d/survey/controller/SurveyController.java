@@ -107,6 +107,12 @@ public class SurveyController {
         return ResponseEntity.ok(ApiResponse.ok("Survey deleted", null));
     }
 
+    @GetMapping("/s/{shareId}/my-response")
+    public ResponseEntity<ApiResponse<SurveyResponseDto>> getMyResponse(@PathVariable String shareId) {
+        SurveyResponseDto response = surveyService.getMyResponse(shareId);
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
     @PostMapping("/s/{shareId}/submit")
     public ResponseEntity<ApiResponse<SurveyResponseDto>> submitSurvey(
             @PathVariable String shareId,

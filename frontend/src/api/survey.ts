@@ -35,6 +35,9 @@ export const surveyApi = {
   delete(id: number) {
     return http.delete<ApiResponse<void>>(`/surveys/${id}`)
   },
+  getMyResponse(shareId: string) {
+    return http.get<ApiResponse<SurveyResponseDto | null>>(`/surveys/s/${shareId}/my-response`)
+  },
   submit(shareId: string, data: SurveySubmitRequest) {
     return http.post<ApiResponse<SurveyResponseDto>>(`/surveys/s/${shareId}/submit`, data)
   },

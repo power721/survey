@@ -9,6 +9,43 @@
         </n-result>
       </template>
 
+      <template v-else-if="myResponse && survey">
+        <n-card :title="survey.title">
+          <template #header-extra>
+            <n-tag type="success" size="small">{{ t('survey.alreadySubmitted') }}</n-tag>
+          </template>
+          <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
+
+          <n-alert type="info" style="margin-bottom: 16px">{{ t('survey.viewMyResponse') }}</n-alert>
+
+          <div v-for="(answer, ai) in myResponse.answers" :key="answer.id" style="margin-bottom: 20px">
+            <n-space align="center" style="margin-bottom: 8px">
+              <span style="font-weight: 600">{{ ai + 1 }}. {{ answer.questionTitle }}</span>
+            </n-space>
+            <div style="padding-left: 16px; color: #333">
+              <template v-if="answer.selectedOptionContent">
+                <n-tag type="info" size="small">{{ answer.selectedOptionContent }}</n-tag>
+              </template>
+              <template v-else-if="answer.selectedOptionContents && answer.selectedOptionContents.length > 0">
+                <n-space>
+                  <n-tag v-for="(opt, oi) in answer.selectedOptionContents" :key="oi" type="info" size="small">{{ opt }}</n-tag>
+                </n-space>
+              </template>
+              <template v-else-if="answer.textValue">
+                <n-text>{{ answer.textValue }}</n-text>
+              </template>
+              <template v-else>
+                <n-text depth="3">-</n-text>
+              </template>
+            </div>
+          </div>
+
+          <n-space justify="center" style="margin-top: 24px">
+            <n-button @click="router.push('/')">{{ t('common.home') }}</n-button>
+          </n-space>
+        </n-card>
+      </template>
+
       <template v-else-if="survey">
         <n-card :title="survey.title">
           <template #header-extra>
@@ -98,17 +135,20 @@ import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import { surveyApi } from '@/api/survey'
 import { fileApi } from '@/api/file'
-import type { SurveyDto, SurveySubmitRequest } from '@/types'
+import { useAuthStore } from '@/stores/auth'
+import type { SurveyDto, SurveySubmitRequest, SurveyResponseDto } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 const message = useMessage()
 
+const authStore = useAuthStore()
 const loading = ref(true)
 const submitting = ref(false)
 const submitted = ref(false)
 const survey = ref<SurveyDto | null>(null)
+const myResponse = ref<SurveyResponseDto | null>(null)
 
 const answers = reactive<Record<number, { textValue: string; selectedOptionId: number | null; selectedOptionIds: number[]; numberValue: number | null }>>({})
 
@@ -140,6 +180,17 @@ async function loadSurvey() {
     survey.value = res.data.data
     for (const q of survey.value.questions) {
       answers[q.id] = { textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null }
+    }
+
+    if (authStore.isLoggedIn) {
+      try {
+        const respRes = await surveyApi.getMyResponse(route.params.shareId as string)
+        if (respRes.data.data) {
+          myResponse.value = respRes.data.data
+        }
+      } catch (_) {
+        // ignore - user may not have responded yet
+      }
     }
   } catch (e: any) {
     message.error(e?.response?.data?.message || 'Error loading survey')

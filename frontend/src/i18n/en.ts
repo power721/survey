@@ -78,6 +78,8 @@ export default {
     responseCount: 'Response Count',
     submitSuccess: 'Survey submitted successfully',
     thankYou: 'Thank you for your response!',
+    alreadySubmitted: 'Submitted',
+    viewMyResponse: 'You have already submitted this survey. Below is your response.',
     types: {
       SINGLE_CHOICE: 'Single Choice',
       MULTIPLE_CHOICE: 'Multiple Choice',
