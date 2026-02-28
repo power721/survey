@@ -72,7 +72,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encoded");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(tokenProvider.generateToken(eq("newuser"), eq("USER"))).thenReturn("jwt-token");
+        when(tokenProvider.generateToken(eq("newuser"), eq("ADMIN"))).thenReturn("jwt-token");
 
         AuthResponse response = authService.register(request);
 
@@ -119,7 +119,7 @@ class AuthServiceTest {
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encoded");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(tokenProvider.generateToken(eq("newuser"), eq("USER"))).thenReturn("jwt-token");
+        when(tokenProvider.generateToken(eq("newuser"), eq("ADMIN"))).thenReturn("jwt-token");
 
         AuthResponse response = authService.register(request);
 
@@ -136,7 +136,7 @@ class AuthServiceTest {
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encoded");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(tokenProvider.generateToken(eq("newuser"), eq("USER"))).thenReturn("jwt-token");
+        when(tokenProvider.generateToken(eq("newuser"), eq("ADMIN"))).thenReturn("jwt-token");
 
         AuthResponse response = authService.register(request);
 

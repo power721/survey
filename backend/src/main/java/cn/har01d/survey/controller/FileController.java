@@ -57,7 +57,12 @@ public class FileController {
     }
 
     @PostMapping("/{fileName}/delete")
-    public ResponseEntity<ApiResponse<Void>> deleteByPost(@PathVariable String fileName) {
+    public ResponseEntity<ApiResponse<Void>> deleteByPost(@PathVariable String fileName,
+                                                           HttpServletRequest request) {
+        String ip = getClientIp(request);
+        if (!rateLimiter.isAllowed("delete:" + ip, 10, 60_000)) {
+            throw new BusinessException("file.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
+        }
         fileService.delete(fileName);
         return ResponseEntity.ok(ApiResponse.ok("File deleted", null));
     }
@@ -71,7 +76,7 @@ public class FileController {
         }
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName.replaceAll("[^a-zA-Z0-9._-]", "_") + "\"")
                 .body(resource);
     }
 

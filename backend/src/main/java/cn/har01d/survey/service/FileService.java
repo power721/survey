@@ -69,7 +69,7 @@ public class FileService {
 
     public void delete(String fileName) {
         try {
-            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(fileName);
+            Path filePath = safePath(fileName);
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
             throw new BusinessException("file.delete.failed");
@@ -100,6 +100,18 @@ public class FileService {
     }
 
     public Path getFilePath(String fileName) {
-        return Paths.get(uploadDir).toAbsolutePath().resolve(fileName);
+        return safePath(fileName);
+    }
+
+    private Path safePath(String fileName) {
+        if (fileName == null || fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw new BusinessException("file.invalid.name");
+        }
+        Path dir = Paths.get(uploadDir).toAbsolutePath();
+        Path filePath = dir.resolve(fileName).normalize();
+        if (!filePath.startsWith(dir)) {
+            throw new BusinessException("file.invalid.name");
+        }
+        return filePath;
     }
 }
