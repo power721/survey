@@ -109,7 +109,6 @@
                       <n-button size="tiny" type="error" quaternary @click="handleFileRemove(question.id)">{{ t('common.delete') }}</n-button>
                     </n-space>
                     <n-upload
-                      :max="1"
                       :show-file-list="false"
                       :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
                     >
@@ -177,7 +176,13 @@ async function handleFileUpload(questionId: number, file: any, onFinish: () => v
     if (oldUrl) {
       const oldFileName = oldUrl.split('/').pop()
       if (oldFileName) {
-        pendingFileDeletes.value.push(oldFileName)
+        const idx = newUploadedFiles.value.indexOf(oldFileName)
+        if (idx !== -1) {
+          newUploadedFiles.value.splice(idx, 1)
+          fileApi.delete(oldFileName).catch(() => {})
+        } else {
+          pendingFileDeletes.value.push(oldFileName)
+        }
       }
     }
     const res = await fileApi.upload(file.file)
