@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { darkTheme, zhCN, dateZhCN, zhTW, dateZhTW, jaJP, dateJaJP, koKR, dateKoKR, enUS, dateEnUS } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import AppLayout from './layouts/AppLayout.vue'
@@ -21,6 +21,10 @@ import { useAppStore } from './stores/app'
 
 const { locale } = useI18n()
 const appStore = useAppStore()
+
+onMounted(() => {
+  appStore.fetchPublicConfig()
+})
 
 const naiveLocaleMap: Record<string, any> = {
   'zh-CN': zhCN, 'zh-TW': zhTW, 'ja': jaJP, 'ko': koKR, 'en': enUS,

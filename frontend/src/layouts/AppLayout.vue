@@ -13,8 +13,14 @@
       style="height: 100vh"
     >
       <div style="padding: 16px; text-align: center; font-weight: bold; font-size: 18px">
-        <span v-if="!appStore.siderCollapsed">{{ t('common.appName') }}</span>
-        <span v-else>S</span>
+        <template v-if="!appStore.siderCollapsed">
+          <img v-if="appStore.siteLogo" :src="appStore.siteLogo" alt="logo" style="max-height: 32px; vertical-align: middle; margin-right: 8px" />
+          <span>{{ appStore.siteTitle || t('common.appName') }}</span>
+        </template>
+        <template v-else>
+          <img v-if="appStore.siteLogo" :src="appStore.siteLogo" alt="logo" style="max-height: 28px" />
+          <span v-else>{{ (appStore.siteTitle || t('common.appName')).charAt(0) }}</span>
+        </template>
       </div>
       <n-menu
         :collapsed="appStore.siderCollapsed"
@@ -42,17 +48,20 @@
           </n-dropdown>
           <template v-if="authStore.isLoggedIn">
             <n-dropdown :options="userOptions" @select="handleUserSelect" trigger="click">
-              <n-button quaternary>{{ authStore.nickname || authStore.username }}</n-button>
+              <n-button quaternary :class="{ 'admin-badge': authStore.isAdmin }">{{ authStore.nickname || authStore.username }}</n-button>
             </n-dropdown>
           </template>
           <template v-else>
             <n-button size="small" @click="router.push('/login')">{{ t('common.login') }}</n-button>
-            <n-button size="small" type="primary" @click="router.push('/register')">{{ t('common.register') }}</n-button>
+            <n-button v-if="appStore.registerEnabled" size="small" type="primary" @click="router.push('/register')">{{ t('common.register') }}</n-button>
           </template>
         </div>
       </n-layout-header>
       <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
         <router-view />
+        <n-layout-footer v-if="appStore.siteFooter" bordered style="text-align: center; padding: 12px; color: #999; font-size: 13px">
+          {{ appStore.siteFooter }}
+        </n-layout-footer>
       </n-layout-content>
     </n-layout>
   </n-layout>
@@ -73,6 +82,7 @@ import {
   ListOutline,
   CreateOutline,
   MegaphoneOutline,
+  SettingsOutline,
 } from '@vicons/ionicons5'
 
 function renderIcon(icon: Component) {
@@ -96,6 +106,7 @@ const activeKey = computed(() => {
   if (path.startsWith('/votes')) return 'votes'
   if (path.startsWith('/s/')) return 'public-surveys'
   if (path.startsWith('/v/')) return 'public-votes'
+  if (path.startsWith('/admin')) return 'admin-config'
   return ''
 })
 
@@ -115,6 +126,12 @@ const menuOptions = computed(() => {
       { label: t('vote.createVote'), key: 'create-vote', icon: renderIcon(CreateOutline) },
     )
   }
+  if (authStore.isAdmin) {
+    items.push(
+      { type: 'divider', key: 'd3' },
+      { label: t('admin.systemConfig'), key: 'admin-config', icon: renderIcon(SettingsOutline) },
+    )
+  }
   return items
 })
 
@@ -127,6 +144,7 @@ function handleMenuSelect(key: string) {
     'votes': '/votes',
     'create-vote': '/votes/create',
     'public-votes': '/votes/public',
+    'admin-config': '/admin/config',
   }
   const target = routeMap[key]
   if (target) router.push(target)
@@ -164,3 +182,11 @@ function handleUserSelect(key: string) {
   }
 }
 </script>
+
+<style scoped>
+.admin-badge {
+  border: 2px solid #d4a017 !important;
+  border-radius: 6px;
+  color: #d4a017 !important;
+}
+</style>

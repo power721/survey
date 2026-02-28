@@ -22,22 +22,45 @@ import cn.har01d.survey.exception.BusinessException;
 public class FileService {
 
     private final String uploadDir;
-    private final long maxSize;
-    private final Set<String> allowedExtensions;
+    private final long defaultMaxSize;
+    private final Set<String> defaultAllowedExtensions;
+    private final SystemConfigService configService;
 
     public FileService(@Value("${app.upload.dir:uploads}") String uploadDir,
                        @Value("${app.upload.max-size:10485760}") long maxSize,
-                       @Value("${app.upload.allowed-extensions:.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv,.zip,.rar,.7z,.mp3,.mp4,.wav,.avi,.mov}") String allowedExtensions) {
+                       @Value("${app.upload.allowed-extensions:.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv,.zip,.rar,.7z,.mp3,.mp4,.wav,.avi,.mov}") String allowedExtensions,
+                       SystemConfigService configService) {
         this.uploadDir = uploadDir;
-        this.maxSize = maxSize;
-        this.allowedExtensions = Set.of(allowedExtensions.toLowerCase().split(","));
+        this.defaultMaxSize = maxSize;
+        this.defaultAllowedExtensions = Set.of(allowedExtensions.toLowerCase().split(","));
+        this.configService = configService;
+    }
+
+    private long getMaxSize() {
+        String val = configService.get(SystemConfigService.UPLOAD_MAX_SIZE);
+        if (!val.isEmpty()) {
+            try {
+                return Long.parseLong(val);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultMaxSize;
+    }
+
+    private Set<String> getAllowedExtensions() {
+        String val = configService.get(SystemConfigService.UPLOAD_ALLOWED_EXTENSIONS);
+        if (!val.isEmpty()) {
+            return Set.of(val.toLowerCase().split(","));
+        }
+        return defaultAllowedExtensions;
     }
 
     public String upload(MultipartFile file) {
         if (file.isEmpty()) {
             throw new BusinessException("file.empty");
         }
-        if (file.getSize() > maxSize) {
+        if (file.getSize() > getMaxSize()) {
             throw new BusinessException("file.size.exceeded");
         }
 
@@ -46,7 +69,7 @@ public class FileService {
         if (originalName != null && originalName.contains(".")) {
             ext = originalName.substring(originalName.lastIndexOf(".")).toLowerCase();
         }
-        if (!ext.isEmpty() && !allowedExtensions.contains(ext)) {
+        if (!ext.isEmpty() && !getAllowedExtensions().contains(ext)) {
             throw new BusinessException("file.type.not.allowed");
         }
 

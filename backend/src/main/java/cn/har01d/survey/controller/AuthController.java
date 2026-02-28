@@ -21,6 +21,7 @@ import cn.har01d.survey.dto.auth.UpdateProfileRequest;
 import cn.har01d.survey.dto.auth.UserDto;
 import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.service.AuthService;
+import cn.har01d.survey.service.SystemConfigService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,10 +29,24 @@ public class AuthController {
 
     private final AuthService authService;
     private final RateLimiter rateLimiter;
+    private final SystemConfigService configService;
 
-    public AuthController(AuthService authService, RateLimiter rateLimiter) {
+    public AuthController(AuthService authService, RateLimiter rateLimiter, SystemConfigService configService) {
         this.authService = authService;
         this.rateLimiter = rateLimiter;
+        this.configService = configService;
+    }
+
+    private int getLoginMaxAttempts() {
+        String val = configService.get(SystemConfigService.LOGIN_MAX_ATTEMPTS);
+        if (!val.isEmpty()) {
+            try {
+                return Integer.parseInt(val);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return 10;
     }
 
     @PostMapping("/register")
@@ -49,7 +64,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request,
                                                             HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
-        if (!rateLimiter.isAllowed("login:" + ip, 10, 60_000)) {
+        if (!rateLimiter.isAllowed("login:" + ip, getLoginMaxAttempts(), 60_000)) {
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
         AuthResponse response = authService.login(request);

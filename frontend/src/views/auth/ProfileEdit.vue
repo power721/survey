@@ -4,7 +4,10 @@
       <n-spin :show="loading">
         <n-form ref="formRef" :model="form" label-placement="top">
           <n-form-item :label="t('auth.username')">
-            <n-input :value="form.username" disabled />
+            <n-space align="center" style="width: 100%">
+              <n-input :value="form.username" disabled style="flex: 1" />
+              <n-tag v-if="authStore.isAdmin" class="admin-badge" size="small" :bordered="false">{{ t('common.admin') }}</n-tag>
+            </n-space>
           </n-form-item>
 
           <n-form-item :label="t('auth.nickname')">
@@ -122,3 +125,12 @@ async function handleChangePassword() {
 
 onMounted(loadProfile)
 </script>
+
+<style scoped>
+.admin-badge {
+  border: 2px solid #d4a017 !important;
+  color: #d4a017 !important;
+  background: transparent !important;
+  font-weight: bold;
+}
+</style>

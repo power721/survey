@@ -36,3 +36,11 @@ app:
     expiration-ms: 604800000
   cors:
     allowed-origins: "http://localhost:5173"
+  oauth2:
+    frontend-url: "http://localhost:5173"
+    github:
+      client-id: "${GITHUB_CLIENT_ID:}"
+      client-secret: "${GITHUB_CLIENT_SECRET:}"
+    google:
+      client-id: "${GOOGLE_CLIENT_ID:}"
+      client-secret: "${GOOGLE_CLIENT_SECRET:}"

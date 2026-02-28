@@ -25,16 +25,22 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    private final SystemConfigService configService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider) {
+                       AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider,
+                       SystemConfigService configService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
+        this.configService = configService;
     }
 
     public AuthResponse register(RegisterRequest request) {
+        if ("false".equals(configService.get(SystemConfigService.REGISTER_ENABLED, "true"))) {
+            throw new BusinessException("auth.register.disabled");
+        }
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BusinessException("auth.user.exists", HttpStatus.CONFLICT);
         }

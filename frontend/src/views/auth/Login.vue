@@ -13,7 +13,18 @@
           <n-button type="primary" block :loading="loading" @click="handleLogin">
             {{ t('common.login') }}
           </n-button>
-          <div style="text-align: center">
+          <template v-if="appStore.oauth2Enabled">
+            <n-divider>{{ t('auth.orLoginWith') }}</n-divider>
+            <n-space justify="center" size="large">
+              <n-button circle size="large" :loading="socialLoading === 'github'" @click="handleSocialLogin('github')">
+                <template #icon><n-icon :component="LogoGithub" /></template>
+              </n-button>
+              <n-button circle size="large" :loading="socialLoading === 'google'" @click="handleSocialLogin('google')">
+                <template #icon><n-icon :component="LogoGoogle" /></template>
+              </n-button>
+            </n-space>
+          </template>
+          <div v-if="appStore.registerEnabled" style="text-align: center">
             {{ t('auth.noAccount') }}
             <n-button text type="primary" @click="router.push('/register')">{{ t('auth.goRegister') }}</n-button>
           </div>
@@ -27,17 +38,22 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useMessage, type FormInst } from 'naive-ui'
+import { useMessage, NIcon, type FormInst } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
+import { useAppStore } from '@/stores/app'
+import { authApi } from '@/api/auth'
+import { LogoGithub, LogoGoogle } from '@vicons/ionicons5'
 
 const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
+const appStore = useAppStore()
 
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
+const socialLoading = ref<string | null>(null)
 const form = ref({ username: '', password: '' })
 
 const rules = {
@@ -59,6 +75,17 @@ async function handleLogin() {
     }
   } finally {
     loading.value = false
+  }
+}
+
+async function handleSocialLogin(provider: string) {
+  try {
+    socialLoading.value = provider
+    const res = await authApi.getOAuth2Url(provider)
+    window.location.href = res.data.data
+  } catch (e: any) {
+    message.error(e?.response?.data?.message || t('auth.oauth2Failed'))
+    socialLoading.value = null
   }
 }
 </script>

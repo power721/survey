@@ -98,6 +98,18 @@ const router = createRouter({
       component: () => import('@/views/vote/PublicVotes.vue'),
     },
     {
+      path: '/admin/config',
+      name: 'SystemConfig',
+      component: () => import('@/views/admin/SystemConfig.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/oauth2/callback/:provider',
+      name: 'OAuth2Callback',
+      component: () => import('@/views/auth/OAuth2Callback.vue'),
+      meta: { guest: true },
+    },
+    {
       path: '/profile',
       name: 'Profile',
       component: () => import('@/views/auth/ProfileEdit.vue'),
@@ -110,6 +122,8 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
+  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    next({ name: 'Home' })
   } else if (to.meta.guest && authStore.isLoggedIn) {
     next({ name: 'Home' })
   } else {

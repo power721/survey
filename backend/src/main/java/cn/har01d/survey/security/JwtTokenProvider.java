@@ -8,6 +8,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import cn.har01d.survey.service.SystemConfigService;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -16,18 +17,33 @@ import io.jsonwebtoken.security.Keys;
 public class JwtTokenProvider {
 
     private final SecretKey key;
-    private final long expirationMs;
+    private final long defaultExpirationMs;
+    private final SystemConfigService configService;
 
     public JwtTokenProvider(
             @Value("${app.jwt.secret}") String secret,
-            @Value("${app.jwt.expiration-ms}") long expirationMs) {
+            @Value("${app.jwt.expiration-ms}") long expirationMs,
+            SystemConfigService configService) {
         this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
-        this.expirationMs = expirationMs;
+        this.defaultExpirationMs = expirationMs;
+        this.configService = configService;
+    }
+
+    private long getExpirationMs() {
+        String val = configService.get(SystemConfigService.JWT_EXPIRATION_MS);
+        if (!val.isEmpty()) {
+            try {
+                return Long.parseLong(val);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultExpirationMs;
     }
 
     public String generateToken(String username, String role) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationMs);
+        Date expiry = new Date(now.getTime() + getExpirationMs());
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)

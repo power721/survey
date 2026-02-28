@@ -30,16 +30,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage, type FormInst } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
+import { useAppStore } from '@/stores/app'
 
 const router = useRouter()
 const { t, locale } = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
+const appStore = useAppStore()
+
+onMounted(() => {
+  if (!appStore.registerEnabled) {
+    router.replace('/login')
+  }
+})
 
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
