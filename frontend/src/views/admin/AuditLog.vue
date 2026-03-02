@@ -105,7 +105,7 @@ const columns = [
     key: 'action',
     width: 150,
     render: (row: AuditLog) => {
-      const colorMap: Record<string, string> = {
+      const colorMap: Record<string, "default" | "primary" | "info" | "success" | "warning" | "error"> = {
         CREATE_SURVEY: 'success',
         UPDATE_SURVEY: 'warning',
         DELETE_SURVEY: 'error',
@@ -117,7 +117,7 @@ const columns = [
         REGISTER: 'warning',
       }
       return h(NTag, {
-        type: colorMap[row.action] || 'default',
+        type: (colorMap[row.action] || 'default') as "default" | "primary" | "info" | "success" | "warning" | "error",
         size: 'small'
       }, {default: () => t(`audit.actions.${row.action}`)})
     },

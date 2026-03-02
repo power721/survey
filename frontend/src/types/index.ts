@@ -197,6 +197,7 @@ export interface VotePollListDto {
     shareId: string
     title: string
     voteType: string
+    frequency: string
     status: string
     accessLevel: string
     anonymous: boolean

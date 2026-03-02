@@ -479,7 +479,20 @@ async function handleSave() {
       savedSurvey = (await surveyApi.create(form.value)).data.data
     }
 
-    if (pendingConditions.size > 0) {
+    const newQuestionKeys = new Set<string>()
+    form.value.sections.forEach(s => {
+      s.questions.forEach(q => {
+        if (!q.id) {
+          newQuestionKeys.add(q._key!)
+        }
+      })
+    })
+
+    const hasNewQuestionDependency = Array.from(pendingConditions.values()).some(cond =>
+        newQuestionKeys.has(cond.conditionQuestionKey)
+    )
+
+    if (pendingConditions.size > 0 && hasNewQuestionDependency) {
       const savedFlat = savedSurvey.sections && savedSurvey.sections.length > 0
           ? savedSurvey.sections.flatMap(s => s.questions)
           : savedSurvey.questions
@@ -496,7 +509,7 @@ async function handleSave() {
             for (let i = 0; i < secIdx; i++) secOffset += savedSurvey.sections![i].questions.length
             return {
               id: sec.id,
-              title: sec.title,
+              title: sec.title || '',
               sortOrder: sec.sortOrder,
               questions: sec.questions.map((sq, qi) => {
                 const key = orderedKeys[secOffset + qi]
