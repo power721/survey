@@ -105,6 +105,9 @@ export default {
         viewMyResponse: 'このアンケートは既に回答済みです。以下があなたの回答内容です。',
         allowUpdate: '回答の更新を許可',
         updateResponse: '回答を更新',
+        maxResponses: '最大回答数',
+        maxResponsesPlaceholder: '未入力の場合は無制限',
+        quotaReached: 'このアンケートは最大回答数に達しました',
         types: {
             SINGLE_CHOICE: '単一選択',
             MULTIPLE_CHOICE: '複数選択',

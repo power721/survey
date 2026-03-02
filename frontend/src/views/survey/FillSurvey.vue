@@ -110,6 +110,10 @@
             </n-text>
           </n-space>
 
+          <n-alert v-if="survey.maxResponses" type="default" style="margin-bottom: 16px">
+            {{ t('survey.responseCount') }}: {{ survey.responseCount }} / {{ survey.maxResponses }}
+          </n-alert>
+
           <n-alert v-if="isNotStarted" type="warning" style="margin-bottom: 16px">
             {{ t('survey.notStarted') }}
           </n-alert>

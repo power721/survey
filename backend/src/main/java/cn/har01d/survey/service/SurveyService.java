@@ -118,6 +118,7 @@ public class SurveyService {
                 .allowUpdate(request.isAllowUpdate())
                 .startTime(request.getStartTime())
                 .endTime(endTime)
+                .maxResponses(request.getMaxResponses())
                 .questions(new ArrayList<>())
                 .sections(new ArrayList<>())
                 .build();
@@ -166,6 +167,7 @@ public class SurveyService {
         survey.setAnonymous(request.isAnonymous());
         survey.setTemplate(request.isTemplate());
         survey.setAllowUpdate(request.isAllowUpdate());
+        survey.setMaxResponses(request.getMaxResponses());
         Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(Duration.ofDays(30));
         if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
             throw new BusinessException("error.endTimeBeforeStartTime");
@@ -398,6 +400,9 @@ public class SurveyService {
         if (survey.getEndTime() != null && survey.getEndTime().isBefore(Instant.now())) {
             throw new BusinessException("survey.closed");
         }
+        if (survey.getMaxResponses() != null && survey.getResponseCount() >= survey.getMaxResponses()) {
+            throw new BusinessException("survey.quota.reached");
+        }
 
         User user = authService.getCurrentUser();
         if (!survey.isAnonymous() && user == null) {
@@ -476,6 +481,9 @@ public class SurveyService {
 
         if (!isUpdate) {
             survey.setResponseCount(survey.getResponseCount() + 1);
+            if (survey.getMaxResponses() != null && survey.getResponseCount() >= survey.getMaxResponses()) {
+                survey.setStatus(Survey.SurveyStatus.CLOSED);
+            }
         }
         surveyRepository.save(survey);
         response = responseRepository.save(response);
@@ -622,6 +630,7 @@ public class SurveyService {
         dto.setStartTime(survey.getStartTime());
         dto.setEndTime(survey.getEndTime());
         dto.setResponseCount(survey.getResponseCount());
+        dto.setMaxResponses(survey.getMaxResponses());
         dto.setCreator(new CreatorDto(survey.getUser().getUsername(), survey.getUser().getNickname(), resolveAvatar(survey.getUser())));
         dto.setCreatedAt(survey.getCreatedAt());
         dto.setUpdatedAt(survey.getUpdatedAt());
@@ -644,6 +653,7 @@ public class SurveyService {
         dto.setStartTime(survey.getStartTime());
         dto.setEndTime(survey.getEndTime());
         dto.setResponseCount(survey.getResponseCount());
+        dto.setMaxResponses(survey.getMaxResponses());
         dto.setCreator(new CreatorDto(survey.getUser().getUsername(), survey.getUser().getNickname(), resolveAvatar(survey.getUser())));
         dto.setCreatedAt(survey.getCreatedAt());
         dto.setUpdatedAt(survey.getUpdatedAt());

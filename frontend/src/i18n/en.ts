@@ -105,6 +105,9 @@ export default {
         viewMyResponse: 'You have already submitted this survey. Below is your response.',
         allowUpdate: 'Allow Update Response',
         updateResponse: 'Update Response',
+        maxResponses: 'Max Responses',
+        maxResponsesPlaceholder: 'Leave blank for unlimited',
+        quotaReached: 'This survey has reached its maximum number of responses',
         types: {
             SINGLE_CHOICE: 'Single Choice',
             MULTIPLE_CHOICE: 'Multiple Choice',

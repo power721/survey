@@ -61,6 +61,7 @@ export interface SurveyDto {
     startTime: string | null
     endTime: string | null
     responseCount: number
+    maxResponses: number | null
     questions: QuestionDto[]
     sections: SurveySectionDto[]
     creator: CreatorDto
@@ -102,6 +103,7 @@ export interface SurveyCreateRequest {
     backgroundUrl: string | null
     startTime: string | null
     endTime: string | null
+    maxResponses: number | null
     questions: QuestionRequest[]
     sections: SurveySectionRequest[]
 }

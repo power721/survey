@@ -105,6 +105,9 @@ export default {
         viewMyResponse: '您已提交過此問卷，以下是您的回覆內容。',
         allowUpdate: '允許更新回覆',
         updateResponse: '更新回覆',
+        maxResponses: '最大回覆數量',
+        maxResponsesPlaceholder: '不填則不限制',
+        quotaReached: '該問卷已達到最大回覆數量限制',
         types: {
             SINGLE_CHOICE: '單選',
             MULTIPLE_CHOICE: '多選',

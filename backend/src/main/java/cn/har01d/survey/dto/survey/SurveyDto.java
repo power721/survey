@@ -22,6 +22,7 @@ public class SurveyDto {
     private Instant startTime;
     private Instant endTime;
     private int responseCount;
+    private Integer maxResponses;
     private List<QuestionDto> questions;
     private List<SurveySectionDto> sections;
     private CreatorDto creator;

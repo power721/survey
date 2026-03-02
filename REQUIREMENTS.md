@@ -357,6 +357,9 @@ Dockerfile 多阶段构建：
     - 已登录用户（`allowUpdate=false`）：检查 `existsBySurveyIdAndUserId`，重复则返回 HTTP 400
     - 匿名用户：检查 `existsBySurveyIdAndIp`，前端同时写入 `localStorage` 标记
     - 重复提交返回错误码 `survey.already.submitted`
+- **问卷配额**：
+    - 若 `maxResponses` 不为 null，提交前检查 `responseCount >= maxResponses`，超出返回 `survey.quota.reached`
+    - 每次新提交成功后，若 `responseCount` 达到 `maxResponses`，自动将问卷状态改为 `CLOSED`
 
 #### 3.2.7 查看自己的回复
 
@@ -841,6 +844,7 @@ VoteOption (1) ─────── (N) VoteRecord
 | `logo_url`       | VARCHAR(500)  | NULLABLE             | 问卷 Logo URL |
 | `background_url` | VARCHAR(500)  | NULLABLE             | 问卷背景图片 URL  |
 | `response_count` | INT           | 默认 0                 | 回复数量        |
+| `max_responses`  | INT           | NULLABLE             | 最大回复数量（配额）  |
 | `created_at`     | TIMESTAMP     | 自动生成                 | 创建时间        |
 | `updated_at`     | TIMESTAMP     | 自动更新                 | 更新时间        |
 

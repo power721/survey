@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -28,6 +29,9 @@ public class SurveyCreateRequest {
     private String backgroundUrl;
     private Instant startTime;
     private Instant endTime;
+
+    @Min(1)
+    private Integer maxResponses;
 
     @Valid
     private List<QuestionRequest> questions;

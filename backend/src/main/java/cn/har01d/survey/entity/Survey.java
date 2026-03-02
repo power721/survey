@@ -87,6 +87,8 @@ public class Survey {
 
     private int responseCount = 0;
 
+    private Integer maxResponses;
+
     @CreationTimestamp
     private Instant createdAt;
 

@@ -105,6 +105,9 @@ export default {
         viewMyResponse: '이미 이 설문에 응답하셨습니다. 아래는 귀하의 응답 내용입니다.',
         allowUpdate: '응답 수정 허용',
         updateResponse: '응답 수정',
+        maxResponses: '최대 응답 수',
+        maxResponsesPlaceholder: '비워두면 무제한',
+        quotaReached: '이 설문은 최대 응답 수에 도달했습니다',
         types: {
             SINGLE_CHOICE: '단일 선택',
             MULTIPLE_CHOICE: '다중 선택',

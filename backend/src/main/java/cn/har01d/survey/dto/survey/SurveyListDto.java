@@ -19,6 +19,7 @@ public class SurveyListDto {
     private Instant startTime;
     private Instant endTime;
     private int responseCount;
+    private Integer maxResponses;
     private CreatorDto creator;
     private Instant createdAt;
     private Instant updatedAt;

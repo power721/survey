@@ -33,7 +33,7 @@
           </n-gi>
         </n-grid>
 
-        <n-grid :cols="2" :x-gap="16">
+        <n-grid :cols="3" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('common.startTime')" required>
               <n-date-picker v-model:value="startTimeTs" type="datetime" style="width: 100%"/>
@@ -42,6 +42,12 @@
           <n-gi>
             <n-form-item :label="t('survey.endTime')" required>
               <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%"/>
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item :label="t('survey.maxResponses')">
+              <n-input-number v-model:value="form.maxResponses" :min="1"
+                              :placeholder="t('survey.maxResponsesPlaceholder')" style="width: 100%" clearable/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -188,6 +194,7 @@ const form = ref<SurveyCreateRequest>({
   allowUpdate: false,
   startTime: null,
   endTime: null,
+  maxResponses: null,
   questions: [],
   sections: [{title: '', sortOrder: 0, questions: [newQuestion()], _key: nextKey()}],
 })
@@ -304,6 +311,7 @@ async function loadSurvey() {
       allowUpdate: survey.allowUpdate,
       startTime: survey.startTime,
       endTime: survey.endTime,
+      maxResponses: survey.maxResponses ?? null,
       questions: [],
       sections,
     }
