@@ -122,90 +122,101 @@
             </n-button>
           </n-alert>
 
-          <n-form v-if="!loginRequired && !isNotStarted" label-placement="top">
-            <div v-for="(question, qi) in survey.questions" :key="question.id" style="margin-bottom: 24px">
-              <n-form-item>
-                <template #label>
-                  <n-space align="center">
-                    <span style="font-weight: 600">{{ qi + 1 }}. {{ question.title }}</span>
-                    <n-tag v-if="question.required" type="error" size="small">{{ t('common.required') }}</n-tag>
-                    <n-tag size="small">{{ t(`survey.types.${question.type}`) }}</n-tag>
-                  </n-space>
-                </template>
+          <template v-if="!loginRequired && !isNotStarted">
+            <n-steps v-if="sections.length > 1" :current="currentStep + 1" style="margin-bottom: 24px">
+              <n-step v-for="(sec, si) in sections" :key="si" :title="sec.title || `${t('survey.section')} ${si + 1}`"/>
+            </n-steps>
 
-                <template v-if="question.type === 'SINGLE_CHOICE'">
-                  <n-radio-group v-model:value="answers[question.id].selectedOptionId">
+            <n-form label-placement="top">
+              <div v-for="(question, qi) in currentSection.questions" :key="question.id" style="margin-bottom: 24px">
+                <n-form-item>
+                  <template #label>
+                    <n-space align="center">
+                      <span style="font-weight: 600">{{ qi + 1 }}. {{ question.title }}</span>
+                      <n-tag v-if="question.required" type="error" size="small">{{ t('common.required') }}</n-tag>
+                      <n-tag size="small">{{ t(`survey.types.${question.type}`) }}</n-tag>
+                    </n-space>
+                  </template>
+
+                  <template v-if="question.type === 'SINGLE_CHOICE'">
+                    <n-radio-group v-model:value="answers[question.id].selectedOptionId">
+                      <n-space vertical>
+                        <n-radio v-for="opt in question.options" :key="opt.id" :value="opt.id">{{
+                            opt.content
+                          }}
+                        </n-radio>
+                      </n-space>
+                    </n-radio-group>
+                  </template>
+
+                  <template v-else-if="question.type === 'MULTIPLE_CHOICE'">
+                    <n-checkbox-group v-model:value="answers[question.id].selectedOptionIds">
+                      <n-space vertical>
+                        <n-checkbox v-for="opt in question.options" :key="opt.id" :value="opt.id">{{
+                            opt.content
+                          }}
+                        </n-checkbox>
+                      </n-space>
+                    </n-checkbox-group>
+                  </template>
+
+                  <template v-else-if="question.type === 'TEXTAREA'">
+                    <n-input v-model:value="answers[question.id].textValue" type="textarea" :rows="4"/>
+                  </template>
+
+                  <template v-else-if="question.type === 'NUMBER'">
+                    <n-input-number v-model:value="answers[question.id].numberValue" style="width: 100%"/>
+                  </template>
+
+                  <template v-else-if="question.type === 'RATING'">
+                    <n-rate :value="answers[question.id].numberValue ?? undefined"
+                            @update:value="(v: number) => answers[question.id].numberValue = v" :count="5"/>
+                  </template>
+
+                  <template v-else-if="question.type === 'DATE'">
+                    <n-date-picker
+                        :value="answers[question.id].textValue ? new Date(answers[question.id].textValue).getTime() : null"
+                        @update:value="(v: number | null) => answers[question.id].textValue = v ? new Date(v).toISOString().slice(0, 10) : ''"
+                        type="date" style="width: 100%"/>
+                  </template>
+
+                  <template v-else-if="question.type === 'FILE'">
                     <n-space vertical>
-                      <n-radio v-for="opt in question.options" :key="opt.id" :value="opt.id">{{ opt.content }}</n-radio>
+                      <n-space v-if="answers[question.id].textValue" align="center">
+                        <a :href="answers[question.id].textValue"
+                           target="_blank">{{ answers[question.id].textValue.split('/').pop() }}</a>
+                        <n-button size="tiny" type="error" quaternary @click="handleFileRemove(question.id)">
+                          {{ t('common.delete') }}
+                        </n-button>
+                      </n-space>
+                      <n-upload
+                          :show-file-list="false"
+                          :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
+                      >
+                        <n-button>{{ t('survey.uploadFile') }}</n-button>
+                      </n-upload>
                     </n-space>
-                  </n-radio-group>
-                </template>
+                  </template>
 
-                <template v-else-if="question.type === 'MULTIPLE_CHOICE'">
-                  <n-checkbox-group v-model:value="answers[question.id].selectedOptionIds">
-                    <n-space vertical>
-                      <n-checkbox v-for="opt in question.options" :key="opt.id" :value="opt.id">{{
-                          opt.content
-                        }}
-                      </n-checkbox>
-                    </n-space>
-                  </n-checkbox-group>
-                </template>
+                  <template v-else>
+                    <n-input v-model:value="answers[question.id].textValue"
+                             :placeholder="getPlaceholder(question.type)"/>
+                  </template>
+                </n-form-item>
+              </div>
 
-                <template v-else-if="question.type === 'TEXTAREA'">
-                  <n-input v-model:value="answers[question.id].textValue" type="textarea" :rows="4"/>
-                </template>
-
-                <template v-else-if="question.type === 'NUMBER'">
-                  <n-input-number v-model:value="answers[question.id].numberValue" style="width: 100%"/>
-                </template>
-
-                <template v-else-if="question.type === 'RATING'">
-                  <n-rate :value="answers[question.id].numberValue ?? undefined"
-                          @update:value="(v: number) => answers[question.id].numberValue = v" :count="5"/>
-                </template>
-
-                <template v-else-if="question.type === 'DATE'">
-                  <n-date-picker
-                      :value="answers[question.id].textValue ? new Date(answers[question.id].textValue).getTime() : null"
-                      @update:value="(v: number | null) => answers[question.id].textValue = v ? new Date(v).toISOString().slice(0, 10) : ''"
-                      type="date" style="width: 100%"/>
-                </template>
-
-                <template v-else-if="question.type === 'FILE'">
-                  <n-space vertical>
-                    <n-space v-if="answers[question.id].textValue" align="center">
-                      <a :href="answers[question.id].textValue"
-                         target="_blank">{{ answers[question.id].textValue.split('/').pop() }}</a>
-                      <n-button size="tiny" type="error" quaternary @click="handleFileRemove(question.id)">
-                        {{ t('common.delete') }}
-                      </n-button>
-                    </n-space>
-                    <n-upload
-                        :show-file-list="false"
-                        :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
-                    >
-                      <n-button>{{ t('survey.uploadFile') }}</n-button>
-                    </n-upload>
-                  </n-space>
-                </template>
-
-                <template v-else>
-                  <n-input v-model:value="answers[question.id].textValue"
-                           :placeholder="getPlaceholder(question.type)"/>
-                </template>
-              </n-form-item>
-            </div>
-
-            <n-space justify="center">
-              <n-button type="primary" size="large" :loading="submitting" @click="handleSubmit">
-                {{ t('common.submit') }}
-              </n-button>
-              <n-button v-if="editing" size="large" @click="cancelEditing">
-                {{ t('common.cancel') }}
-              </n-button>
-            </n-space>
-          </n-form>
+              <n-space justify="center">
+                <n-button v-if="currentStep > 0" size="large" @click="prevStep">{{ t('survey.prevSection') }}</n-button>
+                <n-button v-if="currentStep < sections.length - 1" type="primary" size="large" @click="nextStep">
+                  {{ t('survey.nextSection') }}
+                </n-button>
+                <n-button v-if="currentStep === sections.length - 1" type="primary" size="large" :loading="submitting"
+                          @click="handleSubmit">{{ t('common.submit') }}
+                </n-button>
+                <n-button v-if="editing" size="large" @click="cancelEditing">{{ t('common.cancel') }}</n-button>
+              </n-space>
+            </n-form>
+          </template>
         </n-card>
       </template>
     </n-spin>
@@ -220,7 +231,7 @@ import {useMessage} from 'naive-ui'
 import {surveyApi} from '@/api/survey'
 import {fileApi} from '@/api/file'
 import {useAuthStore} from '@/stores/auth'
-import type {SurveyDto, SurveyResponseDto, SurveySubmitRequest} from '@/types'
+import type {QuestionDto, SurveyDto, SurveyResponseDto, SurveySubmitRequest} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
@@ -235,6 +246,7 @@ const submitted = ref(false)
 const editing = ref(false)
 const survey = ref<SurveyDto | null>(null)
 const myResponse = ref<SurveyResponseDto | null>(null)
+const currentStep = ref(0)
 
 const loginRequired = computed(() => {
   return survey.value && !survey.value.anonymous && !authStore.isLoggedIn
@@ -245,6 +257,24 @@ const isNotStarted = computed(() => {
   return new Date(survey.value.startTime).getTime() > Date.now()
 })
 
+const sections = computed(() => {
+  if (!survey.value) return []
+  if (survey.value.sections && survey.value.sections.length > 0) {
+    return survey.value.sections
+  }
+  return [{id: 0, title: '', sortOrder: 0, questions: survey.value.questions}]
+})
+
+const currentSection = computed(() => sections.value[currentStep.value] ?? {questions: []})
+
+const allQuestions = computed((): QuestionDto[] => {
+  if (!survey.value) return []
+  if (survey.value.sections && survey.value.sections.length > 0) {
+    return survey.value.sections.flatMap(s => s.questions)
+  }
+  return survey.value.questions
+})
+
 const answers = reactive<Record<number, {
   textValue: string;
   selectedOptionId: number | null;
@@ -253,6 +283,44 @@ const answers = reactive<Record<number, {
 }>>({})
 const pendingFileDeletes = ref<string[]>([])
 const newUploadedFiles = ref<string[]>([])
+
+function validateSection(sectionIndex: number): boolean {
+  const sec = sections.value[sectionIndex]
+  if (!sec) return true
+  for (const q of sec.questions) {
+    if (!q.required) continue
+    const a = answers[q.id]
+    if (!a) continue
+    if (q.type === 'SINGLE_CHOICE' && !a.selectedOptionId) {
+      message.warning(`${q.title} ${t('common.required')}`)
+      return false
+    }
+    if (q.type === 'MULTIPLE_CHOICE' && a.selectedOptionIds.length === 0) {
+      message.warning(`${q.title} ${t('common.required')}`)
+      return false
+    }
+    if (['NUMBER', 'RATING'].includes(q.type) && a.numberValue === null) {
+      message.warning(`${q.title} ${t('common.required')}`)
+      return false
+    }
+    if (!['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'NUMBER', 'RATING'].includes(q.type) && !a.textValue) {
+      message.warning(`${q.title} ${t('common.required')}`)
+      return false
+    }
+  }
+  return true
+}
+
+function nextStep() {
+  if (!validateSection(currentStep.value)) return
+  if (currentStep.value < sections.value.length - 1) {
+    currentStep.value++
+  }
+}
+
+function prevStep() {
+  if (currentStep.value > 0) currentStep.value--
+}
 
 async function handleFileUpload(questionId: number, file: any, onFinish: () => void, onError: () => void) {
   try {
@@ -305,6 +373,12 @@ function getPlaceholder(type: string): string {
   return map[type] || ''
 }
 
+function initAnswers() {
+  for (const q of allQuestions.value) {
+    answers[q.id] = {textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null}
+  }
+}
+
 function cancelEditing() {
   for (const fileName of newUploadedFiles.value) {
     fileApi.delete(fileName).catch(() => {
@@ -313,11 +387,8 @@ function cancelEditing() {
   pendingFileDeletes.value = []
   newUploadedFiles.value = []
   editing.value = false
-  if (survey.value) {
-    for (const q of survey.value.questions) {
-      answers[q.id] = {textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null}
-    }
-  }
+  currentStep.value = 0
+  initAnswers()
 }
 
 function startEditing() {
@@ -332,7 +403,7 @@ function startEditing() {
       a.selectedOptionIds = [...answer.selectedOptionIds]
     }
     if (answer.textValue) {
-      const question = survey.value.questions.find(q => q.id === answer.questionId)
+      const question = allQuestions.value.find(q => q.id === answer.questionId)
       if (question && ['NUMBER', 'RATING'].includes(question.type)) {
         a.numberValue = Number(answer.textValue)
       } else {
@@ -340,6 +411,7 @@ function startEditing() {
       }
     }
   }
+  currentStep.value = 0
   editing.value = true
 }
 
@@ -347,9 +419,7 @@ async function loadSurvey() {
   try {
     const res = await surveyApi.getByShareId(route.params.shareId as string)
     survey.value = res.data.data
-    for (const q of survey.value.questions) {
-      answers[q.id] = {textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null}
-    }
+    initAnswers()
 
     if (authStore.isLoggedIn) {
       try {
@@ -370,33 +440,12 @@ async function loadSurvey() {
 
 async function handleSubmit() {
   if (!survey.value) return
-
-  for (const q of survey.value.questions) {
-    if (q.required) {
-      const a = answers[q.id]
-      if (q.type === 'SINGLE_CHOICE' && !a.selectedOptionId) {
-        message.warning(`${q.title} ${t('common.required')}`)
-        return
-      }
-      if (q.type === 'MULTIPLE_CHOICE' && a.selectedOptionIds.length === 0) {
-        message.warning(`${q.title} ${t('common.required')}`)
-        return
-      }
-      if (!['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'NUMBER', 'RATING'].includes(q.type) && !a.textValue) {
-        message.warning(`${q.title} ${t('common.required')}`)
-        return
-      }
-      if (['NUMBER', 'RATING'].includes(q.type) && a.numberValue === null) {
-        message.warning(`${q.title} ${t('common.required')}`)
-        return
-      }
-    }
-  }
+  if (!validateSection(currentStep.value)) return
 
   submitting.value = true
   try {
     const request: SurveySubmitRequest = {
-      answers: survey.value.questions.map((q) => {
+      answers: allQuestions.value.map((q) => {
         const a = answers[q.id]
         return {
           questionId: q.id,

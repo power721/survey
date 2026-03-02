@@ -62,9 +62,17 @@ export interface SurveyDto {
     endTime: string | null
     responseCount: number
     questions: QuestionDto[]
+    sections: SurveySectionDto[]
     creator: CreatorDto
     createdAt: string
     updatedAt: string
+}
+
+export interface SurveySectionDto {
+    id: number
+    title: string | null
+    sortOrder: number
+    questions: QuestionDto[]
 }
 
 export interface QuestionDto {
@@ -95,6 +103,15 @@ export interface SurveyCreateRequest {
     startTime: string | null
     endTime: string | null
     questions: QuestionRequest[]
+    sections: SurveySectionRequest[]
+}
+
+export interface SurveySectionRequest {
+    id?: number
+    title: string
+    sortOrder: number
+    questions: QuestionRequest[]
+    _key?: string
 }
 
 export interface QuestionRequest {

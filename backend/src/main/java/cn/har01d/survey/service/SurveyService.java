@@ -32,6 +32,8 @@ import cn.har01d.survey.dto.survey.SurveyCreateRequest;
 import cn.har01d.survey.dto.survey.SurveyDto;
 import cn.har01d.survey.dto.survey.SurveyListDto;
 import cn.har01d.survey.dto.survey.SurveyResponseDto;
+import cn.har01d.survey.dto.survey.SurveySectionDto;
+import cn.har01d.survey.dto.survey.SurveySectionRequest;
 import cn.har01d.survey.dto.survey.SurveyStatsDto;
 import cn.har01d.survey.dto.survey.SurveySubmitRequest;
 import cn.har01d.survey.entity.Answer;
@@ -39,6 +41,7 @@ import cn.har01d.survey.entity.Question;
 import cn.har01d.survey.entity.QuestionOption;
 import cn.har01d.survey.entity.Survey;
 import cn.har01d.survey.entity.SurveyResponse;
+import cn.har01d.survey.entity.SurveySection;
 import cn.har01d.survey.entity.User;
 import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.exception.ResourceNotFoundException;
@@ -47,6 +50,7 @@ import cn.har01d.survey.repository.QuestionOptionRepository;
 import cn.har01d.survey.repository.QuestionRepository;
 import cn.har01d.survey.repository.SurveyRepository;
 import cn.har01d.survey.repository.SurveyResponseRepository;
+import cn.har01d.survey.repository.SurveySectionRepository;
 import cn.har01d.survey.util.GravatarUtil;
 import cn.har01d.survey.util.HtmlSanitizer;
 
@@ -58,17 +62,20 @@ public class SurveyService {
     private final QuestionOptionRepository optionRepository;
     private final SurveyResponseRepository responseRepository;
     private final AnswerRepository answerRepository;
+    private final SurveySectionRepository sectionRepository;
     private final AuthService authService;
     private final FileService fileService;
 
     public SurveyService(SurveyRepository surveyRepository, QuestionRepository questionRepository,
                          QuestionOptionRepository optionRepository, SurveyResponseRepository responseRepository,
-                         AnswerRepository answerRepository, AuthService authService, FileService fileService) {
+                         AnswerRepository answerRepository, SurveySectionRepository sectionRepository,
+                         AuthService authService, FileService fileService) {
         this.surveyRepository = surveyRepository;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
         this.responseRepository = responseRepository;
         this.answerRepository = answerRepository;
+        this.sectionRepository = sectionRepository;
         this.authService = authService;
         this.fileService = fileService;
     }
@@ -84,8 +91,17 @@ public class SurveyService {
         if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
             throw new BusinessException("error.endTimeBeforeStartTime");
         }
-        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
+        boolean hasSections = request.getSections() != null && !request.getSections().isEmpty();
+        boolean hasQuestions = request.getQuestions() != null && !request.getQuestions().isEmpty();
+        if (!hasSections && !hasQuestions) {
             throw new BusinessException("survey.atLeastOneQuestion");
+        }
+        if (hasSections) {
+            boolean anyQuestion = request.getSections().stream()
+                    .anyMatch(s -> s.getQuestions() != null && !s.getQuestions().isEmpty());
+            if (!anyQuestion) {
+                throw new BusinessException("survey.atLeastOneQuestion");
+            }
         }
 
         Survey survey = Survey.builder()
@@ -103,33 +119,28 @@ public class SurveyService {
                 .startTime(request.getStartTime())
                 .endTime(endTime)
                 .questions(new ArrayList<>())
+                .sections(new ArrayList<>())
                 .build();
 
-        if (request.getQuestions() != null) {
-            for (int i = 0; i < request.getQuestions().size(); i++) {
-                QuestionRequest qr = request.getQuestions().get(i);
-                Question question = Question.builder()
+        if (hasSections) {
+            for (int si = 0; si < request.getSections().size(); si++) {
+                SurveySectionRequest sr = request.getSections().get(si);
+                SurveySection section = SurveySection.builder()
                         .survey(survey)
-                        .type(Question.QuestionType.valueOf(qr.getType()))
-                        .title(qr.getTitle())
-                        .description(qr.getDescription())
-                        .required(qr.isRequired())
-                        .sortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : i)
-                        .options(new ArrayList<>())
+                        .title(sr.getTitle())
+                        .sortOrder(sr.getSortOrder() > 0 ? sr.getSortOrder() : si)
+                        .questions(new ArrayList<>())
                         .build();
-
-                if (qr.getOptions() != null) {
-                    for (int j = 0; j < qr.getOptions().size(); j++) {
-                        OptionRequest or = qr.getOptions().get(j);
-                        QuestionOption option = QuestionOption.builder()
-                                .question(question)
-                                .content(or.getContent())
-                                .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j)
-                                .build();
-                        question.getOptions().add(option);
+                if (sr.getQuestions() != null) {
+                    for (int i = 0; i < sr.getQuestions().size(); i++) {
+                        section.getQuestions().add(buildQuestion(survey, section, sr.getQuestions().get(i), i));
                     }
                 }
-                survey.getQuestions().add(question);
+                survey.getSections().add(section);
+            }
+        } else {
+            for (int i = 0; i < request.getQuestions().size(); i++) {
+                survey.getQuestions().add(buildQuestion(survey, null, request.getQuestions().get(i), i));
             }
         }
 
@@ -159,104 +170,91 @@ public class SurveyService {
         if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
             throw new BusinessException("error.endTimeBeforeStartTime");
         }
-        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
+        boolean hasSections = request.getSections() != null && !request.getSections().isEmpty();
+        boolean hasQuestions = request.getQuestions() != null && !request.getQuestions().isEmpty();
+        if (!hasSections && !hasQuestions) {
             throw new BusinessException("survey.atLeastOneQuestion");
+        }
+        if (hasSections) {
+            boolean anyQuestion = request.getSections().stream()
+                    .anyMatch(s -> s.getQuestions() != null && !s.getQuestions().isEmpty());
+            if (!anyQuestion) {
+                throw new BusinessException("survey.atLeastOneQuestion");
+            }
         }
         survey.setStartTime(request.getStartTime());
         survey.setEndTime(endTime);
 
-        // Build a map of existing questions by ID
-        Map<Long, Question> existingQuestionMap = survey.getQuestions().stream()
-                .filter(q -> q.getId() != null)
-                .collect(Collectors.toMap(Question::getId, q -> q));
+        if (hasSections) {
+            // Clear flat questions when switching to sections
+            Set<Long> allFlatIds = survey.getQuestions().stream()
+                    .filter(q -> q.getId() != null).map(Question::getId).collect(Collectors.toSet());
+            for (Long qid : allFlatIds) answerRepository.deleteByQuestionId(qid);
+            survey.getQuestions().clear();
 
-        // Collect IDs of questions in the request
-        Set<Long> requestQuestionIds = new HashSet<>();
-        if (request.getQuestions() != null) {
-            for (QuestionRequest qr : request.getQuestions()) {
-                if (qr.getId() != null) {
-                    requestQuestionIds.add(qr.getId());
+            // Build map of existing sections
+            Map<Long, SurveySection> existingSectionMap = survey.getSections().stream()
+                    .filter(s -> s.getId() != null)
+                    .collect(Collectors.toMap(SurveySection::getId, s -> s));
+            Set<Long> requestSectionIds = request.getSections().stream()
+                    .filter(s -> s.getId() != null).map(SurveySectionRequest::getId).collect(Collectors.toSet());
+
+            // Delete removed sections (cascade removes their questions)
+            survey.getSections().removeIf(s -> s.getId() != null && !requestSectionIds.contains(s.getId()));
+
+            for (int si = 0; si < request.getSections().size(); si++) {
+                SurveySectionRequest sr = request.getSections().get(si);
+                SurveySection section;
+                if (sr.getId() != null && existingSectionMap.containsKey(sr.getId())) {
+                    section = existingSectionMap.get(sr.getId());
+                    section.setTitle(sr.getTitle());
+                    section.setSortOrder(sr.getSortOrder() > 0 ? sr.getSortOrder() : si);
+                } else {
+                    section = SurveySection.builder()
+                            .survey(survey).title(sr.getTitle())
+                            .sortOrder(sr.getSortOrder() > 0 ? sr.getSortOrder() : si)
+                            .questions(new ArrayList<>()).build();
+                    survey.getSections().add(section);
+                }
+                // Rebuild questions in this section
+                Map<Long, Question> existingQMap = section.getQuestions().stream()
+                        .filter(q -> q.getId() != null).collect(Collectors.toMap(Question::getId, q -> q));
+                Set<Long> reqQIds = sr.getQuestions() == null ? new HashSet<>() : sr.getQuestions().stream()
+                        .filter(q -> q.getId() != null).map(QuestionRequest::getId).collect(Collectors.toSet());
+                for (Long qid : existingQMap.keySet()) {
+                    if (!reqQIds.contains(qid)) answerRepository.deleteByQuestionId(qid);
+                }
+                section.getQuestions().removeIf(q -> q.getId() != null && !reqQIds.contains(q.getId()));
+                if (sr.getQuestions() != null) {
+                    for (int i = 0; i < sr.getQuestions().size(); i++) {
+                        QuestionRequest qr = sr.getQuestions().get(i);
+                        if (qr.getId() != null && existingQMap.containsKey(qr.getId())) {
+                            updateQuestion(existingQMap.get(qr.getId()), qr, i);
+                        } else {
+                            section.getQuestions().add(buildQuestion(survey, section, qr, i));
+                        }
+                    }
                 }
             }
-        }
+        } else {
+            // Clear sections when using flat questions
+            survey.getSections().clear();
 
-        // Delete answers for removed questions
-        for (Long existingId : existingQuestionMap.keySet()) {
-            if (!requestQuestionIds.contains(existingId)) {
-                answerRepository.deleteByQuestionId(existingId);
+            Map<Long, Question> existingQuestionMap = survey.getQuestions().stream()
+                    .filter(q -> q.getId() != null)
+                    .collect(Collectors.toMap(Question::getId, q -> q));
+            Set<Long> requestQuestionIds = request.getQuestions().stream()
+                    .filter(qr -> qr.getId() != null).map(QuestionRequest::getId).collect(Collectors.toSet());
+            for (Long existingId : existingQuestionMap.keySet()) {
+                if (!requestQuestionIds.contains(existingId)) answerRepository.deleteByQuestionId(existingId);
             }
-        }
-
-        // Remove deleted questions
-        survey.getQuestions().removeIf(q -> q.getId() != null && !requestQuestionIds.contains(q.getId()));
-
-        // Update existing and add new questions
-        if (request.getQuestions() != null) {
+            survey.getQuestions().removeIf(q -> q.getId() != null && !requestQuestionIds.contains(q.getId()));
             for (int i = 0; i < request.getQuestions().size(); i++) {
                 QuestionRequest qr = request.getQuestions().get(i);
-                Question question;
-
                 if (qr.getId() != null && existingQuestionMap.containsKey(qr.getId())) {
-                    // Update existing question
-                    question = existingQuestionMap.get(qr.getId());
-                    question.setType(Question.QuestionType.valueOf(qr.getType()));
-                    question.setTitle(qr.getTitle());
-                    question.setDescription(qr.getDescription());
-                    question.setRequired(qr.isRequired());
-                    question.setSortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : i);
-
-                    // Update options in-place
-                    Map<Long, QuestionOption> existingOptionMap = question.getOptions().stream()
-                            .filter(o -> o.getId() != null)
-                            .collect(Collectors.toMap(QuestionOption::getId, o -> o));
-                    Set<Long> requestOptionIds = new HashSet<>();
-                    if (qr.getOptions() != null) {
-                        for (OptionRequest or : qr.getOptions()) {
-                            if (or.getId() != null) requestOptionIds.add(or.getId());
-                        }
-                    }
-                    question.getOptions().removeIf(o -> o.getId() != null && !requestOptionIds.contains(o.getId()));
-
-                    if (qr.getOptions() != null) {
-                        for (int j = 0; j < qr.getOptions().size(); j++) {
-                            OptionRequest or = qr.getOptions().get(j);
-                            if (or.getId() != null && existingOptionMap.containsKey(or.getId())) {
-                                QuestionOption option = existingOptionMap.get(or.getId());
-                                option.setContent(or.getContent());
-                                option.setSortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j);
-                            } else {
-                                QuestionOption option = QuestionOption.builder()
-                                        .question(question)
-                                        .content(or.getContent())
-                                        .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j)
-                                        .build();
-                                question.getOptions().add(option);
-                            }
-                        }
-                    }
+                    updateQuestion(existingQuestionMap.get(qr.getId()), qr, i);
                 } else {
-                    // New question
-                    question = Question.builder()
-                            .survey(survey)
-                            .type(Question.QuestionType.valueOf(qr.getType()))
-                            .title(qr.getTitle())
-                            .description(qr.getDescription())
-                            .required(qr.isRequired())
-                            .sortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : i)
-                            .options(new ArrayList<>())
-                            .build();
-                    if (qr.getOptions() != null) {
-                        for (int j = 0; j < qr.getOptions().size(); j++) {
-                            OptionRequest or = qr.getOptions().get(j);
-                            QuestionOption option = QuestionOption.builder()
-                                    .question(question)
-                                    .content(or.getContent())
-                                    .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j)
-                                    .build();
-                            question.getOptions().add(option);
-                        }
-                    }
-                    survey.getQuestions().add(question);
+                    survey.getQuestions().add(buildQuestion(survey, null, qr, i));
                 }
             }
         }
@@ -295,6 +293,7 @@ public class SurveyService {
             dto.setCreator(new CreatorDto(survey.getUser().getUsername(), survey.getUser().getNickname(), resolveAvatar(survey.getUser())));
             dto.setCreatedAt(survey.getCreatedAt());
             dto.setQuestions(List.of());
+            dto.setSections(List.of());
             return dto;
         }
         if (survey.getEndTime() != null && survey.getEndTime().isBefore(Instant.now())) {
@@ -431,8 +430,8 @@ public class SurveyService {
                     .build();
         }
 
-        Map<Long, Question> questionMap = survey.getQuestions().stream()
-                .collect(Collectors.toMap(Question::getId, q -> q));
+        Map<Long, Question> questionMap = questionRepository.findBySurveyIdOrderBySortOrderAsc(survey.getId())
+                .stream().collect(Collectors.toMap(Question::getId, q -> q));
 
         for (AnswerRequest ar : request.getAnswers()) {
             Question question = questionMap.get(ar.getQuestionId());
@@ -637,10 +636,83 @@ public class SurveyService {
         dto.setCreatedAt(survey.getCreatedAt());
         dto.setUpdatedAt(survey.getUpdatedAt());
 
-        if (survey.getQuestions() != null) {
+        if (survey.getSections() != null && !survey.getSections().isEmpty()) {
+            dto.setSections(survey.getSections().stream().map(this::toSectionDto).toList());
+            dto.setQuestions(List.of());
+        } else if (survey.getQuestions() != null) {
             dto.setQuestions(survey.getQuestions().stream().map(this::toQuestionDto).toList());
+            dto.setSections(List.of());
         }
         return dto;
+    }
+
+    private SurveySectionDto toSectionDto(SurveySection section) {
+        SurveySectionDto dto = new SurveySectionDto();
+        dto.setId(section.getId());
+        dto.setTitle(section.getTitle());
+        dto.setSortOrder(section.getSortOrder());
+        if (section.getQuestions() != null) {
+            dto.setQuestions(section.getQuestions().stream().map(this::toQuestionDto).toList());
+        }
+        return dto;
+    }
+
+    private Question buildQuestion(Survey survey, SurveySection section, QuestionRequest qr, int index) {
+        Question question = Question.builder()
+                .survey(survey)
+                .section(section)
+                .type(Question.QuestionType.valueOf(qr.getType()))
+                .title(qr.getTitle())
+                .description(qr.getDescription())
+                .required(qr.isRequired())
+                .sortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index)
+                .options(new ArrayList<>())
+                .build();
+        if (qr.getOptions() != null) {
+            for (int j = 0; j < qr.getOptions().size(); j++) {
+                OptionRequest or = qr.getOptions().get(j);
+                question.getOptions().add(QuestionOption.builder()
+                        .question(question)
+                        .content(or.getContent())
+                        .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j)
+                        .build());
+            }
+        }
+        return question;
+    }
+
+    private void updateQuestion(Question question, QuestionRequest qr, int index) {
+        question.setType(Question.QuestionType.valueOf(qr.getType()));
+        question.setTitle(qr.getTitle());
+        question.setDescription(qr.getDescription());
+        question.setRequired(qr.isRequired());
+        question.setSortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index);
+        Map<Long, QuestionOption> existingOptionMap = question.getOptions().stream()
+                .filter(o -> o.getId() != null)
+                .collect(Collectors.toMap(QuestionOption::getId, o -> o));
+        Set<Long> requestOptionIds = new HashSet<>();
+        if (qr.getOptions() != null) {
+            for (OptionRequest or : qr.getOptions()) {
+                if (or.getId() != null) requestOptionIds.add(or.getId());
+            }
+        }
+        question.getOptions().removeIf(o -> o.getId() != null && !requestOptionIds.contains(o.getId()));
+        if (qr.getOptions() != null) {
+            for (int j = 0; j < qr.getOptions().size(); j++) {
+                OptionRequest or = qr.getOptions().get(j);
+                if (or.getId() != null && existingOptionMap.containsKey(or.getId())) {
+                    QuestionOption option = existingOptionMap.get(or.getId());
+                    option.setContent(or.getContent());
+                    option.setSortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j);
+                } else {
+                    question.getOptions().add(QuestionOption.builder()
+                            .question(question)
+                            .content(or.getContent())
+                            .sortOrder(or.getSortOrder() > 0 ? or.getSortOrder() : j)
+                            .build());
+                }
+            }
+        }
     }
 
     private QuestionDto toQuestionDto(Question question) {
@@ -665,6 +737,19 @@ public class SurveyService {
         return dto;
     }
 
+    private SurveyResponseDto toResponseDtoWithAnswers(SurveyResponse response, boolean anonymous) {
+        SurveyResponseDto dto = new SurveyResponseDto();
+        dto.setId(response.getId());
+        dto.setIp(response.getIp());
+        dto.setCreatedAt(response.getCreatedAt());
+        if (!anonymous && response.getUser() != null) {
+            dto.setUsername(response.getUser().getUsername());
+            dto.setNickname(response.getUser().getNickname());
+        }
+        dto.setAnswers(answerRepository.findByResponseId(response.getId()).stream().map(this::toAnswerDto).toList());
+        return dto;
+    }
+
     private SurveyResponseDto toResponseDto(SurveyResponse response, boolean anonymous) {
         SurveyResponseDto dto = new SurveyResponseDto();
         dto.setId(response.getId());
@@ -674,9 +759,10 @@ public class SurveyService {
             dto.setUsername(response.getUser().getUsername());
             dto.setNickname(response.getUser().getNickname());
         }
-        if (response.getAnswers() != null) {
-            dto.setAnswers(response.getAnswers().stream().map(this::toAnswerDto).toList());
-        }
+        List<Answer> answers = (response.getAnswers() != null && !response.getAnswers().isEmpty())
+                ? response.getAnswers()
+                : answerRepository.findByResponseId(response.getId());
+        dto.setAnswers(answers.stream().map(this::toAnswerDto).toList());
         return dto;
     }
 

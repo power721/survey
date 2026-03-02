@@ -81,6 +81,10 @@ public class Survey {
     @OrderBy("sortOrder ASC")
     private List<Question> questions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    private List<SurveySection> sections = new ArrayList<>();
+
     private int responseCount = 0;
 
     @CreationTimestamp

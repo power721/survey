@@ -31,4 +31,7 @@ public class SurveyCreateRequest {
 
     @Valid
     private List<QuestionRequest> questions;
+
+    @Valid
+    private List<SurveySectionRequest> sections;
 }

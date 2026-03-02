@@ -30,6 +30,8 @@ import cn.har01d.survey.entity.SurveyResponse;
 import cn.har01d.survey.entity.User;
 import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.exception.ResourceNotFoundException;
+import cn.har01d.survey.repository.AnswerRepository;
+import cn.har01d.survey.repository.QuestionRepository;
 import cn.har01d.survey.repository.SurveyRepository;
 import cn.har01d.survey.repository.SurveyResponseRepository;
 
@@ -38,15 +40,20 @@ public class ExcelExportService {
 
     private final SurveyRepository surveyRepository;
     private final SurveyResponseRepository responseRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
     private final AuthService authService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             .withZone(ZoneId.systemDefault());
 
     public ExcelExportService(SurveyRepository surveyRepository, SurveyResponseRepository responseRepository,
+                              QuestionRepository questionRepository, AnswerRepository answerRepository,
                               AuthService authService) {
         this.surveyRepository = surveyRepository;
         this.responseRepository = responseRepository;
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
         this.authService = authService;
     }
 
@@ -61,7 +68,7 @@ public class ExcelExportService {
         }
 
         List<SurveyResponse> responses = responseRepository.findBySurveyId(surveyId);
-        List<Question> questions = survey.getQuestions();
+        List<Question> questions = questionRepository.findBySurveyIdOrderBySortOrderAsc(surveyId);
 
         // Build option ID to content map for resolving multiple choice answers
         Map<Long, String> optionContentMap = questions.stream()
@@ -124,7 +131,7 @@ public class ExcelExportService {
                     row.createCell(dataColIdx++).setCellValue(userName);
                 }
 
-                Map<Long, Answer> answerMap = sr.getAnswers().stream()
+                Map<Long, Answer> answerMap = answerRepository.findByResponseId(sr.getId()).stream()
                         .collect(Collectors.toMap(a -> a.getQuestion().getId(), a -> a));
 
                 colIdx = dataColIdx;
