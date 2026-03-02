@@ -86,6 +86,7 @@ public class SurveyService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .logoUrl(request.getLogoUrl())
+                .backgroundUrl(request.getBackgroundUrl())
                 .user(user)
                 .status(Survey.SurveyStatus.DRAFT)
                 .accessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()))
@@ -142,6 +143,7 @@ public class SurveyService {
         survey.setTitle(request.getTitle());
         survey.setDescription(request.getDescription());
         survey.setLogoUrl(request.getLogoUrl());
+        survey.setBackgroundUrl(request.getBackgroundUrl());
         survey.setAccessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()));
         survey.setAnonymous(request.isAnonymous());
         survey.setTemplate(request.isTemplate());
@@ -588,6 +590,7 @@ public class SurveyService {
         dto.setTitle(survey.getTitle());
         dto.setDescription(survey.getDescription());
         dto.setLogoUrl(survey.getLogoUrl());
+        dto.setBackgroundUrl(survey.getBackgroundUrl());
         dto.setStatus(survey.getStatus().name());
         dto.setAccessLevel(survey.getAccessLevel().name());
         dto.setAnonymous(survey.isAnonymous());

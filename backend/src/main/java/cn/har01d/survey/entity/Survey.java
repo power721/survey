@@ -70,6 +70,9 @@ public class Survey {
     @Column(length = 500)
     private String logoUrl;
 
+    @Column(length = 500)
+    private String backgroundUrl;
+
     private Instant startTime;
 
     private Instant endTime;

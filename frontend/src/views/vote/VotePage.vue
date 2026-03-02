@@ -1,5 +1,5 @@
 <template>
-  <div class="card-container">
+  <div class="card-container" ref="containerRef">
     <n-spin :show="loading">
       <template v-if="poll">
         <img v-if="poll.logoUrl" :src="poll.logoUrl" :alt="poll.title"
@@ -144,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, reactive, ref} from 'vue'
+import {computed, onMounted, onUnmounted, reactive, ref, watchEffect} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
@@ -159,6 +159,7 @@ const { t } = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
 
+const containerRef = ref<HTMLElement | null>(null)
 const loading = ref(true)
 const previewImage = ref<string | null>(null)
 const submitting = ref(false)
@@ -359,7 +360,24 @@ async function handleVote() {
 
 onMounted(loadPoll)
 
+watchEffect(() => {
+  const parent = containerRef.value?.parentElement
+  if (parent && poll.value?.backgroundUrl) {
+    parent.style.backgroundImage = `url(${poll.value.backgroundUrl})`
+    parent.style.backgroundSize = 'cover'
+    parent.style.backgroundPosition = 'center'
+    parent.style.backgroundRepeat = 'no-repeat'
+  }
+})
+
 onUnmounted(() => {
+  const parent = containerRef.value?.parentElement
+  if (parent) {
+    parent.style.backgroundImage = ''
+    parent.style.backgroundSize = ''
+    parent.style.backgroundPosition = ''
+    parent.style.backgroundRepeat = ''
+  }
   if (stompClient) {
     stompClient.deactivate()
   }

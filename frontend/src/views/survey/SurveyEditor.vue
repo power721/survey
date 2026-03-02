@@ -11,6 +11,9 @@
         <n-form-item :label="t('common.logoUrl')">
           <n-input v-model:value="form.logoUrl" :placeholder="t('common.logoUrlPlaceholder')"/>
         </n-form-item>
+        <n-form-item :label="t('common.backgroundUrl')">
+          <n-input v-model:value="form.backgroundUrl" :placeholder="t('common.backgroundUrlPlaceholder')"/>
+        </n-form-item>
 
         <n-grid :cols="3" :x-gap="16">
           <n-gi>
@@ -122,6 +125,7 @@ const form = ref<SurveyCreateRequest>({
   title: '',
   description: '',
   logoUrl: null,
+  backgroundUrl: null,
   accessLevel: 'PUBLIC',
   anonymous: true,
   template: false,
@@ -199,6 +203,7 @@ async function loadSurvey() {
       title: survey.title,
       description: survey.description || '',
       logoUrl: survey.logoUrl || null,
+      backgroundUrl: survey.backgroundUrl || null,
       accessLevel: survey.accessLevel,
       anonymous: survey.anonymous,
       template: survey.template,

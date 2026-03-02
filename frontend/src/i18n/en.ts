@@ -43,6 +43,8 @@ export default {
     endTimeBeforeStartTime: 'End time must be after start time',
       logoUrl: 'Logo Image URL',
       logoUrlPlaceholder: 'Enter logo image URL (optional)',
+      backgroundUrl: 'Background Image URL',
+      backgroundUrlPlaceholder: 'Enter background image URL (optional)',
   },
   auth: {
     username: 'Username',

@@ -29,6 +29,8 @@ public class VotePollCreateRequest {
     private Integer maxVotesPerOption;
     @Size(max = 500)
     private String logoUrl;
+    @Size(max = 500)
+    private String backgroundUrl;
     private Instant startTime;
     private Instant endTime;
 

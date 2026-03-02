@@ -43,6 +43,8 @@ export default {
     endTimeBeforeStartTime: '结束时间必须大于开始时间',
       logoUrl: 'Logo 图片链接',
       logoUrlPlaceholder: '请输入 Logo 图片链接（可选）',
+      backgroundUrl: '背景图片链接',
+      backgroundUrlPlaceholder: '请输入背景图片链接（可选）',
   },
   auth: {
     username: '用户名',

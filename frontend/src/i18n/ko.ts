@@ -43,6 +43,8 @@ export default {
     endTimeBeforeStartTime: '종료 시간은 시작 시간 이후여야 합니다',
       logoUrl: '로고 이미지 URL',
       logoUrlPlaceholder: '로고 이미지 URL을 입력하세요 (선택)',
+      backgroundUrl: '배경 이미지 URL',
+      backgroundUrlPlaceholder: '배경 이미지 URL을 입력하세요 (선택)',
   },
   auth: {
     username: '사용자명',

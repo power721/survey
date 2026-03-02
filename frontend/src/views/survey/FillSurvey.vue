@@ -1,5 +1,5 @@
 <template>
-  <div class="card-container">
+  <div class="card-container" ref="containerRef">
     <n-spin :show="loading">
       <template v-if="submitted">
         <n-result status="success" :title="t('survey.submitSuccess')" :description="t('survey.thankYou')">
@@ -164,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, reactive, ref} from 'vue'
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect} from 'vue'
 import {onBeforeRouteLeave, useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
@@ -179,6 +179,7 @@ const { t } = useI18n()
 const message = useMessage()
 
 const authStore = useAuthStore()
+const containerRef = ref<HTMLElement | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const submitted = ref(false)
@@ -386,8 +387,25 @@ onBeforeRouteLeave(() => {
 })
 
 onBeforeUnmount(() => {
+  const parent = containerRef.value?.parentElement
+  if (parent) {
+    parent.style.backgroundImage = ''
+    parent.style.backgroundSize = ''
+    parent.style.backgroundPosition = ''
+    parent.style.backgroundRepeat = ''
+  }
   window.removeEventListener('beforeunload', onBeforeUnload)
   cleanupUnsubmittedFiles()
+})
+
+watchEffect(() => {
+  const parent = containerRef.value?.parentElement
+  if (parent && survey.value?.backgroundUrl) {
+    parent.style.backgroundImage = `url(${survey.value.backgroundUrl})`
+    parent.style.backgroundSize = 'cover'
+    parent.style.backgroundPosition = 'center'
+    parent.style.backgroundRepeat = 'no-repeat'
+  }
 })
 
 onMounted(loadSurvey)

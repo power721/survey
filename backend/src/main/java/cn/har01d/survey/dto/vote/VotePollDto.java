@@ -21,6 +21,7 @@ public class VotePollDto {
     private Integer maxOptions;
     private Integer maxVotesPerOption;
     private String logoUrl;
+    private String backgroundUrl;
     private Instant startTime;
     private Instant endTime;
     private int totalVoteCount;

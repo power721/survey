@@ -11,6 +11,9 @@
         <n-form-item :label="t('common.logoUrl')">
           <n-input v-model:value="form.logoUrl" :placeholder="t('common.logoUrlPlaceholder')"/>
         </n-form-item>
+        <n-form-item :label="t('common.backgroundUrl')">
+          <n-input v-model:value="form.backgroundUrl" :placeholder="t('common.backgroundUrlPlaceholder')"/>
+        </n-form-item>
 
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
@@ -162,6 +165,7 @@ const form = ref<VotePollCreateRequest>({
   title: '',
   description: '',
   logoUrl: null,
+  backgroundUrl: null,
   voteType: 'SINGLE',
   frequency: 'ONCE',
   accessLevel: 'PUBLIC',
@@ -244,6 +248,7 @@ async function loadPoll() {
       title: poll.title,
       description: poll.description || '',
       logoUrl: poll.logoUrl || null,
+      backgroundUrl: poll.backgroundUrl || null,
       voteType: poll.voteType,
       frequency: poll.frequency,
       accessLevel: poll.accessLevel,

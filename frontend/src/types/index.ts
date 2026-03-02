@@ -32,6 +32,7 @@ export interface SurveyDto {
   template: boolean
   allowUpdate: boolean
     logoUrl: string | null
+    backgroundUrl: string | null
   startTime: string | null
   endTime: string | null
   responseCount: number
@@ -65,6 +66,7 @@ export interface SurveyCreateRequest {
   template: boolean
   allowUpdate: boolean
     logoUrl: string | null
+    backgroundUrl: string | null
   startTime: string | null
   endTime: string | null
   questions: QuestionRequest[]
@@ -155,6 +157,7 @@ export interface VotePollDto {
   maxOptions: number | null
   maxVotesPerOption: number | null
     logoUrl: string | null
+    backgroundUrl: string | null
   startTime: string
   endTime: string
   totalVoteCount: number
@@ -188,6 +191,7 @@ export interface VotePollCreateRequest {
   maxOptions: number | null
   maxVotesPerOption: number | null
     logoUrl: string | null
+    backgroundUrl: string | null
   startTime: string | null
   endTime: string | null
   options: VoteOptionRequest[]

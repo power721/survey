@@ -24,6 +24,8 @@ public class SurveyCreateRequest {
     private boolean allowUpdate = false;
     @Size(max = 500)
     private String logoUrl;
+    @Size(max = 500)
+    private String backgroundUrl;
     private Instant startTime;
     private Instant endTime;
 

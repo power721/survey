@@ -43,6 +43,8 @@ export default {
     endTimeBeforeStartTime: '終了日時は開始日時より後に設定してください',
       logoUrl: 'ロゴ画像URL',
       logoUrlPlaceholder: 'ロゴ画像のURLを入力（任意）',
+      backgroundUrl: '背景画像URL',
+      backgroundUrlPlaceholder: '背景画像のURLを入力（任意）',
   },
   auth: {
     username: 'ユーザー名',
