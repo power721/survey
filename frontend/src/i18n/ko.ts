@@ -108,6 +108,12 @@ export default {
         maxResponses: '최대 응답 수',
         maxResponsesPlaceholder: '비워두면 무제한',
         quotaReached: '이 설문은 최대 응답 수에 도달했습니다',
+        conditionLogic: '조건 분기',
+        conditionQuestion: '문항',
+        conditionOption: '의 답변이',
+        conditionThen: '일 때 표시',
+        conditionNone: '조건 없음 (항상 표시)',
+        conditionRemove: '조건 제거',
         types: {
             SINGLE_CHOICE: '단일 선택',
             MULTIPLE_CHOICE: '다중 선택',

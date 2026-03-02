@@ -12,5 +12,7 @@ public class QuestionDto {
     private String description;
     private boolean required;
     private int sortOrder;
+    private Long conditionQuestionId;
+    private Long conditionOptionId;
     private List<OptionDto> options;
 }

@@ -108,6 +108,12 @@ export default {
         maxResponses: 'Max Responses',
         maxResponsesPlaceholder: 'Leave blank for unlimited',
         quotaReached: 'This survey has reached its maximum number of responses',
+        conditionLogic: 'Skip Logic',
+        conditionQuestion: 'When question',
+        conditionOption: 'has answer',
+        conditionThen: 'show this question',
+        conditionNone: 'No condition (always show)',
+        conditionRemove: 'Remove condition',
         types: {
             SINGLE_CHOICE: 'Single Choice',
             MULTIPLE_CHOICE: 'Multiple Choice',

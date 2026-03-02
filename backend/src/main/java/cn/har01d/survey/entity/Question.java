@@ -58,6 +58,10 @@ public class Question {
 
     private int sortOrder = 0;
 
+    private Long conditionQuestionId;
+
+    private Long conditionOptionId;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     private List<QuestionOption> options = new ArrayList<>();

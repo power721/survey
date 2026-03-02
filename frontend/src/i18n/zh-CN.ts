@@ -108,6 +108,12 @@ export default {
         maxResponses: '最大回复数量',
         maxResponsesPlaceholder: '不填则不限制',
         quotaReached: '该问卷已达到最大回复数量限制',
+        conditionLogic: '跳题逻辑',
+        conditionQuestion: '当以下题目',
+        conditionOption: '选择了',
+        conditionThen: '时显示此题',
+        conditionNone: '无条件（始终显示）',
+        conditionRemove: '移除条件',
         types: {
             SINGLE_CHOICE: '单选',
             MULTIPLE_CHOICE: '多选',

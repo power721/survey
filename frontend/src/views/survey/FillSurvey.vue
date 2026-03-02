@@ -132,7 +132,8 @@
             </n-steps>
 
             <n-form label-placement="top">
-              <div v-for="(question, qi) in currentSection.questions" :key="question.id" style="margin-bottom: 24px">
+              <div v-for="(question, qi) in currentSection.questions" v-show="isQuestionVisible(question)"
+                   :key="question.id" style="margin-bottom: 24px">
                 <n-form-item>
                   <template #label>
                     <n-space align="center">
@@ -271,6 +272,16 @@ const sections = computed(() => {
 
 const currentSection = computed(() => sections.value[currentStep.value] ?? {questions: []})
 
+function isQuestionVisible(question: QuestionDto): boolean {
+  if (!question.conditionQuestionId) return true
+  const condAnswer = answers[question.conditionQuestionId]
+  if (!condAnswer) return false
+  if (!question.conditionOptionId) return true
+  if (condAnswer.selectedOptionId === question.conditionOptionId) return true
+  if (condAnswer.selectedOptionIds && condAnswer.selectedOptionIds.includes(question.conditionOptionId)) return true
+  return false
+}
+
 const allQuestions = computed((): QuestionDto[] => {
   if (!survey.value) return []
   if (survey.value.sections && survey.value.sections.length > 0) {
@@ -292,6 +303,7 @@ function validateSection(sectionIndex: number): boolean {
   const sec = sections.value[sectionIndex]
   if (!sec) return true
   for (const q of sec.questions) {
+    if (!isQuestionVisible(q)) continue
     if (!q.required) continue
     const a = answers[q.id]
     if (!a) continue
@@ -466,7 +478,7 @@ async function handleSubmit() {
   submitting.value = true
   try {
     const request: SurveySubmitRequest = {
-      answers: allQuestions.value.map((q) => {
+      answers: allQuestions.value.filter(q => isQuestionVisible(q)).map((q) => {
         const a = answers[q.id]
         return {
           questionId: q.id,

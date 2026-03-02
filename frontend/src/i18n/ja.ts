@@ -108,6 +108,12 @@ export default {
         maxResponses: '最大回答数',
         maxResponsesPlaceholder: '未入力の場合は無制限',
         quotaReached: 'このアンケートは最大回答数に達しました',
+        conditionLogic: '条件分岐',
+        conditionQuestion: '設問',
+        conditionOption: 'の回答が',
+        conditionThen: 'のとき表示',
+        conditionNone: '条件なし（常に表示）',
+        conditionRemove: '条件を削除',
         types: {
             SINGLE_CHOICE: '単一選択',
             MULTIPLE_CHOICE: '複数選択',

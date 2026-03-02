@@ -24,5 +24,8 @@ public class QuestionRequest {
     private boolean required = false;
     private int sortOrder = 0;
 
+    private Long conditionQuestionId;
+    private Long conditionOptionId;
+
     private List<OptionRequest> options;
 }

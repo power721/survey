@@ -688,6 +688,8 @@ public class SurveyService {
                 .description(qr.getDescription())
                 .required(qr.isRequired())
                 .sortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index)
+                .conditionQuestionId(qr.getConditionQuestionId())
+                .conditionOptionId(qr.getConditionOptionId())
                 .options(new ArrayList<>())
                 .build();
         if (qr.getOptions() != null) {
@@ -709,6 +711,8 @@ public class SurveyService {
         question.setDescription(qr.getDescription());
         question.setRequired(qr.isRequired());
         question.setSortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index);
+        question.setConditionQuestionId(qr.getConditionQuestionId());
+        question.setConditionOptionId(qr.getConditionOptionId());
         Map<Long, QuestionOption> existingOptionMap = question.getOptions().stream()
                 .filter(o -> o.getId() != null)
                 .collect(Collectors.toMap(QuestionOption::getId, o -> o));
@@ -745,6 +749,8 @@ public class SurveyService {
         dto.setDescription(question.getDescription());
         dto.setRequired(question.isRequired());
         dto.setSortOrder(question.getSortOrder());
+        dto.setConditionQuestionId(question.getConditionQuestionId());
+        dto.setConditionOptionId(question.getConditionOptionId());
         if (question.getOptions() != null) {
             dto.setOptions(question.getOptions().stream().map(this::toOptionDto).toList());
         }

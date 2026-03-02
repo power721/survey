@@ -119,6 +119,29 @@
                         </n-space>
                       </n-form-item>
                     </template>
+
+                    <n-form-item :label="t('survey.conditionLogic')">
+                      <n-space align="center" wrap>
+                        <n-select
+                            v-model:value="q.conditionQuestionId"
+                            :options="conditionQuestionOptions(si, qi)"
+                            :placeholder="t('survey.conditionNone')"
+                            clearable
+                            style="min-width: 220px"
+                            @update:value="q.conditionOptionId = null"
+                        />
+                        <template v-if="q.conditionQuestionId">
+                          <n-text>{{ t('survey.conditionOption') }}</n-text>
+                          <n-select
+                              v-model:value="q.conditionOptionId"
+                              :options="conditionOptionOptions(si, q.conditionQuestionId)"
+                              clearable
+                              style="min-width: 180px"
+                          />
+                          <n-text depth="3">→ {{ t('survey.conditionThen') }}</n-text>
+                        </template>
+                      </n-space>
+                    </n-form-item>
                   </n-card>
                 </template>
               </draggable>
@@ -178,6 +201,8 @@ function newQuestion(sortOrder = 0): QuestionRequest {
     description: '',
     required: false,
     sortOrder,
+    conditionQuestionId: null,
+    conditionOptionId: null,
     options: [{content: '', sortOrder: 0}, {content: '', sortOrder: 1}],
     _key: nextKey(),
   }
@@ -250,6 +275,8 @@ function copyQuestion(si: number, qi: number) {
     description: source.description,
     required: source.required,
     sortOrder: sec.questions.length,
+    conditionQuestionId: source.conditionQuestionId,
+    conditionOptionId: source.conditionOptionId,
     options: source.options.map((o) => ({content: o.content, sortOrder: o.sortOrder})),
     _key: nextKey(),
   }
@@ -265,6 +292,40 @@ function removeOption(si: number, qi: number, oi: number) {
   form.value.sections[si].questions[qi].options.splice(oi, 1)
 }
 
+function conditionQuestionOptions(si: number, qi: number) {
+  const result: { label: string, value: number }[] = []
+  for (let s = 0; s < form.value.sections.length; s++) {
+    const sec = form.value.sections[s]
+    for (let q = 0; q < sec.questions.length; q++) {
+      if (s === si && q >= qi) break
+      const question = sec.questions[q]
+      if (question.type === 'SINGLE_CHOICE' || question.type === 'MULTIPLE_CHOICE') {
+        if (question.id) {
+          result.push({
+            label: `Q${q + 1}: ${question.title || t('survey.questionTitle')}`,
+            value: question.id,
+          })
+        }
+      }
+    }
+  }
+  return result
+}
+
+function conditionOptionOptions(si: number, conditionQuestionId: number | null) {
+  if (!conditionQuestionId) return []
+  for (const sec of form.value.sections) {
+    for (const q of sec.questions) {
+      if (q.id === conditionQuestionId) {
+        return q.options
+            .filter(o => o.content)
+            .map(o => ({label: o.content, value: o.id as number}))
+      }
+    }
+  }
+  return []
+}
+
 async function loadSurvey() {
   if (!isEdit.value) return
   try {
@@ -278,6 +339,8 @@ async function loadSurvey() {
       description: q.description || '',
       required: q.required,
       sortOrder: q.sortOrder,
+      conditionQuestionId: q.conditionQuestionId ?? null,
+      conditionOptionId: q.conditionOptionId ?? null,
       options: q.options.map((o: any) => ({id: o.id, content: o.content, sortOrder: o.sortOrder})),
       _key: nextKey(),
     })
