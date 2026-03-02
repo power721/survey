@@ -43,18 +43,20 @@ public class ExcelExportService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final AuthService authService;
+    private final AuditLogService auditLogService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             .withZone(ZoneId.systemDefault());
 
     public ExcelExportService(SurveyRepository surveyRepository, SurveyResponseRepository responseRepository,
                               QuestionRepository questionRepository, AnswerRepository answerRepository,
-                              AuthService authService) {
+                              AuthService authService, AuditLogService auditLogService) {
         this.surveyRepository = surveyRepository;
         this.responseRepository = responseRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.authService = authService;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -66,6 +68,8 @@ public class ExcelExportService {
         if (!survey.getUser().getId().equals(user.getId())) {
             throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
+
+        auditLogService.log("EXPORT_SURVEY", "Survey", surveyId, "Exported survey responses: " + survey.getTitle(), user);
 
         List<SurveyResponse> responses = responseRepository.findBySurveyId(surveyId);
         List<Question> questions = questionRepository.findBySurveyIdOrderBySortOrderAsc(surveyId);

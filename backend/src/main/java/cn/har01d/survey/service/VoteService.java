@@ -56,18 +56,21 @@ public class VoteService {
     private final AuthService authService;
     private final RateLimitService rateLimitService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AuditLogService auditLogService;
 
     private static final Duration DEFAULT_DEADLINE = Duration.ofDays(7);
 
     public VoteService(VotePollRepository pollRepository, VoteOptionRepository optionRepository,
                        VoteRecordRepository recordRepository, AuthService authService,
-                       RateLimitService rateLimitService, SimpMessagingTemplate messagingTemplate) {
+                       RateLimitService rateLimitService, SimpMessagingTemplate messagingTemplate,
+                       AuditLogService auditLogService) {
         this.pollRepository = pollRepository;
         this.optionRepository = optionRepository;
         this.recordRepository = recordRepository;
         this.authService = authService;
         this.rateLimitService = rateLimitService;
         this.messagingTemplate = messagingTemplate;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -116,6 +119,7 @@ public class VoteService {
         }
 
         poll = pollRepository.save(poll);
+        auditLogService.log("CREATE_VOTE", "Vote", poll.getId(), "Created vote: " + poll.getTitle(), user);
         return toDto(poll, null);
     }
 
@@ -194,6 +198,7 @@ public class VoteService {
         }
 
         poll = pollRepository.save(poll);
+        auditLogService.log("UPDATE_VOTE", "Vote", poll.getId(), "Updated vote: " + poll.getTitle(), user);
         return toDto(poll, null);
     }
 
@@ -351,6 +356,7 @@ public class VoteService {
         if (!poll.getUser().getId().equals(user.getId())) {
             throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
         }
+        auditLogService.log("DELETE_VOTE", "Vote", poll.getId(), "Deleted vote: " + poll.getTitle(), user);
         recordRepository.deleteByPollId(poll.getId());
         pollRepository.delete(poll);
     }

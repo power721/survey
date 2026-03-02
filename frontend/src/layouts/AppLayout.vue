@@ -116,7 +116,9 @@ const activeKey = computed(() => {
   if (path.startsWith('/votes')) return 'votes'
   if (path.startsWith('/s/')) return 'public-surveys'
   if (path.startsWith('/v/')) return 'public-votes'
-  if (path.startsWith('/admin')) return 'admin-config'
+  if (path.startsWith('/admin/dashboard')) return 'admin-dashboard'
+  if (path.startsWith('/admin/config')) return 'admin-config'
+  if (path.startsWith('/admin/audit')) return 'admin-audit'
   return ''
 })
 
@@ -140,6 +142,7 @@ const menuOptions = computed(() => {
     items.push(
         {type: 'divider', key: 'd3'},
         {label: t('dashboard.title'), key: 'admin-dashboard', icon: renderIcon(StatsChartOutline)},
+        {label: t('audit.title'), key: 'admin-audit', icon: renderIcon(DocumentTextOutline)},
         {label: t('admin.systemConfig'), key: 'admin-config', icon: renderIcon(SettingsOutline)},
     )
   }
@@ -157,6 +160,7 @@ function handleMenuSelect(key: string) {
     'public-votes': '/votes/public',
     'admin-dashboard': '/admin/dashboard',
     'admin-config': '/admin/config',
+    'admin-audit': '/admin/audit-logs',
   }
   const target = routeMap[key]
   if (target) router.push(target)

@@ -65,11 +65,12 @@ public class SurveyService {
     private final SurveySectionRepository sectionRepository;
     private final AuthService authService;
     private final FileService fileService;
+    private final AuditLogService auditLogService;
 
     public SurveyService(SurveyRepository surveyRepository, QuestionRepository questionRepository,
                          QuestionOptionRepository optionRepository, SurveyResponseRepository responseRepository,
                          AnswerRepository answerRepository, SurveySectionRepository sectionRepository,
-                         AuthService authService, FileService fileService) {
+                         AuthService authService, FileService fileService, AuditLogService auditLogService) {
         this.surveyRepository = surveyRepository;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
@@ -78,6 +79,7 @@ public class SurveyService {
         this.sectionRepository = sectionRepository;
         this.authService = authService;
         this.fileService = fileService;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -146,6 +148,7 @@ public class SurveyService {
         }
 
         survey = surveyRepository.save(survey);
+        auditLogService.log("CREATE_SURVEY", "Survey", survey.getId(), "Created survey: " + survey.getTitle(), user);
         return toDto(survey);
     }
 
@@ -262,6 +265,7 @@ public class SurveyService {
         }
 
         survey = surveyRepository.save(survey);
+        auditLogService.log("UPDATE_SURVEY", "Survey", survey.getId(), "Updated survey: " + survey.getTitle(), user);
         return toDto(survey);
     }
 
@@ -360,6 +364,7 @@ public class SurveyService {
         if (!survey.getUser().getId().equals(user.getId())) {
             throw new BusinessException("survey.access.denied", HttpStatus.FORBIDDEN);
         }
+        auditLogService.log("DELETE_SURVEY", "Survey", survey.getId(), "Deleted survey: " + survey.getTitle(), user);
         deleteFileAnswers(survey.getId());
         answerRepository.deleteBySurveyId(survey.getId());
         responseRepository.deleteBySurveyId(survey.getId());
