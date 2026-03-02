@@ -59,7 +59,12 @@
                 </n-space>
               </template>
               <template v-else-if="answer.textValue">
-                <n-text>{{ answer.textValue }}</n-text>
+                <template v-if="answer.textValue.startsWith('/api/files/')">
+                  <n-a :href="answer.textValue" target="_blank">{{ answer.textValue.split('/').pop() }}</n-a>
+                </template>
+                <template v-else>
+                  <n-text>{{ answer.textValue }}</n-text>
+                </template>
               </template>
               <template v-else>
                 <n-text depth="3">-</n-text>
