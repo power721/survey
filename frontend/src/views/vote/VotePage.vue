@@ -146,18 +146,26 @@
           <!-- Results -->
           <template v-if="hasVoted || voted || isExpired">
             <n-divider>{{ t('vote.results') }}</n-divider>
-            <div v-for="(opt, oi) in poll.options" :key="opt.id" style="margin-bottom: 16px">
-              <img v-if="opt.imageUrl" :src="opt.imageUrl" class="vote-option-image" style="margin-bottom: 6px"
-                   @click="openPreview(opt.imageUrl)"/>
-              <n-space justify="space-between" style="margin-bottom: 4px">
-                <span>{{ oi + 1 }}. {{ opt.title }}</span>
-                <span>{{ opt.voteCount }} {{ t('vote.votes') }} ({{ opt.percentage.toFixed(1) }}%)</span>
+            <div v-for="(item, ri) in rankedOptions" :key="item.opt.id" style="margin-bottom: 16px">
+              <img v-if="item.opt.imageUrl" :src="item.opt.imageUrl" class="vote-option-image"
+                   style="margin-bottom: 6px"
+                   @click="openPreview(item.opt.imageUrl)"/>
+              <n-space justify="space-between" style="margin-bottom: 4px" align="center">
+                <n-space align="center" :size="6">
+                  <n-tag :type="ri === 0 ? 'warning' : ri === 1 ? 'info' : ri === 2 ? 'success' : 'default'"
+                         size="small" round :bordered="false">
+                    {{ item.rank }}
+                  </n-tag>
+                  <span>{{ item.opt.title }}</span>
+                </n-space>
+                <span>{{ item.opt.voteCount }} {{ t('vote.votes') }} ({{ item.opt.percentage.toFixed(1) }}%)</span>
               </n-space>
-              <n-progress type="line" :percentage="opt.percentage" :show-indicator="false"
-                          :color="getBarColor(opt.percentage)"/>
-              <n-space v-if="opt.voters && opt.voters.length > 0" size="small" style="margin-top: 6px; flex-wrap: wrap"
-                       align="center">
-                <n-tag v-for="(voter, vi) in opt.voters" :key="vi" size="small" :bordered="false" type="info" round>
+              <n-progress type="line" :percentage="item.opt.percentage" :show-indicator="false"
+                          :color="getBarColor(item.opt.percentage)"/>
+              <n-space v-if="item.opt.voters && item.opt.voters.length > 0" size="small"
+                       style="margin-top: 6px; flex-wrap: wrap" align="center">
+                <n-tag v-for="(voter, vi) in item.opt.voters" :key="vi" size="small" :bordered="false" type="info"
+                       round>
                   <template #avatar>
                     <n-avatar :src="voter.avatar || undefined" :size="18" round>
                       <template v-if="!voter.avatar" #default>{{ voter.name?.charAt(0) }}</template>
@@ -317,6 +325,16 @@ function setScoredVote(optionId: number, value: number) {
   const maxAllowed = poll.value.maxTotalVotes ? Math.min(maxPerOption, poll.value.maxTotalVotes - currentOther) : maxPerOption
   scoredVotes[optionId] = Math.max(0, Math.min(value, maxAllowed))
 }
+
+const rankedOptions = computed(() => {
+  if (!poll.value) return []
+  const sorted = [...poll.value.options].sort((a, b) => b.voteCount - a.voteCount)
+  let rank = 1
+  return sorted.map((opt, i) => {
+    if (i > 0 && opt.voteCount < sorted[i - 1].voteCount) rank = i + 1
+    return {opt, rank}
+  })
+})
 
 const colors = ['#18a058', '#2080f0', '#f0a020', '#d03050', '#8a2be2', '#ff6347']
 
