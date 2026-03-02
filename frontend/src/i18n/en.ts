@@ -208,6 +208,18 @@ export default {
         jwtExpiration: 'Session Duration',
         hours: 'hours',
     },
+    dashboard: {
+        title: 'Dashboard',
+        totalUsers: 'Total Users',
+        totalSurveys: 'Total Surveys',
+        totalResponses: 'Total Responses',
+        totalVotes: 'Total Votes',
+        totalVoteRecords: 'Total Vote Records',
+        trends: 'Data Trends',
+        userTrend: 'User Growth (Last 7 Days)',
+        surveyTrend: 'Survey Creation (Last 7 Days)',
+        responseTrend: 'Survey Responses (Last 7 Days)',
+    },
     editor: {
         bold: 'Bold',
         italic: 'Italic',

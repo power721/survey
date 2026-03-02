@@ -208,6 +208,18 @@ export default {
         jwtExpiration: '세션 유효 기간',
         hours: '시간',
     },
+    dashboard: {
+        title: '대시보드',
+        totalUsers: '총 사용자 수',
+        totalSurveys: '총 설문 수',
+        totalResponses: '총 응답 수',
+        totalVotes: '총 투표 수',
+        totalVoteRecords: '총 투표 기록 수',
+        trends: '데이터 추세',
+        userTrend: '사용자 증가 추세 (최근 7일)',
+        surveyTrend: '설문 생성 추세 (최근 7일)',
+        responseTrend: '설문 응답 추세 (최근 7일)',
+    },
     editor: {
         bold: '굵게',
         italic: '기울임',

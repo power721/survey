@@ -92,6 +92,7 @@ import {
   ListOutline,
   MegaphoneOutline,
   SettingsOutline,
+  StatsChartOutline,
 } from '@vicons/ionicons5'
 
 function renderIcon(icon: Component) {
@@ -138,6 +139,7 @@ const menuOptions = computed(() => {
   if (authStore.isAdmin) {
     items.push(
         {type: 'divider', key: 'd3'},
+        {label: t('dashboard.title'), key: 'admin-dashboard', icon: renderIcon(StatsChartOutline)},
         {label: t('admin.systemConfig'), key: 'admin-config', icon: renderIcon(SettingsOutline)},
     )
   }
@@ -153,6 +155,7 @@ function handleMenuSelect(key: string) {
     'votes': '/votes',
     'create-vote': '/votes/create',
     'public-votes': '/votes/public',
+    'admin-dashboard': '/admin/dashboard',
     'admin-config': '/admin/config',
   }
   const target = routeMap[key]

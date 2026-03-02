@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import cn.har01d.survey.dto.ApiResponse;
+import cn.har01d.survey.dto.DashboardStatsDto;
+import cn.har01d.survey.service.DashboardService;
 import cn.har01d.survey.service.SystemConfigService;
 
 @RestController
@@ -17,9 +19,11 @@ import cn.har01d.survey.service.SystemConfigService;
 public class AdminController {
 
     private final SystemConfigService configService;
+    private final DashboardService dashboardService;
 
-    public AdminController(SystemConfigService configService) {
+    public AdminController(SystemConfigService configService, DashboardService dashboardService) {
         this.configService = configService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/config")
@@ -31,5 +35,10 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> updateConfig(@RequestBody Map<String, String> configs) {
         configService.updateAll(configs);
         return ResponseEntity.ok(ApiResponse.ok("Config updated", null));
+    }
+
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<ApiResponse<DashboardStatsDto>> getDashboardStats() {
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getStats()));
     }
 }

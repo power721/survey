@@ -297,3 +297,19 @@ export interface Page<T> {
     first: boolean
     last: boolean
 }
+
+export interface DashboardStatsDto {
+    totalUsers: number
+    totalSurveys: number
+    totalResponses: number
+    totalVotes: number
+    totalVoteRecords: number
+    userTrend: TrendDataPoint[]
+    surveyTrend: TrendDataPoint[]
+    responseTrend: TrendDataPoint[]
+}
+
+export interface TrendDataPoint {
+    date: string
+    count: number
+}

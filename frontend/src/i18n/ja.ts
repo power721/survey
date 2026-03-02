@@ -208,6 +208,18 @@ export default {
         jwtExpiration: 'セッション有効期間',
         hours: '時間',
     },
+    dashboard: {
+        title: 'ダッシュボード',
+        totalUsers: '総ユーザー数',
+        totalSurveys: '総アンケート数',
+        totalResponses: '総回答数',
+        totalVotes: '総投票数',
+        totalVoteRecords: '総投票記録数',
+        trends: 'データトレンド',
+        userTrend: 'ユーザー増加（直近7日間）',
+        surveyTrend: 'アンケート作成（直近7日間）',
+        responseTrend: 'アンケート回答（直近7日間）',
+    },
     editor: {
         bold: '太字',
         italic: '斜体',

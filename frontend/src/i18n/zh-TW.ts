@@ -208,6 +208,18 @@ export default {
         jwtExpiration: '會話有效期',
         hours: '小時',
     },
+    dashboard: {
+        title: '數據儀表板',
+        totalUsers: '總用戶數',
+        totalSurveys: '總問卷數',
+        totalResponses: '總回覆數',
+        totalVotes: '總投票數',
+        totalVoteRecords: '總投票記錄數',
+        trends: '數據趨勢',
+        userTrend: '用戶增長趨勢（最近7天）',
+        surveyTrend: '問卷創建趨勢（最近7天）',
+        responseTrend: '問卷回覆趨勢（最近7天）',
+    },
     editor: {
         bold: '粗體',
         italic: '斜體',

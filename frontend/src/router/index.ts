@@ -98,6 +98,12 @@ const router = createRouter({
             component: () => import('@/views/vote/PublicVotes.vue'),
         },
         {
+            path: '/admin/dashboard',
+            name: 'Dashboard',
+            component: () => import('@/views/admin/Dashboard.vue'),
+            meta: {requiresAuth: true, requiresAdmin: true},
+        },
+        {
             path: '/admin/config',
             name: 'SystemConfig',
             component: () => import('@/views/admin/SystemConfig.vue'),
