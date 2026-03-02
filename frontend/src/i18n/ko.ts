@@ -149,6 +149,10 @@ export default {
     votedOption: '투표 항목',
     votedAt: '투표 시간',
     anonymous: '익명',
+    batchAdd: '일괄 추가',
+    batchAddPlaceholder: '한 줄에 하나의 항목을 입력하세요\n끝에 공백 후 이미지 URL 추가 가능 (선택)\n\n예시:\n항목A\n항목B https://example.com/image.png',
+    batchAddEmpty: '최소 하나의 항목을 입력해 주세요',
+    batchAddSuccess: '{count}개 항목이 추가되었습니다',
   },
   admin: {
     systemConfig: '시스템 설정',

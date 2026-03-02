@@ -149,6 +149,10 @@ export default {
     votedOption: '投票した項目',
     votedAt: '投票日時',
     anonymous: '匿名',
+    batchAdd: '一括追加',
+    batchAddPlaceholder: '1行に1つの選択肢を入力\n末尾にスペースを空けて画像URLを追加可能（任意）\n\n例：\n選択肢A\n選択肢B https://example.com/image.png',
+    batchAddEmpty: '少なくとも1つの選択肢を入力してください',
+    batchAddSuccess: '{count} 件の選択肢を追加しました',
   },
   admin: {
     systemConfig: 'システム設定',

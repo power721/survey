@@ -149,6 +149,10 @@ export default {
     votedOption: '投票選項',
     votedAt: '投票時間',
     anonymous: '匿名',
+    batchAdd: '批量新增',
+    batchAddPlaceholder: '每行輸入一個選項\n可在末尾空格後附加圖片連結（可選）\n\n範例：\n選項A\n選項B https://example.com/image.png',
+    batchAddEmpty: '請至少輸入一個選項',
+    batchAddSuccess: '已新增 {count} 個選項',
   },
   admin: {
     systemConfig: '系統配置',

@@ -90,7 +90,14 @@
             </n-card>
           </template>
         </draggable>
-        <n-button dashed block @click="addOption" style="margin-top: 8px">+ {{ t('survey.addOption') }}</n-button>
+        <n-space style="margin-top: 8px">
+          <n-button dashed @click="addOption">+ {{ t('survey.addOption') }}</n-button>
+          <n-button dashed @click="showBatchAdd = true">{{ t('vote.batchAdd') }}</n-button>
+        </n-space>
+
+        <n-modal v-model:show="showBatchAdd" preset="dialog" :title="t('vote.batchAdd')" :positive-text="t('common.confirm')" :negative-text="t('common.cancel')" @positive-click="handleBatchAdd">
+          <n-input v-model:value="batchText" type="textarea" :rows="8" :placeholder="t('vote.batchAddPlaceholder')" />
+        </n-modal>
 
         <n-space justify="end" style="margin-top: 24px">
           <n-button @click="router.back()">{{ t('common.cancel') }}</n-button>
@@ -124,6 +131,8 @@ const message = useMessage()
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
 const previewImage = ref<string | null>(null)
+const showBatchAdd = ref(false)
+const batchText = ref('')
 
 function openPreview(url: string) {
   previewImage.value = url
@@ -180,6 +189,28 @@ const accessOptions = [
 
 function addOption() {
   form.value.options.push({ title: '', sortOrder: form.value.options.length, _key: nextKey() })
+}
+
+function handleBatchAdd() {
+  const lines = batchText.value.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+  if (lines.length === 0) {
+    message.warning(t('vote.batchAddEmpty'))
+    return
+  }
+  const startIndex = form.value.options.length
+  lines.forEach((line, i) => {
+    const parts = line.split(/\s+/)
+    const last = parts[parts.length - 1]
+    let title = line
+    let imageUrl = ''
+    if (parts.length > 1 && /^https?:\/\//i.test(last)) {
+      imageUrl = last
+      title = parts.slice(0, -1).join(' ')
+    }
+    form.value.options.push({ title, imageUrl, sortOrder: startIndex + i, _key: nextKey() })
+  })
+  batchText.value = ''
+  message.success(t('vote.batchAddSuccess', { count: lines.length }))
 }
 
 function removeOption(index: number) {

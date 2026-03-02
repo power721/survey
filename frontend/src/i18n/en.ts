@@ -149,6 +149,10 @@ export default {
     votedOption: 'Voted Option',
     votedAt: 'Voted At',
     anonymous: 'Anonymous',
+    batchAdd: 'Batch Add',
+    batchAddPlaceholder: 'One option per line\nAppend image URL after a space (optional)\n\nExample:\nOption A\nOption B https://example.com/image.png',
+    batchAddEmpty: 'Please enter at least one option',
+    batchAddSuccess: 'Added {count} options',
   },
   admin: {
     systemConfig: 'System Config',

@@ -149,6 +149,10 @@ export default {
     votedOption: '投票选项',
     votedAt: '投票时间',
     anonymous: '匿名',
+    batchAdd: '批量添加',
+    batchAddPlaceholder: '每行输入一个选项\n可在末尾空格后附加图片链接（可选）\n\n示例：\n选项A\n选项B https://example.com/image.png',
+    batchAddEmpty: '请至少输入一个选项',
+    batchAddSuccess: '已添加 {count} 个选项',
   },
   admin: {
     systemConfig: '系统配置',
