@@ -11,7 +11,9 @@
               <n-space>
                 <n-tag v-if="survey.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
                 <n-tag size="small" type="info">{{ survey.responseCount }} {{ t('survey.responses') }}</n-tag>
-                <n-text v-if="survey.startTime && new Date(survey.startTime).getTime() > Date.now()" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
+                <n-text v-if="survey.startTime && new Date(survey.startTime).getTime() > Date.now()" depth="3">
+                  {{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}
+                </n-text>
                 <n-text depth="3">{{ survey.creatorName }}</n-text>
               </n-space>
             </template>
@@ -19,14 +21,14 @@
         </n-gi>
       </n-grid>
 
-      <n-empty v-if="!loading && surveys.length === 0" :description="t('common.noData')" style="margin-top: 40px" />
+      <n-empty v-if="!loading && surveys.length === 0" :description="t('common.noData')" style="margin-top: 40px"/>
 
       <n-pagination
-        v-if="totalPages > 1"
-        v-model:page="page"
-        :page-count="totalPages"
-        @update:page="loadSurveys"
-        style="margin-top: 16px; justify-content: center"
+          v-if="totalPages > 1"
+          v-model:page="page"
+          :page-count="totalPages"
+          @update:page="loadSurveys"
+          style="margin-top: 16px; justify-content: center"
       />
     </n-spin>
   </div>
@@ -40,7 +42,7 @@ import {surveyApi} from '@/api/survey'
 import type {SurveyDto} from '@/types'
 
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 
 const surveys = ref<SurveyDto[]>([])
 const loading = ref(true)
@@ -50,7 +52,7 @@ const totalPages = ref(0)
 async function loadSurveys() {
   loading.value = true
   try {
-    const res = await surveyApi.getPublic({ page: page.value - 1, size: 12 })
+    const res = await surveyApi.getPublic({page: page.value - 1, size: 12})
     surveys.value = res.data.data.content
     totalPages.value = res.data.data.totalPages
   } catch (e) {

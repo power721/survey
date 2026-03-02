@@ -36,5 +36,6 @@ public class OAuth2Controller {
         return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
     }
 
-    public record CallbackRequest(String code) {}
+    public record CallbackRequest(String code) {
+    }
 }

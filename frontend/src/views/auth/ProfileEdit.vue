@@ -12,17 +12,20 @@
         <n-form ref="formRef" :model="form" label-placement="top">
           <n-form-item :label="t('auth.username')">
             <n-space align="center" style="width: 100%">
-              <n-input :value="form.username" disabled style="flex: 1" />
-              <n-tag v-if="authStore.isAdmin" class="admin-badge" size="small" :bordered="false">{{ t('common.admin') }}</n-tag>
+              <n-input :value="form.username" disabled style="flex: 1"/>
+              <n-tag v-if="authStore.isAdmin" class="admin-badge" size="small" :bordered="false">{{
+                  t('common.admin')
+                }}
+              </n-tag>
             </n-space>
           </n-form-item>
 
           <n-form-item :label="t('auth.nickname')">
-            <n-input v-model:value="form.nickname" :placeholder="t('auth.nickname')" />
+            <n-input v-model:value="form.nickname" :placeholder="t('auth.nickname')"/>
           </n-form-item>
 
           <n-form-item :label="t('auth.email')">
-            <n-input v-model:value="form.email" :placeholder="t('auth.email')" />
+            <n-input v-model:value="form.email" :placeholder="t('auth.email')"/>
           </n-form-item>
 
           <n-space justify="end" style="margin-top: 16px">
@@ -35,15 +38,18 @@
 
         <n-form :model="pwdForm" label-placement="top">
           <n-form-item :label="t('common.oldPassword')">
-            <n-input v-model:value="pwdForm.oldPassword" type="password" show-password-on="click" :placeholder="t('common.oldPassword')" />
+            <n-input v-model:value="pwdForm.oldPassword" type="password" show-password-on="click"
+                     :placeholder="t('common.oldPassword')"/>
           </n-form-item>
 
           <n-form-item :label="t('common.newPassword')">
-            <n-input v-model:value="pwdForm.newPassword" type="password" show-password-on="click" :placeholder="t('common.newPassword')" />
+            <n-input v-model:value="pwdForm.newPassword" type="password" show-password-on="click"
+                     :placeholder="t('common.newPassword')"/>
           </n-form-item>
 
           <n-space justify="end">
-            <n-button type="warning" :loading="savingPwd" @click="handleChangePassword" :disabled="!pwdForm.oldPassword || !pwdForm.newPassword">
+            <n-button type="warning" :loading="savingPwd" @click="handleChangePassword"
+                      :disabled="!pwdForm.oldPassword || !pwdForm.newPassword">
               {{ t('common.changePassword') }}
             </n-button>
           </n-space>
@@ -62,7 +68,7 @@ import {authApi} from '@/api/auth'
 import {useAuthStore} from '@/stores/auth'
 
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
 

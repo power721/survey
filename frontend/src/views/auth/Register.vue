@@ -3,17 +3,17 @@
     <n-card :title="t('auth.registerTitle')" style="max-width: 420px; width: 100%">
       <n-form ref="formRef" :key="locale" :model="form" :rules="rules" label-placement="left" label-width="auto">
         <n-form-item :label="t('auth.username')" path="username">
-          <n-input v-model:value="form.username" :placeholder="t('auth.username')" />
+          <n-input v-model:value="form.username" :placeholder="t('auth.username')"/>
         </n-form-item>
         <n-form-item :label="t('auth.password')" path="password">
           <n-input v-model:value="form.password" type="password" show-password-on="click"
-                   :placeholder="t('auth.password')" />
+                   :placeholder="t('auth.password')"/>
         </n-form-item>
         <n-form-item :label="t('auth.email')" path="email">
-          <n-input v-model:value="form.email" :placeholder="t('auth.email')" />
+          <n-input v-model:value="form.email" :placeholder="t('auth.email')"/>
         </n-form-item>
         <n-form-item :label="t('auth.nickname')" path="nickname">
-          <n-input v-model:value="form.nickname" :placeholder="t('auth.nickname')" />
+          <n-input v-model:value="form.nickname" :placeholder="t('auth.nickname')"/>
         </n-form-item>
         <n-space vertical size="large" style="width: 100%">
           <n-button type="primary" block :loading="loading" @click="handleRegister">
@@ -30,15 +30,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage, type FormInst } from 'naive-ui'
-import { useAuthStore } from '@/stores/auth'
-import { useAppStore } from '@/stores/app'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {type FormInst, useMessage} from 'naive-ui'
+import {useAuthStore} from '@/stores/auth'
+import {useAppStore} from '@/stores/app'
 
 const router = useRouter()
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
 const appStore = useAppStore()
@@ -51,11 +51,11 @@ onMounted(() => {
 
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
-const form = ref({ username: '', password: '', email: '', nickname: '' })
+const form = ref({username: '', password: '', email: '', nickname: ''})
 
 const rules = {
-  username: { required: true, message: t('auth.username'), trigger: 'blur' },
-  password: { required: true, min: 6, message: t('auth.password'), trigger: 'blur' },
+  username: {required: true, message: t('auth.username'), trigger: 'blur'},
+  password: {required: true, min: 6, message: t('auth.password'), trigger: 'blur'},
 }
 
 async function handleRegister() {

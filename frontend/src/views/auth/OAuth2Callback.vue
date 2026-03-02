@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh">
-    <n-spin v-if="loading" size="large" />
+    <n-spin v-if="loading" size="large"/>
     <n-result v-else status="error" :title="t('auth.oauth2Failed')" :description="errorMsg">
       <template #footer>
         <n-button @click="router.push('/login')">{{ t('common.back') }}</n-button>
@@ -10,16 +10,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import { useAuthStore } from '@/stores/auth'
-import { authApi } from '@/api/auth'
+import {onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
+import {useAuthStore} from '@/stores/auth'
+import {authApi} from '@/api/auth'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 const authStore = useAuthStore()
 

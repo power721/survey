@@ -51,7 +51,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request,
-                                                               HttpServletRequest httpRequest) {
+                                                              HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
         if (!rateLimiter.isAllowed("register:" + ip, 5, 3600_000)) {
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
@@ -62,7 +62,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request,
-                                                            HttpServletRequest httpRequest) {
+                                                           HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
         if (!rateLimiter.isAllowed("login:" + ip, getLoginMaxAttempts(), 60_000)) {
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);

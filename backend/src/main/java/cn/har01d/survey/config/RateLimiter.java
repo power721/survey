@@ -3,10 +3,10 @@ package cn.har01d.survey.config;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.stereotype.Component;
+
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-
-import org.springframework.stereotype.Component;
 
 @Component
 public class RateLimiter {

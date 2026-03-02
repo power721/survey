@@ -10,33 +10,33 @@
 
     <n-spin :show="loading">
       <n-data-table
-        :columns="columns"
-        :data="records"
-        :bordered="false"
+          :columns="columns"
+          :data="records"
+          :bordered="false"
       />
       <n-space justify="end" style="margin-top: 16px">
         <n-pagination
-          v-if="totalPages > 1"
-          v-model:page="page"
-          :page-count="totalPages"
-          @update:page="loadRecords"
+            v-if="totalPages > 1"
+            v-model:page="page"
+            :page-count="totalPages"
+            @update:page="loadRecords"
         />
       </n-space>
-      <n-empty v-if="!loading && records.length === 0" :description="t('common.noData')" />
+      <n-empty v-if="!loading && records.length === 0" :description="t('common.noData')"/>
     </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { voteApi } from '@/api/vote'
-import type { VoteRecordDto } from '@/types'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {voteApi} from '@/api/vote'
+import type {VoteRecordDto} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const {t} = useI18n()
 
 const pollId = Number(route.params.id)
 const pollTitle = ref('')
@@ -48,16 +48,29 @@ const totalPages = ref(0)
 
 const columns = computed(() => {
   const cols: any[] = [
-    { title: '#', key: 'index', width: 60, render: (_: VoteRecordDto, index: number) => (page.value - 1) * 20 + index + 1 },
-    { title: t('vote.voter'), key: 'voter', render: (row: VoteRecordDto) => row.nickname || row.username || t('vote.anonymous') },
-    { title: t('vote.votedOption'), key: 'optionTitle' },
+    {
+      title: '#',
+      key: 'index',
+      width: 60,
+      render: (_: VoteRecordDto, index: number) => (page.value - 1) * 20 + index + 1
+    },
+    {
+      title: t('vote.voter'),
+      key: 'voter',
+      render: (row: VoteRecordDto) => row.nickname || row.username || t('vote.anonymous')
+    },
+    {title: t('vote.votedOption'), key: 'optionTitle'},
   ]
   if (pollVoteType.value === 'SCORED') {
-    cols.push({ title: t('vote.votes'), key: 'voteCount' })
+    cols.push({title: t('vote.votes'), key: 'voteCount'})
   }
   cols.push(
-    { title: 'IP', key: 'ip' },
-    { title: t('vote.votedAt'), key: 'createdAt', render: (row: VoteRecordDto) => new Date(row.createdAt).toLocaleString() },
+      {title: 'IP', key: 'ip'},
+      {
+        title: t('vote.votedAt'),
+        key: 'createdAt',
+        render: (row: VoteRecordDto) => new Date(row.createdAt).toLocaleString()
+      },
   )
   return cols
 })
@@ -65,7 +78,7 @@ const columns = computed(() => {
 async function loadRecords() {
   loading.value = true
   try {
-    const res = await voteApi.getRecords(pollId, { page: page.value - 1, size: 20 })
+    const res = await voteApi.getRecords(pollId, {page: page.value - 1, size: 20})
     records.value = res.data.data.content
     totalPages.value = res.data.data.totalPages
   } catch (e) {

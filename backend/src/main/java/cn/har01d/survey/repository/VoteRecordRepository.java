@@ -11,6 +11,7 @@ import cn.har01d.survey.entity.VoteRecord;
 
 public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     Page<VoteRecord> findByPollId(Long pollId, Pageable pageable);
+
     boolean existsByPollIdAndUserId(Long pollId, Long userId);
 
     boolean existsByPollIdAndIp(Long pollId, String ip);

@@ -5,46 +5,46 @@
         <n-form label-placement="left" label-width="180" :model="form">
           <n-h3>{{ t('admin.basicSettings') }}</n-h3>
           <n-form-item :label="t('admin.siteTitle')">
-            <n-input v-model:value="form.siteTitle" :placeholder="t('admin.siteTitlePlaceholder')" />
+            <n-input v-model:value="form.siteTitle" :placeholder="t('admin.siteTitlePlaceholder')"/>
           </n-form-item>
           <n-form-item :label="t('admin.siteDescription')">
-            <n-input v-model:value="form.siteDescription" :placeholder="t('admin.siteDescriptionPlaceholder')" />
+            <n-input v-model:value="form.siteDescription" :placeholder="t('admin.siteDescriptionPlaceholder')"/>
           </n-form-item>
           <n-form-item :label="t('admin.siteLogo')">
-            <n-input v-model:value="form.siteLogo" placeholder="https://..." />
+            <n-input v-model:value="form.siteLogo" placeholder="https://..."/>
           </n-form-item>
           <n-form-item :label="t('admin.siteFooter')">
-            <n-input v-model:value="form.siteFooter" :placeholder="t('admin.siteFooterPlaceholder')" />
+            <n-input v-model:value="form.siteFooter" :placeholder="t('admin.siteFooterPlaceholder')"/>
           </n-form-item>
           <n-form-item :label="t('admin.timezone')">
-            <n-select v-model:value="form.timezone" :options="timezoneOptions" filterable />
+            <n-select v-model:value="form.timezone" :options="timezoneOptions" filterable/>
           </n-form-item>
 
           <n-h3>{{ t('admin.userSettings') }}</n-h3>
           <n-form-item :label="t('admin.registerEnabled')">
-            <n-switch v-model:value="form.registerEnabled" />
+            <n-switch v-model:value="form.registerEnabled"/>
           </n-form-item>
 
           <n-h3>{{ t('admin.oauth2Settings') }}</n-h3>
           <n-form-item :label="t('admin.oauth2Enabled')">
-            <n-switch v-model:value="form.oauth2Enabled" />
+            <n-switch v-model:value="form.oauth2Enabled"/>
           </n-form-item>
           <template v-if="form.oauth2Enabled">
             <n-h4 prefix="bar">GitHub</n-h4>
             <n-form-item :label="t('admin.clientId')">
-              <n-input v-model:value="form.githubClientId" placeholder="GitHub Client ID" />
+              <n-input v-model:value="form.githubClientId" placeholder="GitHub Client ID"/>
             </n-form-item>
             <n-form-item :label="t('admin.clientSecret')">
               <n-input v-model:value="form.githubClientSecret" type="password" show-password-on="click"
-                       placeholder="GitHub Client Secret" />
+                       placeholder="GitHub Client Secret"/>
             </n-form-item>
             <n-h4 prefix="bar">Google</n-h4>
             <n-form-item :label="t('admin.clientId')">
-              <n-input v-model:value="form.googleClientId" placeholder="Google Client ID" />
+              <n-input v-model:value="form.googleClientId" placeholder="Google Client ID"/>
             </n-form-item>
             <n-form-item :label="t('admin.clientSecret')">
               <n-input v-model:value="form.googleClientSecret" type="password" show-password-on="click"
-                       placeholder="Google Client Secret" />
+                       placeholder="Google Client Secret"/>
             </n-form-item>
           </template>
 
@@ -56,12 +56,12 @@
           </n-form-item>
           <n-form-item :label="t('admin.uploadAllowedExtensions')">
             <n-input v-model:value="form.uploadAllowedExtensions"
-                     :placeholder="t('admin.uploadAllowedExtensionsPlaceholder')" type="textarea" :rows="2" />
+                     :placeholder="t('admin.uploadAllowedExtensionsPlaceholder')" type="textarea" :rows="2"/>
           </n-form-item>
 
           <n-h3>{{ t('admin.securitySettings') }}</n-h3>
           <n-form-item :label="t('admin.loginMaxAttempts')">
-            <n-input-number v-model:value="form.loginMaxAttempts" :min="1" :max="100" style="width: 100%" />
+            <n-input-number v-model:value="form.loginMaxAttempts" :min="1" :max="100" style="width: 100%"/>
           </n-form-item>
           <n-form-item :label="t('admin.jwtExpiration')">
             <n-input-number v-model:value="form.jwtExpirationHours" :min="1" :max="720" style="width: 100%">
@@ -81,12 +81,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import { adminApi } from '@/api/admin'
+import {onMounted, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
+import {adminApi} from '@/api/admin'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 
 const loading = ref(true)
@@ -116,7 +116,7 @@ const timezoneOptions = [
   'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
   'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Moscow',
   'Australia/Sydney', 'Pacific/Auckland', 'UTC',
-].map(tz => ({ label: tz, value: tz }))
+].map(tz => ({label: tz, value: tz}))
 
 onMounted(async () => {
   try {

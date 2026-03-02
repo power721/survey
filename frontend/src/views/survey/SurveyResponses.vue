@@ -19,7 +19,9 @@
           <n-descriptions label-placement="left" bordered :column="1" size="small">
             <n-descriptions-item v-for="answer in resp.answers" :key="answer.id" :label="answer.questionTitle">
               <template v-if="answer.selectedOptionContent">{{ answer.selectedOptionContent }}</template>
-              <template v-else-if="answer.selectedOptionContents && answer.selectedOptionContents.length">{{ answer.selectedOptionContents.join('、') }}</template>
+              <template v-else-if="answer.selectedOptionContents && answer.selectedOptionContents.length">
+                {{ answer.selectedOptionContents.join('、') }}
+              </template>
               <template v-else-if="answer.textValue && answer.textValue.startsWith('/api/files/')">
                 <n-a :href="answer.textValue" target="_blank">{{ answer.textValue.split('/').pop() }}</n-a>
               </template>
@@ -28,13 +30,13 @@
           </n-descriptions>
         </n-card>
 
-        <n-empty v-if="!loading && responses.length === 0" :description="t('common.noData')" />
+        <n-empty v-if="!loading && responses.length === 0" :description="t('common.noData')"/>
 
         <n-pagination
-          v-if="totalPages > 1"
-          v-model:page="page"
-          :page-count="totalPages"
-          @update:page="loadResponses"
+            v-if="totalPages > 1"
+            v-model:page="page"
+            :page-count="totalPages"
+            @update:page="loadResponses"
         />
       </n-space>
     </n-spin>
@@ -42,15 +44,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { surveyApi } from '@/api/survey'
-import type { SurveyResponseDto } from '@/types'
+import {onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {surveyApi} from '@/api/survey'
+import type {SurveyResponseDto} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const {t} = useI18n()
 
 const loading = ref(true)
 const responses = ref<SurveyResponseDto[]>([])
@@ -65,7 +67,7 @@ function formatTime(time: string) {
 async function loadResponses() {
   loading.value = true
   try {
-    const res = await surveyApi.getResponses(Number(route.params.id), { page: page.value - 1, size: 10 })
+    const res = await surveyApi.getResponses(Number(route.params.id), {page: page.value - 1, size: 10})
     responses.value = res.data.data.content
     totalPages.value = res.data.data.totalPages
   } catch (e) {

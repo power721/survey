@@ -14,8 +14,12 @@
                 </n-tag>
                 <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
                 <n-tag size="small" type="success">{{ poll.totalVoteCount }} {{ t('vote.votes') }}</n-tag>
-                <n-text v-if="poll.startTime && new Date(poll.startTime).getTime() > Date.now()" depth="3">{{ t('common.startTime') }}: {{ new Date(poll.startTime).toLocaleString() }}</n-text>
-                <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ new Date(poll.endTime).toLocaleString() }}</n-text>
+                <n-text v-if="poll.startTime && new Date(poll.startTime).getTime() > Date.now()" depth="3">
+                  {{ t('common.startTime') }}: {{ new Date(poll.startTime).toLocaleString() }}
+                </n-text>
+                <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}:
+                  {{ new Date(poll.endTime).toLocaleString() }}
+                </n-text>
                 <n-text depth="3">{{ poll.creatorName }}</n-text>
               </n-space>
             </template>
@@ -23,14 +27,14 @@
         </n-gi>
       </n-grid>
 
-      <n-empty v-if="!loading && polls.length === 0" :description="t('common.noData')" style="margin-top: 40px" />
+      <n-empty v-if="!loading && polls.length === 0" :description="t('common.noData')" style="margin-top: 40px"/>
 
       <n-pagination
-        v-if="totalPages > 1"
-        v-model:page="page"
-        :page-count="totalPages"
-        @update:page="loadPolls"
-        style="margin-top: 16px; justify-content: center"
+          v-if="totalPages > 1"
+          v-model:page="page"
+          :page-count="totalPages"
+          @update:page="loadPolls"
+          style="margin-top: 16px; justify-content: center"
       />
     </n-spin>
   </div>
@@ -44,7 +48,7 @@ import {voteApi} from '@/api/vote'
 import type {VotePollDto} from '@/types'
 
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 
 const polls = ref<VotePollDto[]>([])
 const loading = ref(true)
@@ -54,7 +58,7 @@ const totalPages = ref(0)
 async function loadPolls() {
   loading.value = true
   try {
-    const res = await voteApi.getPublic({ page: page.value - 1, size: 12 })
+    const res = await voteApi.getPublic({page: page.value - 1, size: 12})
     polls.value = res.data.data.content
     totalPages.value = res.data.data.totalPages
   } catch (e) {

@@ -11,7 +11,7 @@
         </n-space>
 
         <n-card style="margin-bottom: 16px">
-          <n-statistic :label="t('survey.responseCount')" :value="stats.totalResponses" />
+          <n-statistic :label="t('survey.responseCount')" :value="stats.totalResponses"/>
         </n-card>
 
         <n-space vertical size="large">
@@ -27,7 +27,7 @@
                   <span>{{ opt.count }} ({{ opt.percentage.toFixed(1) }}%)</span>
                 </n-space>
                 <n-progress type="line" :percentage="opt.percentage" :show-indicator="false"
-                            :color="getColor(opt.percentage)" />
+                            :color="getColor(opt.percentage)"/>
               </div>
             </template>
 
@@ -39,7 +39,7 @@
               </n-list>
             </template>
 
-            <n-empty v-else :description="t('common.noData')" />
+            <n-empty v-else :description="t('common.noData')"/>
           </n-card>
         </n-space>
       </template>
@@ -48,16 +48,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import { surveyApi } from '@/api/survey'
-import type { SurveyStatsDto } from '@/types'
+import {onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
+import {surveyApi} from '@/api/survey'
+import type {SurveyStatsDto} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 
 const loading = ref(true)

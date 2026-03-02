@@ -20,8 +20,12 @@
 
           <n-space style="margin-bottom: 16px">
             <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
-            <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
-            <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
+            <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}:
+              {{ new Date(survey.startTime).toLocaleString() }}
+            </n-text>
+            <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}:
+              {{ new Date(survey.endTime).toLocaleString() }}
+            </n-text>
           </n-space>
 
           <div v-if="survey.description" class="description-html" style="margin-bottom: 24px; color: #666"
@@ -39,7 +43,10 @@
               </template>
               <template v-else-if="answer.selectedOptionContents && answer.selectedOptionContents.length > 0">
                 <n-space>
-                  <n-tag v-for="(opt, oi) in answer.selectedOptionContents" :key="oi" type="info" size="small">{{ opt }}</n-tag>
+                  <n-tag v-for="(opt, oi) in answer.selectedOptionContents" :key="oi" type="info" size="small">{{
+                      opt
+                    }}
+                  </n-tag>
                 </n-space>
               </template>
               <template v-else-if="answer.textValue">
@@ -52,7 +59,10 @@
           </div>
 
           <n-space justify="center" style="margin-top: 24px">
-            <n-button v-if="survey.allowUpdate" type="primary" @click="startEditing">{{ t('survey.updateResponse') }}</n-button>
+            <n-button v-if="survey.allowUpdate" type="primary" @click="startEditing">{{
+                t('survey.updateResponse')
+              }}
+            </n-button>
             <n-button @click="router.push('/')">{{ t('common.home') }}</n-button>
           </n-space>
         </n-card>
@@ -65,14 +75,21 @@
                 :style="survey.logoUrl ? { borderTopLeftRadius: 0, borderTopRightRadius: 0 } : {}">
           <template #header-extra>
             <n-space>
-              <n-tag v-if="!isNotStarted && survey.anonymous" type="info" size="small">{{ t('survey.anonymous') }}</n-tag>
+              <n-tag v-if="!isNotStarted && survey.anonymous" type="info" size="small">{{
+                  t('survey.anonymous')
+                }}
+              </n-tag>
             </n-space>
           </template>
 
           <n-space style="margin-bottom: 16px">
             <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
-            <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
-            <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
+            <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}:
+              {{ new Date(survey.startTime).toLocaleString() }}
+            </n-text>
+            <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}:
+              {{ new Date(survey.endTime).toLocaleString() }}
+            </n-text>
           </n-space>
 
           <n-alert v-if="isNotStarted" type="warning" style="margin-bottom: 16px">
@@ -81,7 +98,10 @@
 
           <n-alert v-if="loginRequired" type="warning" style="margin-bottom: 16px">
             {{ t('survey.loginRequired') }}
-            <n-button text type="primary" @click="router.push('/login')" style="margin-left: 8px">{{ t('common.login') }}</n-button>
+            <n-button text type="primary" @click="router.push('/login')" style="margin-left: 8px">{{
+                t('common.login')
+              }}
+            </n-button>
           </n-alert>
 
           <n-form v-if="!loginRequired && !isNotStarted" label-placement="top">
@@ -106,17 +126,20 @@
                 <template v-else-if="question.type === 'MULTIPLE_CHOICE'">
                   <n-checkbox-group v-model:value="answers[question.id].selectedOptionIds">
                     <n-space vertical>
-                      <n-checkbox v-for="opt in question.options" :key="opt.id" :value="opt.id">{{ opt.content }}</n-checkbox>
+                      <n-checkbox v-for="opt in question.options" :key="opt.id" :value="opt.id">{{
+                          opt.content
+                        }}
+                      </n-checkbox>
                     </n-space>
                   </n-checkbox-group>
                 </template>
 
                 <template v-else-if="question.type === 'TEXTAREA'">
-                  <n-input v-model:value="answers[question.id].textValue" type="textarea" :rows="4" />
+                  <n-input v-model:value="answers[question.id].textValue" type="textarea" :rows="4"/>
                 </template>
 
                 <template v-else-if="question.type === 'NUMBER'">
-                  <n-input-number v-model:value="answers[question.id].numberValue" style="width: 100%" />
+                  <n-input-number v-model:value="answers[question.id].numberValue" style="width: 100%"/>
                 </template>
 
                 <template v-else-if="question.type === 'RATING'">
@@ -125,18 +148,24 @@
                 </template>
 
                 <template v-else-if="question.type === 'DATE'">
-                  <n-date-picker :value="answers[question.id].textValue ? new Date(answers[question.id].textValue).getTime() : null" @update:value="(v: number | null) => answers[question.id].textValue = v ? new Date(v).toISOString().slice(0, 10) : ''" type="date" style="width: 100%" />
+                  <n-date-picker
+                      :value="answers[question.id].textValue ? new Date(answers[question.id].textValue).getTime() : null"
+                      @update:value="(v: number | null) => answers[question.id].textValue = v ? new Date(v).toISOString().slice(0, 10) : ''"
+                      type="date" style="width: 100%"/>
                 </template>
 
                 <template v-else-if="question.type === 'FILE'">
                   <n-space vertical>
                     <n-space v-if="answers[question.id].textValue" align="center">
-                      <a :href="answers[question.id].textValue" target="_blank">{{ answers[question.id].textValue.split('/').pop() }}</a>
-                      <n-button size="tiny" type="error" quaternary @click="handleFileRemove(question.id)">{{ t('common.delete') }}</n-button>
+                      <a :href="answers[question.id].textValue"
+                         target="_blank">{{ answers[question.id].textValue.split('/').pop() }}</a>
+                      <n-button size="tiny" type="error" quaternary @click="handleFileRemove(question.id)">
+                        {{ t('common.delete') }}
+                      </n-button>
                     </n-space>
                     <n-upload
-                      :show-file-list="false"
-                      :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
+                        :show-file-list="false"
+                        :custom-request="({ file, onFinish, onError }) => handleFileUpload(question.id, file, onFinish, onError)"
                     >
                       <n-button>{{ t('survey.uploadFile') }}</n-button>
                     </n-upload>
@@ -145,7 +174,7 @@
 
                 <template v-else>
                   <n-input v-model:value="answers[question.id].textValue"
-                           :placeholder="getPlaceholder(question.type)" />
+                           :placeholder="getPlaceholder(question.type)"/>
                 </template>
               </n-form-item>
             </div>
@@ -177,7 +206,7 @@ import type {SurveyDto, SurveyResponseDto, SurveySubmitRequest} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 
 const authStore = useAuthStore()
@@ -198,7 +227,12 @@ const isNotStarted = computed(() => {
   return new Date(survey.value.startTime).getTime() > Date.now()
 })
 
-const answers = reactive<Record<number, { textValue: string; selectedOptionId: number | null; selectedOptionIds: number[]; numberValue: number | null }>>({})
+const answers = reactive<Record<number, {
+  textValue: string;
+  selectedOptionId: number | null;
+  selectedOptionIds: number[];
+  numberValue: number | null
+}>>({})
 const pendingFileDeletes = ref<string[]>([])
 const newUploadedFiles = ref<string[]>([])
 
@@ -211,7 +245,8 @@ async function handleFileUpload(questionId: number, file: any, onFinish: () => v
         const idx = newUploadedFiles.value.indexOf(oldFileName)
         if (idx !== -1) {
           newUploadedFiles.value.splice(idx, 1)
-          fileApi.delete(oldFileName).catch(() => {})
+          fileApi.delete(oldFileName).catch(() => {
+          })
         } else {
           pendingFileDeletes.value.push(oldFileName)
         }
@@ -254,14 +289,15 @@ function getPlaceholder(type: string): string {
 
 function cancelEditing() {
   for (const fileName of newUploadedFiles.value) {
-    fileApi.delete(fileName).catch(() => {})
+    fileApi.delete(fileName).catch(() => {
+    })
   }
   pendingFileDeletes.value = []
   newUploadedFiles.value = []
   editing.value = false
   if (survey.value) {
     for (const q of survey.value.questions) {
-      answers[q.id] = { textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null }
+      answers[q.id] = {textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null}
     }
   }
 }
@@ -294,7 +330,7 @@ async function loadSurvey() {
     const res = await surveyApi.getByShareId(route.params.shareId as string)
     survey.value = res.data.data
     for (const q of survey.value.questions) {
-      answers[q.id] = { textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null }
+      answers[q.id] = {textValue: '', selectedOptionId: null, selectedOptionIds: [], numberValue: null}
     }
 
     if (authStore.isLoggedIn) {
@@ -354,7 +390,8 @@ async function handleSubmit() {
     }
     await surveyApi.submit(route.params.shareId as string, request)
     for (const fileName of pendingFileDeletes.value) {
-      await fileApi.delete(fileName).catch(() => {})
+      await fileApi.delete(fileName).catch(() => {
+      })
     }
     pendingFileDeletes.value = []
     newUploadedFiles.value = []
@@ -369,7 +406,8 @@ async function handleSubmit() {
 function cleanupUnsubmittedFiles() {
   if (submitted.value) return
   for (const fileName of newUploadedFiles.value) {
-    fileApi.delete(fileName).catch(() => {})
+    fileApi.delete(fileName).catch(() => {
+    })
   }
   newUploadedFiles.value = []
   pendingFileDeletes.value = []

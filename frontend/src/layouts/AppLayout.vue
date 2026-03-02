@@ -1,38 +1,40 @@
 <template>
   <n-layout has-sider style="height: 100vh">
     <n-layout-sider
-      bordered
-      collapse-mode="width"
-      :collapsed-width="64"
-      :width="220"
-      :collapsed="appStore.siderCollapsed"
-      show-trigger
-      @collapse="appStore.siderCollapsed = true"
-      @expand="appStore.siderCollapsed = false"
-      :native-scrollbar="false"
-      style="height: 100vh"
+        bordered
+        collapse-mode="width"
+        :collapsed-width="64"
+        :width="220"
+        :collapsed="appStore.siderCollapsed"
+        show-trigger
+        @collapse="appStore.siderCollapsed = true"
+        @expand="appStore.siderCollapsed = false"
+        :native-scrollbar="false"
+        style="height: 100vh"
     >
       <div style="padding: 16px; text-align: center; font-weight: bold; font-size: 18px">
         <template v-if="!appStore.siderCollapsed">
-          <img v-if="appStore.siteLogo" :src="appStore.siteLogo" alt="logo" style="max-height: 32px; vertical-align: middle; margin-right: 8px" />
+          <img v-if="appStore.siteLogo" :src="appStore.siteLogo" alt="logo"
+               style="max-height: 32px; vertical-align: middle; margin-right: 8px"/>
           <span>{{ appStore.siteTitle || t('common.appName') }}</span>
         </template>
         <template v-else>
-          <img v-if="appStore.siteLogo" :src="appStore.siteLogo" alt="logo" style="max-height: 28px" />
+          <img v-if="appStore.siteLogo" :src="appStore.siteLogo" alt="logo" style="max-height: 28px"/>
           <span v-else>{{ (appStore.siteTitle || t('common.appName')).charAt(0) }}</span>
         </template>
       </div>
       <n-menu
-        :collapsed="appStore.siderCollapsed"
-        :collapsed-width="64"
-        :collapsed-icon-size="22"
-        :options="menuOptions"
-        :value="activeKey"
-        @update:value="handleMenuSelect"
+          :collapsed="appStore.siderCollapsed"
+          :collapsed-width="64"
+          :collapsed-icon-size="22"
+          :options="menuOptions"
+          :value="activeKey"
+          @update:value="handleMenuSelect"
       />
     </n-layout-sider>
     <n-layout>
-      <n-layout-header bordered style="height: 56px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between">
+      <n-layout-header bordered
+                       style="height: 56px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between">
         <div style="display: flex; align-items: center; gap: 12px">
           <n-breadcrumb>
             <n-breadcrumb-item @click="router.push('/')">{{ t('nav.home') }}</n-breadcrumb-item>
@@ -57,13 +59,16 @@
           </template>
           <template v-else>
             <n-button size="small" @click="router.push('/login')">{{ t('common.login') }}</n-button>
-            <n-button v-if="appStore.registerEnabled" size="small" type="primary" @click="router.push('/register')">{{ t('common.register') }}</n-button>
+            <n-button v-if="appStore.registerEnabled" size="small" type="primary" @click="router.push('/register')">
+              {{ t('common.register') }}
+            </n-button>
           </template>
         </div>
       </n-layout-header>
       <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
-        <router-view />
-        <n-layout-footer v-if="appStore.siteFooter" bordered style="text-align: center; padding: 12px; color: #999; font-size: 13px">
+        <router-view/>
+        <n-layout-footer v-if="appStore.siteFooter" bordered
+                         style="text-align: center; padding: 12px; color: #999; font-size: 13px">
           {{ appStore.siteFooter }}
         </n-layout-footer>
       </n-layout-content>
@@ -90,12 +95,12 @@ import {
 } from '@vicons/ionicons5'
 
 function renderIcon(icon: Component) {
-  return () => h(NIcon, null, { default: () => h(icon) })
+  return () => h(NIcon, null, {default: () => h(icon)})
 }
 
 const router = useRouter()
 const route = useRoute()
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 const appStore = useAppStore()
 const authStore = useAuthStore()
 
@@ -116,24 +121,24 @@ const activeKey = computed(() => {
 
 const menuOptions = computed(() => {
   const items: any[] = [
-    { label: t('nav.home'), key: 'home', icon: renderIcon(HomeOutline) },
-    { label: t('survey.publicSurveys'), key: 'public-surveys', icon: renderIcon(GlobeOutline) },
-    { label: t('vote.publicVotes'), key: 'public-votes', icon: renderIcon(MegaphoneOutline) },
+    {label: t('nav.home'), key: 'home', icon: renderIcon(HomeOutline)},
+    {label: t('survey.publicSurveys'), key: 'public-surveys', icon: renderIcon(GlobeOutline)},
+    {label: t('vote.publicVotes'), key: 'public-votes', icon: renderIcon(MegaphoneOutline)},
   ]
   if (authStore.isLoggedIn) {
     items.push(
-      { type: 'divider', key: 'd1' },
-      { label: t('survey.mySurveys'), key: 'surveys', icon: renderIcon(DocumentTextOutline) },
-      { label: t('survey.createSurvey'), key: 'create-survey', icon: renderIcon(AddCircleOutline) },
-      { type: 'divider', key: 'd2' },
-      { label: t('vote.myVotes'), key: 'votes', icon: renderIcon(ListOutline) },
-      { label: t('vote.createVote'), key: 'create-vote', icon: renderIcon(CreateOutline) },
+        {type: 'divider', key: 'd1'},
+        {label: t('survey.mySurveys'), key: 'surveys', icon: renderIcon(DocumentTextOutline)},
+        {label: t('survey.createSurvey'), key: 'create-survey', icon: renderIcon(AddCircleOutline)},
+        {type: 'divider', key: 'd2'},
+        {label: t('vote.myVotes'), key: 'votes', icon: renderIcon(ListOutline)},
+        {label: t('vote.createVote'), key: 'create-vote', icon: renderIcon(CreateOutline)},
     )
   }
   if (authStore.isAdmin) {
     items.push(
-      { type: 'divider', key: 'd3' },
-      { label: t('admin.systemConfig'), key: 'admin-config', icon: renderIcon(SettingsOutline) },
+        {type: 'divider', key: 'd3'},
+        {label: t('admin.systemConfig'), key: 'admin-config', icon: renderIcon(SettingsOutline)},
     )
   }
   return items
@@ -155,11 +160,11 @@ function handleMenuSelect(key: string) {
 }
 
 const langOptions = [
-  { label: '简体中文', key: 'zh-CN' },
-  { label: '繁體中文', key: 'zh-TW' },
-  { label: 'English', key: 'en' },
-  { label: '日本語', key: 'ja' },
-  { label: '한국어', key: 'ko' },
+  {label: '简体中文', key: 'zh-CN'},
+  {label: '繁體中文', key: 'zh-TW'},
+  {label: 'English', key: 'en'},
+  {label: '日本語', key: 'ja'},
+  {label: '한국어', key: 'ko'},
 ]
 
 const langLabelMap: Record<string, string> = {
@@ -173,8 +178,8 @@ function handleLangSelect(key: string) {
 }
 
 const userOptions = computed(() => [
-  { label: t('common.profile'), key: 'profile' },
-  { label: t('common.logout'), key: 'logout' },
+  {label: t('common.profile'), key: 'profile'},
+  {label: t('common.logout'), key: 'logout'},
 ])
 
 function handleUserSelect(key: string) {

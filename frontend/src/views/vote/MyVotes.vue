@@ -18,8 +18,13 @@
           </template>
           <template #header-extra>
             <n-space>
-              <n-button size="small" v-if="poll.status === 'DRAFT'" @click="publishPoll(poll.id)">{{ t('vote.publish') }}</n-button>
-              <n-button size="small" v-if="poll.status === 'PUBLISHED'" type="warning" @click="closePoll(poll.id)">{{ t('vote.close') }}</n-button>
+              <n-button size="small" v-if="poll.status === 'DRAFT'" @click="publishPoll(poll.id)">{{
+                  t('vote.publish')
+                }}
+              </n-button>
+              <n-button size="small" v-if="poll.status === 'PUBLISHED'" type="warning" @click="closePoll(poll.id)">
+                {{ t('vote.close') }}
+              </n-button>
               <n-button size="small" @click="router.push(`/votes/${poll.id}/edit`)">{{ t('common.edit') }}</n-button>
               <n-button size="small" type="error" @click="deletePoll(poll.id)">{{ t('common.delete') }}</n-button>
             </n-space>
@@ -27,11 +32,20 @@
           <n-space vertical>
             <n-space>
               <n-text depth="3">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-text>
-              <n-text depth="3">{{ t('vote.frequency') }}: {{ poll.frequency === 'ONCE' ? t('vote.once') : t('vote.daily') }}</n-text>
-              <n-text v-if="poll.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(poll.startTime).toLocaleString() }}</n-text>
-              <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ new Date(poll.endTime).toLocaleString() }}</n-text>
+              <n-text depth="3">{{ t('vote.frequency') }}:
+                {{ poll.frequency === 'ONCE' ? t('vote.once') : t('vote.daily') }}
+              </n-text>
+              <n-text v-if="poll.startTime" depth="3">{{ t('common.startTime') }}:
+                {{ new Date(poll.startTime).toLocaleString() }}
+              </n-text>
+              <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{
+                  new Date(poll.endTime).toLocaleString()
+                }}
+              </n-text>
               <n-text depth="3" v-if="poll.status === 'PUBLISHED'">
-                {{ t('vote.submitVote') }}: <a :href="`/v/${poll.shareId}`" target="_blank">{{ baseUrl }}/v/{{ poll.shareId }}</a>
+                {{ t('vote.submitVote') }}: <a :href="`/v/${poll.shareId}`" target="_blank">{{
+                  baseUrl
+                }}/v/{{ poll.shareId }}</a>
               </n-text>
             </n-space>
             <n-button text type="primary" size="small" @click="router.push(`/votes/${poll.id}/records`)">
@@ -40,13 +54,13 @@
           </n-space>
         </n-card>
 
-        <n-empty v-if="!loading && polls.length === 0" :description="t('common.noData')" />
+        <n-empty v-if="!loading && polls.length === 0" :description="t('common.noData')"/>
 
         <n-pagination
-          v-if="totalPages > 1"
-          v-model:page="page"
-          :page-count="totalPages"
-          @update:page="loadPolls"
+            v-if="totalPages > 1"
+            v-model:page="page"
+            :page-count="totalPages"
+            @update:page="loadPolls"
         />
       </n-space>
     </n-spin>
@@ -62,7 +76,7 @@ import {voteApi} from '@/api/vote'
 import type {VotePollDto} from '@/types'
 
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -87,7 +101,7 @@ function statusLabel(status: string) {
 async function loadPolls() {
   loading.value = true
   try {
-    const res = await voteApi.getMy({ page: page.value - 1, size: 10 })
+    const res = await voteApi.getMy({page: page.value - 1, size: 10})
     polls.value = res.data.data.content
     totalPages.value = res.data.data.totalPages
   } catch (e) {

@@ -6,7 +6,8 @@
     </n-space>
 
     <n-space style="margin-bottom: 16px">
-      <n-input v-model:value="keyword" :placeholder="t('common.search')" clearable @clear="loadSurveys" @keyup.enter="loadSurveys" style="width: 300px" />
+      <n-input v-model:value="keyword" :placeholder="t('common.search')" clearable @clear="loadSurveys"
+               @keyup.enter="loadSurveys" style="width: 300px"/>
       <n-button @click="loadSurveys">{{ t('common.search') }}</n-button>
     </n-space>
 
@@ -24,34 +25,55 @@
           </template>
           <template #header-extra>
             <n-space>
-              <n-button size="small" v-if="survey.status === 'DRAFT'" @click="publishSurvey(survey.id)">{{ t('survey.publish') }}</n-button>
-              <n-button size="small" v-if="survey.status === 'PUBLISHED'" type="warning" @click="closeSurvey(survey.id)">{{ t('survey.close') }}</n-button>
-              <n-button size="small" @click="router.push(`/surveys/${survey.id}/edit`)">{{ t('common.edit') }}</n-button>
-              <n-button size="small" @click="router.push(`/surveys/${survey.id}/stats`)">{{ t('survey.statistics') }}</n-button>
-              <n-button size="small" @click="router.push(`/surveys/${survey.id}/responses`)">{{ t('survey.responses') }}</n-button>
+              <n-button size="small" v-if="survey.status === 'DRAFT'" @click="publishSurvey(survey.id)">
+                {{ t('survey.publish') }}
+              </n-button>
+              <n-button size="small" v-if="survey.status === 'PUBLISHED'" type="warning"
+                        @click="closeSurvey(survey.id)">{{ t('survey.close') }}
+              </n-button>
+              <n-button size="small" @click="router.push(`/surveys/${survey.id}/edit`)">{{
+                  t('common.edit')
+                }}
+              </n-button>
+              <n-button size="small" @click="router.push(`/surveys/${survey.id}/stats`)">{{
+                  t('survey.statistics')
+                }}
+              </n-button>
+              <n-button size="small" @click="router.push(`/surveys/${survey.id}/responses`)">{{
+                  t('survey.responses')
+                }}
+              </n-button>
               <n-button size="small" type="error" @click="deleteSurvey(survey.id)">{{ t('common.delete') }}</n-button>
             </n-space>
           </template>
           <n-space vertical>
             <n-space>
               <n-text depth="3">{{ t('survey.responseCount') }}: {{ survey.responseCount }}</n-text>
-              <n-text depth="3">{{ t('survey.accessLevel') }}: {{ survey.accessLevel === 'PUBLIC' ? t('common.public') : t('common.private') }}</n-text>
-              <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
-              <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
+              <n-text depth="3">{{ t('survey.accessLevel') }}:
+                {{ survey.accessLevel === 'PUBLIC' ? t('common.public') : t('common.private') }}
+              </n-text>
+              <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}:
+                {{ new Date(survey.startTime).toLocaleString() }}
+              </n-text>
+              <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}:
+                {{ new Date(survey.endTime).toLocaleString() }}
+              </n-text>
               <n-text depth="3" v-if="survey.status === 'PUBLISHED'">
-                {{ t('survey.fill') }}: <a :href="`/s/${survey.shareId}`" target="_blank">{{ baseUrl }}/s/{{ survey.shareId }}</a>
+                {{ t('survey.fill') }}: <a :href="`/s/${survey.shareId}`" target="_blank">{{
+                  baseUrl
+                }}/s/{{ survey.shareId }}</a>
               </n-text>
             </n-space>
           </n-space>
         </n-card>
 
-        <n-empty v-if="!loading && surveys.length === 0" :description="t('common.noData')" />
+        <n-empty v-if="!loading && surveys.length === 0" :description="t('common.noData')"/>
 
         <n-pagination
-          v-if="totalPages > 1"
-          v-model:page="page"
-          :page-count="totalPages"
-          @update:page="loadSurveys"
+            v-if="totalPages > 1"
+            v-model:page="page"
+            :page-count="totalPages"
+            @update:page="loadSurveys"
         />
       </n-space>
     </n-spin>
@@ -67,7 +89,7 @@ import {surveyApi} from '@/api/survey'
 import type {SurveyDto} from '@/types'
 
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -93,7 +115,7 @@ function statusLabel(status: string) {
 async function loadSurveys() {
   loading.value = true
   try {
-    const res = await surveyApi.getMy({ keyword: keyword.value || undefined, page: page.value - 1, size: 10 })
+    const res = await surveyApi.getMy({keyword: keyword.value || undefined, page: page.value - 1, size: 10})
     surveys.value = res.data.data.content
     totalPages.value = res.data.data.totalPages
   } catch (e) {

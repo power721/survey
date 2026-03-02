@@ -3,7 +3,7 @@
     <n-card :title="isEdit ? t('vote.editVote') : t('vote.createVote')">
       <n-form ref="formRef" :model="form" label-placement="top">
         <n-form-item :label="t('vote.voteTitle')" path="title" required>
-          <n-input v-model:value="form.title" :placeholder="t('vote.voteTitle')" />
+          <n-input v-model:value="form.title" :placeholder="t('vote.voteTitle')"/>
         </n-form-item>
         <n-form-item :label="t('vote.description')">
           <SimpleHtmlEditor v-model="form.description"/>
@@ -18,12 +18,12 @@
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('vote.voteType')">
-              <n-select v-model:value="form.voteType" :options="voteTypeOptions" />
+              <n-select v-model:value="form.voteType" :options="voteTypeOptions"/>
             </n-form-item>
           </n-gi>
           <n-gi>
             <n-form-item :label="t('vote.frequency')">
-              <n-select v-model:value="form.frequency" :options="frequencyOptions" />
+              <n-select v-model:value="form.frequency" :options="frequencyOptions"/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -31,17 +31,17 @@
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('survey.accessLevel')">
-              <n-select v-model:value="form.accessLevel" :options="accessOptions" />
+              <n-select v-model:value="form.accessLevel" :options="accessOptions"/>
             </n-form-item>
           </n-gi>
           <n-gi>
             <n-form-item :label="t('survey.anonymous')">
-              <n-switch v-model:value="form.anonymous" />
+              <n-switch v-model:value="form.anonymous"/>
             </n-form-item>
           </n-gi>
           <n-gi v-if="!form.anonymous && form.voteType !== 'SCORED'">
             <n-form-item :label="t('vote.showVoters')">
-              <n-switch v-model:value="form.showVoters" />
+              <n-switch v-model:value="form.showVoters"/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -49,12 +49,12 @@
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('common.startTime')" required>
-              <n-date-picker v-model:value="startTimeTs" type="datetime" style="width: 100%" />
+              <n-date-picker v-model:value="startTimeTs" type="datetime" style="width: 100%"/>
             </n-form-item>
           </n-gi>
           <n-gi>
             <n-form-item :label="t('vote.endTime')" required>
-              <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%" />
+              <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%"/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -62,7 +62,7 @@
         <n-grid :cols="2" :x-gap="16">
           <n-gi v-if="form.voteType === 'MULTIPLE'">
             <n-form-item :label="t('vote.maxOptions')">
-              <n-input-number v-model:value="form.maxOptions" :min="2" clearable style="width: 100%" />
+              <n-input-number v-model:value="form.maxOptions" :min="2" clearable style="width: 100%"/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -70,12 +70,12 @@
         <n-grid v-if="form.voteType === 'SCORED'" :cols="2" :x-gap="16">
           <n-gi>
             <n-form-item :label="t('vote.maxTotalVotes')" required>
-              <n-input-number v-model:value="form.maxTotalVotes" :min="1" style="width: 100%" />
+              <n-input-number v-model:value="form.maxTotalVotes" :min="1" style="width: 100%"/>
             </n-form-item>
           </n-gi>
           <n-gi>
             <n-form-item :label="t('vote.maxVotesPerOption')" required>
-              <n-input-number v-model:value="form.maxVotesPerOption" :min="1" style="width: 100%" />
+              <n-input-number v-model:value="form.maxVotesPerOption" :min="1" style="width: 100%"/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -92,15 +92,16 @@
                 </n-space>
               </template>
               <n-form-item :label="t('vote.optionTitle')" required>
-                <n-input v-model:value="opt.title" :placeholder="t('vote.optionTitle')" />
+                <n-input v-model:value="opt.title" :placeholder="t('vote.optionTitle')"/>
               </n-form-item>
               <n-form-item :label="t('vote.optionContent')">
-                <n-input v-model:value="opt.content" type="textarea" :rows="2" :placeholder="t('vote.optionContent')" />
+                <n-input v-model:value="opt.content" type="textarea" :rows="2" :placeholder="t('vote.optionContent')"/>
               </n-form-item>
               <n-form-item :label="t('vote.imageUrl')">
-                <n-input v-model:value="opt.imageUrl" placeholder="https://..." />
+                <n-input v-model:value="opt.imageUrl" placeholder="https://..."/>
               </n-form-item>
-              <img v-if="opt.imageUrl" :src="opt.imageUrl" class="option-image-preview" @click="openPreview(opt.imageUrl)" />
+              <img v-if="opt.imageUrl" :src="opt.imageUrl" class="option-image-preview"
+                   @click="openPreview(opt.imageUrl)"/>
             </n-card>
           </template>
         </draggable>
@@ -109,8 +110,10 @@
           <n-button dashed @click="showBatchAdd = true">{{ t('vote.batchAdd') }}</n-button>
         </n-space>
 
-        <n-modal v-model:show="showBatchAdd" preset="dialog" :title="t('vote.batchAdd')" :positive-text="t('common.confirm')" :negative-text="t('common.cancel')" @positive-click="handleBatchAdd">
-          <n-input v-model:value="batchText" type="textarea" :rows="8" :placeholder="t('vote.batchAddPlaceholder')" />
+        <n-modal v-model:show="showBatchAdd" preset="dialog" :title="t('vote.batchAdd')"
+                 :positive-text="t('common.confirm')" :negative-text="t('common.cancel')"
+                 @positive-click="handleBatchAdd">
+          <n-input v-model:value="batchText" type="textarea" :rows="8" :placeholder="t('vote.batchAddPlaceholder')"/>
         </n-modal>
 
         <n-space justify="end" style="margin-top: 24px">
@@ -123,7 +126,7 @@
 
   <!-- Fullscreen image preview -->
   <div v-if="previewImage" class="image-preview-overlay" @click="closePreview">
-    <img :src="previewImage" class="image-preview-full" @click.stop />
+    <img :src="previewImage" class="image-preview-full" @click.stop/>
     <span class="image-preview-close" @click="closePreview">&times;</span>
   </div>
 </template>
@@ -140,7 +143,7 @@ import SimpleHtmlEditor from '@/components/SimpleHtmlEditor.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 
 const isEdit = computed(() => !!route.params.id)
@@ -156,11 +159,15 @@ function openPreview(url: string) {
 function closePreview() {
   previewImage.value = null
 }
+
 const defaultEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000
 const startTimeTs = ref<number | null>(Date.now())
 const endTimeTs = ref<number | null>(defaultEndTime)
 let keySeq = 0
-function nextKey() { return `opt_${++keySeq}` }
+
+function nextKey() {
+  return `opt_${++keySeq}`
+}
 
 const form = ref<VotePollCreateRequest>({
   title: '',
@@ -178,8 +185,8 @@ const form = ref<VotePollCreateRequest>({
   startTime: null,
   endTime: null,
   options: [
-    { title: '', sortOrder: 0, _key: nextKey() },
-    { title: '', sortOrder: 1, _key: nextKey() },
+    {title: '', sortOrder: 0, _key: nextKey()},
+    {title: '', sortOrder: 1, _key: nextKey()},
   ],
 })
 
@@ -191,23 +198,23 @@ watch(() => form.value.voteType, (newType) => {
 })
 
 const voteTypeOptions = [
-  { label: t('vote.single'), value: 'SINGLE' },
-  { label: t('vote.multiple'), value: 'MULTIPLE' },
-  { label: t('vote.scored'), value: 'SCORED' },
+  {label: t('vote.single'), value: 'SINGLE'},
+  {label: t('vote.multiple'), value: 'MULTIPLE'},
+  {label: t('vote.scored'), value: 'SCORED'},
 ]
 
 const frequencyOptions = [
-  { label: t('vote.once'), value: 'ONCE' },
-  { label: t('vote.daily'), value: 'DAILY' },
+  {label: t('vote.once'), value: 'ONCE'},
+  {label: t('vote.daily'), value: 'DAILY'},
 ]
 
 const accessOptions = [
-  { label: t('common.public'), value: 'PUBLIC' },
-  { label: t('common.private'), value: 'PRIVATE' },
+  {label: t('common.public'), value: 'PUBLIC'},
+  {label: t('common.private'), value: 'PRIVATE'},
 ]
 
 function addOption() {
-  form.value.options.push({ title: '', sortOrder: form.value.options.length, _key: nextKey() })
+  form.value.options.push({title: '', sortOrder: form.value.options.length, _key: nextKey()})
 }
 
 function handleBatchAdd() {
@@ -226,10 +233,10 @@ function handleBatchAdd() {
       imageUrl = last
       title = parts.slice(0, -1).join(' ')
     }
-    form.value.options.push({ title, imageUrl, sortOrder: startIndex + i, _key: nextKey() })
+    form.value.options.push({title, imageUrl, sortOrder: startIndex + i, _key: nextKey()})
   })
   batchText.value = ''
-  message.success(t('vote.batchAddSuccess', { count: lines.length }))
+  message.success(t('vote.batchAddSuccess', {count: lines.length}))
 }
 
 function removeOption(index: number) {
@@ -318,7 +325,9 @@ async function handleSave() {
   try {
     form.value.startTime = startTimeTs.value ? new Date(startTimeTs.value).toISOString() : null
     form.value.endTime = endTimeTs.value ? new Date(endTimeTs.value).toISOString() : null
-    form.value.options.forEach((o, i) => { o.sortOrder = i })
+    form.value.options.forEach((o, i) => {
+      o.sortOrder = i
+    })
     if (isEdit.value) {
       await voteApi.update(Number(route.params.id), form.value)
     } else {

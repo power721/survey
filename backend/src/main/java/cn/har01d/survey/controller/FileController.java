@@ -40,7 +40,7 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<Map<String, String>>> upload(@RequestParam("file") MultipartFile file,
-                                                                    HttpServletRequest request) {
+                                                                   HttpServletRequest request) {
         String ip = getClientIp(request);
         if (!rateLimiter.isAllowed("upload:" + ip, 5, 60_000)) {
             throw new BusinessException("file.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
@@ -58,7 +58,7 @@ public class FileController {
 
     @PostMapping("/{fileName}/delete")
     public ResponseEntity<ApiResponse<Void>> deleteByPost(@PathVariable String fileName,
-                                                           HttpServletRequest request) {
+                                                          HttpServletRequest request) {
         String ip = getClientIp(request);
         if (!rateLimiter.isAllowed("delete:" + ip, 10, 60_000)) {
             throw new BusinessException("file.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
