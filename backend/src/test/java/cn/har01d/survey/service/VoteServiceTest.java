@@ -47,6 +47,9 @@ class VoteServiceTest {
     @Mock
     private SimpMessagingTemplate messagingTemplate;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private VoteService voteService;
 
@@ -212,7 +215,7 @@ class VoteServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         when(pollRepository.findByUser(testUser, pageable)).thenReturn(new PageImpl<>(List.of(testPoll)));
 
-        Page<VotePollDto> page = voteService.getMyPolls(pageable);
+        Page<VotePollListDto> page = voteService.getMyPolls(pageable);
 
         assertEquals(1, page.getTotalElements());
     }
@@ -225,7 +228,7 @@ class VoteServiceTest {
         when(pollRepository.findByStatusAndAccessLevel(Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, pageable))
                 .thenReturn(new PageImpl<>(List.of(testPoll)));
 
-        Page<VotePollDto> page = voteService.getPublicPolls(pageable);
+        Page<VotePollListDto> page = voteService.getPublicPolls(null, pageable);
 
         assertEquals(1, page.getTotalElements());
     }

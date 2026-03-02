@@ -1,5 +1,6 @@
 package cn.har01d.survey.config;
 
+import cn.har01d.survey.service.RateLimitService;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -8,10 +9,10 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import java.util.HashSet;
-import java.util.Set;
 import java.time.Duration;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -36,22 +37,32 @@ public class TestRedisConfig {
         @SuppressWarnings("unchecked")
         ValueOperations<String, String> valueOps = Mockito.mock(ValueOperations.class);
 
-        Set<String> keys = new HashSet<>();
-
         when(template.getConnectionFactory()).thenReturn(redisConnectionFactory);
         when(template.opsForValue()).thenReturn(valueOps);
-        when(template.hasKey(anyString())).thenAnswer(inv -> keys.contains(inv.getArgument(0)));
+        when(template.hasKey(anyString())).thenReturn(false);
+        when(template.keys(anyString())).thenReturn(java.util.Collections.emptySet());
 
-        doAnswer(inv -> {
-            keys.add(inv.getArgument(0));
-            return null;
-        }).when(valueOps).set(anyString(), anyString());
-
-        doAnswer(inv -> {
-            keys.add(inv.getArgument(0));
-            return null;
-        }).when(valueOps).set(anyString(), anyString(), any(Duration.class));
+        doAnswer(inv -> null).when(valueOps).set(anyString(), anyString());
+        doAnswer(inv -> null).when(valueOps).set(anyString(), anyString(), any(Duration.class));
 
         return template;
+    }
+
+    @Bean
+    @Primary
+    public RateLimitService rateLimitService(StringRedisTemplate stringRedisTemplate) {
+        RateLimitService service = Mockito.mock(RateLimitService.class);
+        when(service.isRateLimited(anyString())).thenReturn(false);
+        when(service.hasVoted(anyString(), anyString())).thenReturn(false);
+        when(service.hasVotedDaily(anyString(), anyString())).thenReturn(false);
+        return service;
+    }
+
+    @Bean
+    @Primary
+    public RateLimiter rateLimiter() {
+        RateLimiter rateLimiter = Mockito.mock(RateLimiter.class);
+        when(rateLimiter.isAllowed(anyString(), anyInt(), anyLong())).thenReturn(true);
+        return rateLimiter;
     }
 }

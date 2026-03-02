@@ -21,7 +21,10 @@ class FileServiceTest {
 
     @BeforeEach
     void setUp() {
-        fileService = new FileService(tempDir.toString(), 10485760L, ".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.mp4,.wav,.avi,.mov");
+        SystemConfigService configService = mock(SystemConfigService.class);
+        when(configService.get(anyString())).thenReturn("");
+        when(configService.get(anyString(), anyString())).thenReturn("");
+        fileService = new FileService(tempDir.toString(), 10485760L, ".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.mp4,.wav,.avi,.mov", configService);
     }
 
     @Test

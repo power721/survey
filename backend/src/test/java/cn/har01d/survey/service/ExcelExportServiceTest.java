@@ -5,6 +5,8 @@ import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.exception.ResourceNotFoundException;
 import cn.har01d.survey.repository.SurveyRepository;
 import cn.har01d.survey.repository.SurveyResponseRepository;
+import cn.har01d.survey.repository.QuestionRepository;
+import cn.har01d.survey.repository.AnswerRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +36,16 @@ class ExcelExportServiceTest {
     private SurveyResponseRepository responseRepository;
 
     @Mock
+    private QuestionRepository questionRepository;
+
+    @Mock
+    private AnswerRepository answerRepository;
+
+    @Mock
     private AuthService authService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private ExcelExportService excelExportService;

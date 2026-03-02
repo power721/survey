@@ -46,6 +46,9 @@ class SurveyServiceTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private SurveyService surveyService;
 
@@ -70,7 +73,8 @@ class SurveyServiceTest {
                 .id(1L).shareId("abc123").title("Test Survey").description("desc")
                 .user(testUser).status(Survey.SurveyStatus.DRAFT)
                 .accessLevel(Survey.AccessLevel.PUBLIC).anonymous(true)
-                .questions(new ArrayList<>(List.of(question))).build();
+                .questions(new ArrayList<>(List.of(question)))
+                .sections(new ArrayList<>()).build();
         question.setSurvey(testSurvey);
     }
 
@@ -215,7 +219,7 @@ class SurveyServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         when(surveyRepository.findByUser(testUser, pageable)).thenReturn(new PageImpl<>(List.of(testSurvey)));
 
-        Page<SurveyDto> page = surveyService.getMySurveys(null, pageable);
+        Page<SurveyListDto> page = surveyService.getMySurveys(null, pageable);
 
         assertEquals(1, page.getTotalElements());
     }
@@ -227,7 +231,7 @@ class SurveyServiceTest {
         when(surveyRepository.findByUserAndTitleContaining(testUser, "Test", pageable))
                 .thenReturn(new PageImpl<>(List.of(testSurvey)));
 
-        Page<SurveyDto> page = surveyService.getMySurveys("Test", pageable);
+        Page<SurveyListDto> page = surveyService.getMySurveys("Test", pageable);
 
         assertEquals(1, page.getTotalElements());
     }
@@ -368,11 +372,15 @@ class SurveyServiceTest {
         when(authService.getCurrentUser()).thenReturn(testUser);
         when(surveyRepository.save(any(Survey.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Send empty questions list — removes existing question id=1
+        // Send a new question to replace the existing one — removes existing question id=1
+        QuestionRequest qr = new QuestionRequest();
+        qr.setType("TEXT");
+        qr.setTitle("New Question");
+
         SurveyCreateRequest request = new SurveyCreateRequest();
         request.setTitle("Updated");
         request.setAccessLevel("PUBLIC");
-        request.setQuestions(List.of());
+        request.setQuestions(List.of(qr));
 
         surveyService.updateSurvey(1L, request);
 
