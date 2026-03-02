@@ -77,8 +77,9 @@ public class SurveyController {
 
     @GetMapping("/public")
     public ResponseEntity<ApiResponse<Page<SurveyDto>>> getPublicSurveys(
+            @RequestParam(required = false) String username,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<SurveyDto> surveys = surveyService.getPublicSurveys(pageable);
+        Page<SurveyDto> surveys = surveyService.getPublicSurveys(username, pageable);
         return ResponseEntity.ok(ApiResponse.ok(surveys));
     }
 

@@ -17,14 +17,15 @@
           </template>
 
           <n-space style="margin-bottom: 16px">
-            <n-space v-if="poll.creatorName" align="center" :size="4">
+            <n-space v-if="poll.creator" align="center" :size="4" style="cursor: pointer"
+                     @click="router.push(`/user/${poll.creator.username}?tab=votes`)">
               <n-text depth="3">{{ t('common.creator') }}:</n-text>
-              <n-avatar :src="poll.creatorAvatar || undefined" :size="20" round>
-                <template v-if="!poll.creatorAvatar" #default>
-                  <span style="font-size: 11px">{{ (poll.creatorName || '?').charAt(0) }}</span>
+              <n-avatar :src="poll.creator.avatar || undefined" :size="20" round>
+                <template v-if="!poll.creator.avatar" #default>
+                  <span style="font-size: 11px">{{ (poll.creator.nickname || '?').charAt(0) }}</span>
                 </template>
               </n-avatar>
-              <n-text depth="3">{{ poll.creatorName }}</n-text>
+              <n-text depth="3" style="text-decoration: underline">{{ poll.creator.nickname }}</n-text>
             </n-space>
             <n-text v-if="poll.startTime" depth="3">{{ t('common.startTime') }}:
               {{ new Date(poll.startTime).toLocaleString() }}

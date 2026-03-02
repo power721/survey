@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import cn.har01d.survey.dto.ApiResponse;
@@ -69,8 +70,9 @@ public class VoteController {
 
     @GetMapping("/public")
     public ResponseEntity<ApiResponse<Page<VotePollDto>>> getPublicPolls(
+            @RequestParam(required = false) String username,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<VotePollDto> polls = voteService.getPublicPolls(pageable);
+        Page<VotePollDto> polls = voteService.getPublicPolls(username, pageable);
         return ResponseEntity.ok(ApiResponse.ok(polls));
     }
 

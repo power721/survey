@@ -14,13 +14,14 @@
                 <n-text v-if="survey.startTime && new Date(survey.startTime).getTime() > Date.now()" depth="3">
                   {{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}
                 </n-text>
-                <n-space align="center" :size="4">
-                  <n-avatar :src="survey.creatorAvatar || undefined" :size="20" round style="vertical-align: middle">
-                    <template v-if="!survey.creatorAvatar" #default>
-                      <span style="font-size: 11px">{{ (survey.creatorName || '?').charAt(0) }}</span>
+                <n-space align="center" :size="4" style="cursor: pointer"
+                         @click.stop="router.push(`/user/${survey.creator?.username}`)">
+                  <n-avatar :src="survey.creator?.avatar || undefined" :size="20" round style="vertical-align: middle">
+                    <template v-if="!survey.creator?.avatar" #default>
+                      <span style="font-size: 11px">{{ (survey.creator?.nickname || '?').charAt(0) }}</span>
                     </template>
                   </n-avatar>
-                  <n-text depth="3">{{ survey.creatorName }}</n-text>
+                  <n-text depth="3" style="text-decoration: underline">{{ survey.creator?.nickname }}</n-text>
                 </n-space>
               </n-space>
             </template>

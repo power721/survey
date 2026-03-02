@@ -19,5 +19,7 @@ public interface VotePollRepository extends JpaRepository<VotePoll, Long> {
 
     Page<VotePoll> findByStatusAndAccessLevel(Survey.SurveyStatus status, Survey.AccessLevel accessLevel, Pageable pageable);
 
+    Page<VotePoll> findByStatusAndAccessLevelAndUserUsername(Survey.SurveyStatus status, Survey.AccessLevel accessLevel, String username, Pageable pageable);
+
     List<VotePoll> findByStatusAndEndTimeBefore(Survey.SurveyStatus status, Instant time);
 }

@@ -115,6 +115,11 @@ const router = createRouter({
             component: () => import('@/views/auth/ProfileEdit.vue'),
             meta: {requiresAuth: true},
         },
+        {
+            path: '/user/:username',
+            name: 'UserPage',
+            component: () => import('@/views/user/UserPage.vue'),
+        },
     ],
 })
 

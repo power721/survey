@@ -17,7 +17,7 @@ export const voteApi = {
     getMy(params?: { page?: number; size?: number }) {
         return http.get<ApiResponse<Page<VotePollDto>>>('/votes/my', {params})
     },
-    getPublic(params?: { page?: number; size?: number }) {
+    getPublic(params?: { page?: number; size?: number; username?: string }) {
         return http.get<ApiResponse<Page<VotePollDto>>>('/votes/public', {params})
     },
     publish(id: number) {

@@ -25,7 +25,7 @@ export const surveyApi = {
     getMy(params?: { keyword?: string; page?: number; size?: number }) {
         return http.get<ApiResponse<Page<SurveyDto>>>('/surveys/my', {params})
     },
-    getPublic(params?: { page?: number; size?: number }) {
+    getPublic(params?: { page?: number; size?: number; username?: string }) {
         return http.get<ApiResponse<Page<SurveyDto>>>('/surveys/public', {params})
     },
     getTemplates(params?: { page?: number; size?: number }) {

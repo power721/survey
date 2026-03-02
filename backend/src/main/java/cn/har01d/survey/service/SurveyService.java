@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cn.har01d.survey.dto.CreatorDto;
 import cn.har01d.survey.dto.survey.AnswerDto;
 import cn.har01d.survey.dto.survey.AnswerRequest;
 import cn.har01d.survey.dto.survey.OptionDto;
@@ -284,8 +285,7 @@ public class SurveyService {
             dto.setStatus(survey.getStatus().name());
             dto.setStartTime(survey.getStartTime());
             dto.setEndTime(survey.getEndTime());
-            dto.setCreatorName(survey.getUser().getNickname());
-            dto.setCreatorAvatar(resolveAvatar(survey.getUser()));
+            dto.setCreator(new CreatorDto(survey.getUser().getUsername(), survey.getUser().getNickname(), resolveAvatar(survey.getUser())));
             dto.setCreatedAt(survey.getCreatedAt());
             dto.setQuestions(List.of());
             return dto;
@@ -306,7 +306,11 @@ public class SurveyService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SurveyDto> getPublicSurveys(Pageable pageable) {
+    public Page<SurveyDto> getPublicSurveys(String username, Pageable pageable) {
+        if (username != null && !username.isBlank()) {
+            return surveyRepository.findByStatusAndAccessLevelAndUserUsername(
+                    Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, username, pageable).map(this::toDto);
+        }
         return surveyRepository.findByStatusAndAccessLevel(Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, pageable)
                 .map(this::toDto);
     }
@@ -602,8 +606,7 @@ public class SurveyService {
         dto.setStartTime(survey.getStartTime());
         dto.setEndTime(survey.getEndTime());
         dto.setResponseCount(survey.getResponseCount());
-        dto.setCreatorName(survey.getUser().getNickname());
-        dto.setCreatorAvatar(resolveAvatar(survey.getUser()));
+        dto.setCreator(new CreatorDto(survey.getUser().getUsername(), survey.getUser().getNickname(), resolveAvatar(survey.getUser())));
         dto.setCreatedAt(survey.getCreatedAt());
         dto.setUpdatedAt(survey.getUpdatedAt());
 

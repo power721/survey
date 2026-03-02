@@ -18,6 +18,8 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
     Page<Survey> findByStatusAndAccessLevel(Survey.SurveyStatus status, Survey.AccessLevel accessLevel, Pageable pageable);
 
+    Page<Survey> findByStatusAndAccessLevelAndUserUsername(Survey.SurveyStatus status, Survey.AccessLevel accessLevel, String username, Pageable pageable);
+
     Page<Survey> findByTemplateTrue(Pageable pageable);
 
     Page<Survey> findByUserAndTitleContaining(User user, String title, Pageable pageable);

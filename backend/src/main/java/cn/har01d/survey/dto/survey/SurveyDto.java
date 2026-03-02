@@ -3,6 +3,7 @@ package cn.har01d.survey.dto.survey;
 import java.time.Instant;
 import java.util.List;
 
+import cn.har01d.survey.dto.CreatorDto;
 import lombok.Data;
 
 @Data
@@ -22,8 +23,7 @@ public class SurveyDto {
     private Instant endTime;
     private int responseCount;
     private List<QuestionDto> questions;
-    private String creatorName;
-    private String creatorAvatar;
+    private CreatorDto creator;
     private Instant createdAt;
     private Instant updatedAt;
 }

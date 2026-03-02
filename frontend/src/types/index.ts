@@ -1,3 +1,9 @@
+export interface CreatorDto {
+    username: string
+    nickname: string
+    avatar: string | null
+}
+
 export interface ApiResponse<T> {
     success: boolean
     message: string
@@ -38,8 +44,7 @@ export interface SurveyDto {
     endTime: string | null
     responseCount: number
     questions: QuestionDto[]
-    creatorName: string
-    creatorAvatar: string | null
+    creator: CreatorDto
     createdAt: string
     updatedAt: string
 }
@@ -164,8 +169,7 @@ export interface VotePollDto {
     endTime: string
     totalVoteCount: number
     options: VoteOptionDto[]
-    creatorName: string
-    creatorAvatar: string | null
+    creator: CreatorDto
     hasVoted: boolean
     createdAt: string
     updatedAt: string

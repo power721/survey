@@ -23,6 +23,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cn.har01d.survey.dto.CreatorDto;
 import cn.har01d.survey.dto.vote.VoteOptionDto;
 import cn.har01d.survey.dto.vote.VoteOptionRequest;
 import cn.har01d.survey.dto.vote.VotePollCreateRequest;
@@ -223,8 +224,7 @@ public class VoteService {
             dto.setStatus(poll.getStatus().name());
             dto.setStartTime(poll.getStartTime());
             dto.setEndTime(poll.getEndTime());
-            dto.setCreatorName(poll.getUser().getNickname());
-            dto.setCreatorAvatar(resolveAvatar(poll.getUser()));
+            dto.setCreator(new CreatorDto(poll.getUser().getUsername(), poll.getUser().getNickname(), resolveAvatar(poll.getUser())));
             dto.setCreatedAt(poll.getCreatedAt());
             dto.setOptions(List.of());
             return dto;
@@ -309,7 +309,11 @@ public class VoteService {
     }
 
     @Transactional(readOnly = true)
-    public Page<VotePollDto> getPublicPolls(Pageable pageable) {
+    public Page<VotePollDto> getPublicPolls(String username, Pageable pageable) {
+        if (username != null && !username.isBlank()) {
+            return pollRepository.findByStatusAndAccessLevelAndUserUsername(
+                    Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, username, pageable).map(p -> toDto(p, null));
+        }
         return pollRepository.findByStatusAndAccessLevel(Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, pageable)
                 .map(p -> toDto(p, null));
     }
@@ -546,8 +550,7 @@ public class VoteService {
         dto.setStartTime(poll.getStartTime());
         dto.setEndTime(poll.getEndTime());
         dto.setTotalVoteCount(poll.getTotalVoteCount());
-        dto.setCreatorName(poll.getUser().getNickname());
-        dto.setCreatorAvatar(resolveAvatar(poll.getUser()));
+        dto.setCreator(new CreatorDto(poll.getUser().getUsername(), poll.getUser().getNickname(), resolveAvatar(poll.getUser())));
         dto.setHasVoted(hasVoted != null && hasVoted);
         dto.setCreatedAt(poll.getCreatedAt());
         dto.setUpdatedAt(poll.getUpdatedAt());

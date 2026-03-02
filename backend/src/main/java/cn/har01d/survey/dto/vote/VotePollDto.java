@@ -3,6 +3,7 @@ package cn.har01d.survey.dto.vote;
 import java.time.Instant;
 import java.util.List;
 
+import cn.har01d.survey.dto.CreatorDto;
 import lombok.Data;
 
 @Data
@@ -26,8 +27,7 @@ public class VotePollDto {
     private Instant endTime;
     private int totalVoteCount;
     private List<VoteOptionDto> options;
-    private String creatorName;
-    private String creatorAvatar;
+    private CreatorDto creator;
     private boolean hasVoted;
     private Instant createdAt;
     private Instant updatedAt;
