@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.util.UUID;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -22,8 +20,7 @@ class FileApiTest extends BaseApiTest {
 
     @BeforeAll
     void setup() {
-        String username = "fileuser_" + UUID.randomUUID().toString().substring(0, 8);
-        token = registerAndGetToken(username, "Test123456");
+        token = loginOrRegisterAndGetToken(username, password);
     }
 
     // ==================== Upload ====================

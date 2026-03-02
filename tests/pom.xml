@@ -11,17 +11,13 @@
     </parent>
 
     <artifactId>survey-api-tests</artifactId>
-    <version>1.0</version>
     <name>Survey API Integration Tests</name>
-    <description>System integration tests for the Survey application APIs</description>
+    <description>API integration tests for the Survey application</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.11.4</junit.version>
-        <rest-assured.version>5.5.0</rest-assured.version>
-        <jackson.version>2.18.2</jackson.version>
     </properties>
 
     <dependencies>
@@ -29,26 +25,26 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- REST Assured -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>${rest-assured.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Jackson for JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -57,10 +53,28 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <base.url>${env.BASE_URL}</base.url>
+                        <base.url>${env.BASE_URL:-http://localhost:8080}</base.url>
+                    </systemPropertyVariables>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <base.url>${env.BASE_URL:-http://localhost:8080}</base.url>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

@@ -12,11 +12,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -46,11 +44,8 @@ class VoteApiTest extends BaseApiTest {
 
     @BeforeAll
     void setup() {
-        String username = "voteuser_" + UUID.randomUUID().toString().substring(0, 8);
-        token = registerAndGetToken(username, "Test123456");
-
-        String otherUser = "voteother_" + UUID.randomUUID().toString().substring(0, 8);
-        otherToken = registerAndGetToken(otherUser, "Test123456");
+        token = loginOrRegisterAndGetToken(username, password);
+        otherToken = loginOrRegisterAndGetToken(otherUsername, password);
     }
 
     // ==================== Create Vote Polls ====================
@@ -299,7 +294,7 @@ class VoteApiTest extends BaseApiTest {
     void submitSingleVote_success() {
         Map<String, Object> body = new HashMap<>();
         body.put("optionIds", List.of(singleOptionId1));
-        body.put("deviceId", "test-device-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-single-1");
 
         given()
                 .contentType(ContentType.JSON)
@@ -317,7 +312,7 @@ class VoteApiTest extends BaseApiTest {
     void submitSingleVote_multipleOptions_fail() {
         Map<String, Object> body = new HashMap<>();
         body.put("optionIds", List.of(singleOptionId1, singleOptionId2));
-        body.put("deviceId", "test-device-single-multi-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-single-multi-1");
 
         given()
                 .contentType(ContentType.JSON)
@@ -332,7 +327,7 @@ class VoteApiTest extends BaseApiTest {
     void submitSingleVote_empty_fail() {
         Map<String, Object> body = new HashMap<>();
         body.put("optionIds", List.of());
-        body.put("deviceId", "test-device-empty-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-empty-1");
 
         given()
                 .contentType(ContentType.JSON)
@@ -347,7 +342,7 @@ class VoteApiTest extends BaseApiTest {
     void submitMultipleVote_success() {
         Map<String, Object> body = new HashMap<>();
         body.put("optionIds", List.of(multiOptionId1, multiOptionId2));
-        body.put("deviceId", "test-device-multi-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-multi-1");
 
         given()
                 .contentType(ContentType.JSON)
@@ -365,7 +360,7 @@ class VoteApiTest extends BaseApiTest {
         // maxOptions is 2, trying to select 3
         Map<String, Object> body = new HashMap<>();
         body.put("optionIds", List.of(multiOptionId1, multiOptionId2, multiOptionId3));
-        body.put("deviceId", "test-device-multi-exceed-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-multi-exceed-1");
 
         given()
                 .contentType(ContentType.JSON)
@@ -384,7 +379,7 @@ class VoteApiTest extends BaseApiTest {
 
         Map<String, Object> body = new HashMap<>();
         body.put("votes", votes);
-        body.put("deviceId", "test-device-scored-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-scored-1");
 
         given()
                 .contentType(ContentType.JSON)
@@ -405,7 +400,7 @@ class VoteApiTest extends BaseApiTest {
 
         Map<String, Object> body = new HashMap<>();
         body.put("votes", votes);
-        body.put("deviceId", "test-device-scored-exceed-" + UUID.randomUUID());
+        body.put("deviceId", "test-device-scored-exceed-1");
 
         given()
                 .contentType(ContentType.JSON)
