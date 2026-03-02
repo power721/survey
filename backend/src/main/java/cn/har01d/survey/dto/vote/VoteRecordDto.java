@@ -7,6 +7,9 @@ import lombok.Data;
 @Data
 public class VoteRecordDto {
     private Long id;
+    private Long pollId;
+    private String pollShareId;
+    private String pollTitle;
     private String optionTitle;
     private int voteCount;
     private String username;

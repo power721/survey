@@ -287,6 +287,9 @@ export interface VoteSubmitRequest {
 
 export interface VoteRecordDto {
     id: number
+    pollId?: number
+    pollShareId?: string
+    pollTitle?: string
     optionTitle: string
     voteCount: number
     username: string | null

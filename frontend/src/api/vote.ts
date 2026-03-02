@@ -43,4 +43,7 @@ export const voteApi = {
     getRecords(id: number, params?: { page?: number; size?: number }) {
         return http.get<ApiResponse<Page<VoteRecordDto>>>(`/votes/${id}/records`, {params})
     },
+    getMyHistory(params?: { page?: number; size?: number }) {
+        return http.get<ApiResponse<Page<VoteRecordDto>>>('/votes/history', {params})
+    },
 }

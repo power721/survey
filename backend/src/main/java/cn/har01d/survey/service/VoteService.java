@@ -253,17 +253,57 @@ public class VoteService {
     public Page<VoteRecordDto> getVoteRecords(Long pollId, Pageable pageable) {
         VotePoll poll = pollRepository.findById(pollId)
                 .orElseThrow(() -> new ResourceNotFoundException("vote.not.found"));
+
         User user = authService.getCurrentUser();
-        if (!poll.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("vote.access.denied", HttpStatus.FORBIDDEN);
-        }
-        boolean anonymous = poll.isAnonymous();
-
-        if (poll.getVoteType() == VotePoll.VoteType.SCORED) {
-            return getAggregatedVoteRecords(poll, anonymous, pageable);
+        if (user == null) {
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
-        return recordRepository.findByPollId(pollId, pageable).map(r -> toRecordDto(r, anonymous));
+        boolean isCreator = poll.getUser().getId().equals(user.getId());
+        boolean isAdmin = user.getRole() == User.Role.ADMIN;
+
+        if (!isCreator && !isAdmin) {
+            throw new BusinessException("auth.forbidden", HttpStatus.FORBIDDEN);
+        }
+
+        Page<VoteRecord> records = recordRepository.findByPollId(pollId, pageable);
+        return records.map(record -> {
+            VoteRecordDto dto = new VoteRecordDto();
+            dto.setId(record.getId());
+            dto.setOptionTitle(record.getOption().getTitle());
+            dto.setVoteCount(1);
+            if (record.getUser() != null) {
+                dto.setUsername(record.getUser().getUsername());
+                dto.setNickname(record.getUser().getNickname());
+            }
+            dto.setIp(record.getIp());
+            dto.setCreatedAt(record.getCreatedAt());
+            return dto;
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VoteRecordDto> getMyVoteHistory(Pageable pageable) {
+        User user = authService.getCurrentUser();
+        if (user == null) {
+            throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        Page<VoteRecord> records = recordRepository.findByUserId(user.getId(), pageable);
+        return records.map(record -> {
+            VoteRecordDto dto = new VoteRecordDto();
+            dto.setId(record.getId());
+            dto.setPollId(record.getPoll().getId());
+            dto.setPollShareId(record.getPoll().getShareId());
+            dto.setPollTitle(record.getPoll().getTitle());
+            dto.setOptionTitle(record.getOption().getTitle());
+            dto.setVoteCount(1);
+            dto.setUsername(user.getUsername());
+            dto.setNickname(user.getNickname());
+            dto.setIp(record.getIp());
+            dto.setCreatedAt(record.getCreatedAt());
+            return dto;
+        });
     }
 
     private Page<VoteRecordDto> getAggregatedVoteRecords(VotePoll poll, boolean anonymous, Pageable pageable) {

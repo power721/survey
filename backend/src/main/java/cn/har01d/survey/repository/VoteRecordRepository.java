@@ -43,4 +43,6 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     void deleteByOptionId(Long optionId);
 
     void deleteByPollId(Long pollId);
+
+    Page<VoteRecord> findByUserId(Long userId, Pageable pageable);
 }

@@ -93,6 +93,7 @@ import {
   MegaphoneOutline,
   SettingsOutline,
   StatsChartOutline,
+  TimeOutline,
 } from '@vicons/ionicons5'
 
 function renderIcon(icon: Component) {
@@ -113,6 +114,7 @@ const activeKey = computed(() => {
   if (path.startsWith('/surveys')) return 'surveys'
   if (path === '/votes/create') return 'create-vote'
   if (path === '/votes/public') return 'public-votes'
+  if (path === '/votes/history') return 'vote-history'
   if (path.startsWith('/votes')) return 'votes'
   if (path.startsWith('/s/')) return 'public-surveys'
   if (path.startsWith('/v/')) return 'public-votes'
@@ -136,6 +138,7 @@ const menuOptions = computed(() => {
         {type: 'divider', key: 'd2'},
         {label: t('vote.myVotes'), key: 'votes', icon: renderIcon(ListOutline)},
         {label: t('vote.createVote'), key: 'create-vote', icon: renderIcon(CreateOutline)},
+        {label: t('vote.myVoteHistory'), key: 'vote-history', icon: renderIcon(TimeOutline)},
     )
   }
   if (authStore.isAdmin) {
@@ -158,6 +161,7 @@ function handleMenuSelect(key: string) {
     'votes': '/votes',
     'create-vote': '/votes/create',
     'public-votes': '/votes/public',
+    'vote-history': '/votes/history',
     'admin-dashboard': '/admin/dashboard',
     'admin-config': '/admin/config',
     'admin-audit': '/admin/audit-logs',

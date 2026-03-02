@@ -111,4 +111,11 @@ public class VoteController {
         VotePollDto poll = voteService.submitVote(shareId, request, httpRequest);
         return ResponseEntity.ok(ApiResponse.ok("Vote submitted", poll));
     }
+
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<Page<VoteRecordDto>>> getMyVoteHistory(
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<VoteRecordDto> history = voteService.getMyVoteHistory(pageable);
+        return ResponseEntity.ok(ApiResponse.ok(history));
+    }
 }
