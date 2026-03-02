@@ -235,7 +235,7 @@ public class OAuth2Service {
         }
 
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole().name());
-        return new AuthResponse(token, user.getUsername(), user.getNickname(), user.getRole().name());
+        return new AuthResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole().name());
     }
 
     private String generateUniqueUsername(SocialAccount.Provider provider, String name) {

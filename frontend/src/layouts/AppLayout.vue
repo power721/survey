@@ -48,7 +48,11 @@
           </n-dropdown>
           <template v-if="authStore.isLoggedIn">
             <n-dropdown :options="userOptions" @select="handleUserSelect" trigger="click">
-              <n-button quaternary :class="{ 'admin-badge': authStore.isAdmin }">{{ authStore.nickname || authStore.username }}</n-button>
+              <n-button quaternary :class="{ 'admin-badge': authStore.isAdmin }"
+                        style="display: flex; align-items: center; gap: 6px">
+                <n-avatar v-if="authStore.avatar" :src="authStore.avatar" :size="24" round/>
+                {{ authStore.nickname || authStore.username }}
+              </n-button>
             </n-dropdown>
           </template>
           <template v-else>
@@ -68,19 +72,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, type Component } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { NIcon } from 'naive-ui'
-import { useAppStore } from '@/stores/app'
-import { useAuthStore } from '@/stores/auth'
+import {type Component, computed, h} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {NIcon} from 'naive-ui'
+import {useAppStore} from '@/stores/app'
+import {useAuthStore} from '@/stores/auth'
 import {
-  HomeOutline,
-  GlobeOutline,
-  DocumentTextOutline,
   AddCircleOutline,
-  ListOutline,
   CreateOutline,
+  DocumentTextOutline,
+  GlobeOutline,
+  HomeOutline,
+  ListOutline,
   MegaphoneOutline,
   SettingsOutline,
 } from '@vicons/ionicons5'

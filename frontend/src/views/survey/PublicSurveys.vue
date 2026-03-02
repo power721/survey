@@ -15,7 +15,6 @@
                 <n-text depth="3">{{ survey.creatorName }}</n-text>
               </n-space>
             </template>
-            <p v-if="survey.description">{{ survey.description }}</p>
           </n-card>
         </n-gi>
       </n-grid>
@@ -34,11 +33,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { surveyApi } from '@/api/survey'
-import type { SurveyDto } from '@/types'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {surveyApi} from '@/api/survey'
+import type {SurveyDto} from '@/types'
 
 const router = useRouter()
 const { t } = useI18n()

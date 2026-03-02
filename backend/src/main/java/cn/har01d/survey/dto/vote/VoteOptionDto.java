@@ -13,5 +13,5 @@ public class VoteOptionDto {
     private int voteCount;
     private double percentage;
     private int sortOrder;
-    private List<String> voters;
+    private List<VoterDto> voters;
 }

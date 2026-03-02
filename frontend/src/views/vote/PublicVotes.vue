@@ -19,7 +19,6 @@
                 <n-text depth="3">{{ poll.creatorName }}</n-text>
               </n-space>
             </template>
-            <p v-if="poll.description">{{ poll.description }}</p>
           </n-card>
         </n-gi>
       </n-grid>
@@ -38,11 +37,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { voteApi } from '@/api/vote'
-import type { VotePollDto } from '@/types'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {voteApi} from '@/api/vote'
+import type {VotePollDto} from '@/types'
 
 const router = useRouter()
 const { t } = useI18n()

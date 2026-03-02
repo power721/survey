@@ -8,6 +8,7 @@ export interface AuthResponse {
   token: string
   username: string
   nickname: string
+    avatar: string | null
   role: string
 }
 
@@ -176,7 +177,12 @@ export interface VoteOptionDto {
   voteCount: number
   percentage: number
   sortOrder: number
-  voters?: string[]
+    voters?: VoterDto[]
+}
+
+export interface VoterDto {
+    name: string
+    avatar: string | null
 }
 
 export interface VotePollCreateRequest {

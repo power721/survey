@@ -2,6 +2,13 @@
   <div class="card-container">
     <n-card :title="t('common.editProfile')">
       <n-spin :show="loading">
+        <div style="display: flex; justify-content: center; margin-bottom: 24px">
+          <n-avatar :src="form.avatar || undefined" :size="80" round>
+            <template v-if="!form.avatar" #default>
+              <span style="font-size: 32px">{{ (form.nickname || form.username || '?').charAt(0) }}</span>
+            </template>
+          </n-avatar>
+        </div>
         <n-form ref="formRef" :model="form" label-placement="top">
           <n-form-item :label="t('auth.username')">
             <n-space align="center" style="width: 100%">
@@ -47,12 +54,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import { authApi } from '@/api/auth'
-import { useAuthStore } from '@/stores/auth'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
+import {authApi} from '@/api/auth'
+import {useAuthStore} from '@/stores/auth'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -67,6 +74,7 @@ const form = ref({
   username: '',
   nickname: '',
   email: '',
+  avatar: '' as string | null,
 })
 
 const pwdForm = ref({
@@ -81,6 +89,7 @@ async function loadProfile() {
     form.value.username = profile.username
     form.value.nickname = profile.nickname || ''
     form.value.email = profile.email || ''
+    form.value.avatar = profile.avatar || null
   } catch (e) {
     console.error(e)
   } finally {
@@ -97,7 +106,11 @@ async function handleSave() {
     })
     const profile = res.data.data
     authStore.nickname = profile.nickname
+    authStore.avatar = profile.avatar || null
     localStorage.setItem('nickname', profile.nickname || '')
+    if (profile.avatar) localStorage.setItem('avatar', profile.avatar)
+    else localStorage.removeItem('avatar')
+    form.value.avatar = profile.avatar || null
     message.success(t('common.saveSuccess'))
   } catch (e: any) {
     message.error(e?.response?.data?.message || 'Error')

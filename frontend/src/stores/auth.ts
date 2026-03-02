@@ -1,12 +1,13 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { authApi } from '@/api/auth'
-import type { AuthResponse, UserProfile } from '@/types'
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
+import {authApi} from '@/api/auth'
+import type {AuthResponse} from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const username = ref<string | null>(localStorage.getItem('username'))
   const nickname = ref<string | null>(localStorage.getItem('nickname'))
+    const avatar = ref<string | null>(localStorage.getItem('avatar'))
   const role = ref<string | null>(localStorage.getItem('role'))
 
   const isLoggedIn = computed(() => !!token.value)
@@ -16,10 +17,13 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = auth.token
     username.value = auth.username
     nickname.value = auth.nickname
+      avatar.value = auth.avatar
     role.value = auth.role
     localStorage.setItem('token', auth.token)
     localStorage.setItem('username', auth.username)
     localStorage.setItem('nickname', auth.nickname)
+      if (auth.avatar) localStorage.setItem('avatar', auth.avatar)
+      else localStorage.removeItem('avatar')
     localStorage.setItem('role', auth.role)
   }
 
@@ -27,10 +31,12 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     username.value = null
     nickname.value = null
+      avatar.value = null
     role.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('username')
     localStorage.removeItem('nickname')
+      localStorage.removeItem('avatar')
     localStorage.removeItem('role')
   }
 
@@ -50,5 +56,5 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth()
   }
 
-  return { token, username, nickname, role, isLoggedIn, isAdmin, login, register, logout, setAuth, clearAuth }
+    return {token, username, nickname, avatar, role, isLoggedIn, isAdmin, login, register, logout, setAuth, clearAuth}
 })

@@ -33,7 +33,6 @@
             </n-space>
           </template>
           <n-space vertical>
-            <p v-if="survey.description">{{ survey.description }}</p>
             <n-space>
               <n-text depth="3">{{ t('survey.responseCount') }}: {{ survey.responseCount }}</n-text>
               <n-text depth="3">{{ t('survey.accessLevel') }}: {{ survey.accessLevel === 'PUBLIC' ? t('common.public') : t('common.private') }}</n-text>
@@ -60,12 +59,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage, useDialog } from 'naive-ui'
-import { surveyApi } from '@/api/survey'
-import type { SurveyDto } from '@/types'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useDialog, useMessage} from 'naive-ui'
+import {surveyApi} from '@/api/survey'
+import type {SurveyDto} from '@/types'
 
 const router = useRouter()
 const { t } = useI18n()

@@ -17,6 +17,7 @@ import cn.har01d.survey.entity.User;
 import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.repository.UserRepository;
 import cn.har01d.survey.security.JwtTokenProvider;
+import cn.har01d.survey.util.GravatarUtil;
 
 @Service
 public class AuthService {
@@ -61,7 +62,7 @@ public class AuthService {
         userRepository.save(user);
 
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole().name());
-        return new AuthResponse(token, user.getUsername(), user.getNickname(), user.getRole().name());
+        return new AuthResponse(token, user.getUsername(), user.getNickname(), resolveAvatar(user), user.getRole().name());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -73,7 +74,7 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new BusinessException("auth.user.not.found"));
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole().name());
-        return new AuthResponse(token, user.getUsername(), user.getNickname(), user.getRole().name());
+        return new AuthResponse(token, user.getUsername(), user.getNickname(), resolveAvatar(user), user.getRole().name());
     }
 
     public User getCurrentUser() {
@@ -138,13 +139,20 @@ public class AuthService {
         return sb.toString();
     }
 
+    private String resolveAvatar(User user) {
+        if (user.getAvatar() != null && !user.getAvatar().isBlank()) {
+            return user.getAvatar();
+        }
+        return GravatarUtil.getAvatarUrl(user.getEmail());
+    }
+
     private UserDto toDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setNickname(user.getNickname());
         dto.setEmail(user.getEmail());
-        dto.setAvatar(user.getAvatar());
+        dto.setAvatar(resolveAvatar(user));
         dto.setRole(user.getRole().name());
         dto.setCreatedAt(user.getCreatedAt());
         return dto;

@@ -25,7 +25,6 @@
             </n-space>
           </template>
           <n-space vertical>
-            <p v-if="poll.description">{{ poll.description }}</p>
             <n-space>
               <n-text depth="3">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-text>
               <n-text depth="3">{{ t('vote.frequency') }}: {{ poll.frequency === 'ONCE' ? t('vote.once') : t('vote.daily') }}</n-text>
@@ -55,12 +54,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage, useDialog } from 'naive-ui'
-import { voteApi } from '@/api/vote'
-import type { VotePollDto } from '@/types'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useDialog, useMessage} from 'naive-ui'
+import {voteApi} from '@/api/vote'
+import type {VotePollDto} from '@/types'
 
 const router = useRouter()
 const { t } = useI18n()

@@ -132,8 +132,16 @@
               </n-space>
               <n-progress type="line" :percentage="opt.percentage" :show-indicator="false"
                           :color="getBarColor(opt.percentage)" />
-              <n-space v-if="opt.voters && opt.voters.length > 0" size="small" style="margin-top: 6px; flex-wrap: wrap">
-                <n-tag v-for="(voter, vi) in opt.voters" :key="vi" size="tiny" :bordered="false" type="info">{{ voter }}</n-tag>
+              <n-space v-if="opt.voters && opt.voters.length > 0" size="small" style="margin-top: 6px; flex-wrap: wrap"
+                       align="center">
+                <n-tag v-for="(voter, vi) in opt.voters" :key="vi" size="small" :bordered="false" type="info" round>
+                  <template #avatar>
+                    <n-avatar :src="voter.avatar || undefined" :size="18" round>
+                      <template v-if="!voter.avatar" #default>{{ voter.name?.charAt(0) }}</template>
+                    </n-avatar>
+                  </template>
+                  {{ voter.name }}
+                </n-tag>
               </n-space>
             </div>
           </template>

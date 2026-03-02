@@ -29,6 +29,7 @@ import cn.har01d.survey.dto.vote.VotePollCreateRequest;
 import cn.har01d.survey.dto.vote.VotePollDto;
 import cn.har01d.survey.dto.vote.VoteRecordDto;
 import cn.har01d.survey.dto.vote.VoteSubmitRequest;
+import cn.har01d.survey.dto.vote.VoterDto;
 import cn.har01d.survey.entity.Survey;
 import cn.har01d.survey.entity.User;
 import cn.har01d.survey.entity.VoteOption;
@@ -39,6 +40,7 @@ import cn.har01d.survey.exception.ResourceNotFoundException;
 import cn.har01d.survey.repository.VoteOptionRepository;
 import cn.har01d.survey.repository.VotePollRepository;
 import cn.har01d.survey.repository.VoteRecordRepository;
+import cn.har01d.survey.util.GravatarUtil;
 import cn.har01d.survey.util.HtmlSanitizer;
 
 @Service
@@ -549,14 +551,18 @@ public class VoteService {
         dto.setUpdatedAt(poll.getUpdatedAt());
 
         boolean showVoters = poll.isShowVoters() && !poll.isAnonymous() && poll.getVoteType() != VotePoll.VoteType.SCORED;
-        Map<Long, List<String>> votersByOption = new HashMap<>();
+        Map<Long, List<VoterDto>> votersByOption = new HashMap<>();
         if (showVoters) {
             List<VoteRecord> records = recordRepository.findByPollId(poll.getId());
             for (VoteRecord record : records) {
                 if (record.getUser() != null) {
+                    User voter = record.getUser();
+                    String avatar = voter.getAvatar() != null && !voter.getAvatar().isBlank()
+                            ? voter.getAvatar()
+                            : GravatarUtil.getAvatarUrl(voter.getEmail());
                     votersByOption
                             .computeIfAbsent(record.getOption().getId(), k -> new ArrayList<>())
-                            .add(record.getUser().getNickname());
+                            .add(new VoterDto(voter.getNickname(), avatar));
                 }
             }
         }
