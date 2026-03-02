@@ -22,6 +22,11 @@
             <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ formatTime(poll.endTime) }}</n-text>
           </n-space>
 
+          <n-alert v-if="countdownLabel && countdownText" :type="isNotStarted ? 'info' : 'warning'"
+                   style="margin-bottom: 16px">
+            {{ countdownLabel }}: {{ countdownText }}
+          </n-alert>
+
           <p v-if="poll.description" style="margin-bottom: 16px; color: #666">{{ poll.description }}</p>
 
           <n-alert v-if="isNotStarted" type="warning" style="margin-bottom: 16px">
@@ -164,6 +169,8 @@ const loading = ref(true)
 const previewImage = ref<string | null>(null)
 const submitting = ref(false)
 const poll = ref<VotePollDto | null>(null)
+const countdownSeconds = ref(0)
+let countdownTimer: ReturnType<typeof setInterval> | null = null
 const voted = ref(false)
 const selectedSingle = ref<number | null>(null)
 const selectedMultiple = ref<number[]>([])
@@ -181,6 +188,43 @@ const isNotStarted = computed(() => {
   if (!poll.value?.startTime) return false
   return new Date(poll.value.startTime).getTime() > Date.now()
 })
+
+const countdownLabel = computed(() => {
+  if (isNotStarted.value) return t('vote.startCountdown')
+  if (!isExpired.value && poll.value?.endTime) return t('vote.endCountdown')
+  return ''
+})
+
+const countdownText = computed(() => {
+  const s = countdownSeconds.value
+  if (s <= 0) return ''
+  const days = Math.floor(s / 86400)
+  const hours = Math.floor((s % 86400) / 3600)
+  const minutes = Math.floor((s % 3600) / 60)
+  const secs = s % 60
+  if (days > 0) return `${days}${t('vote.days')} ${hours}${t('vote.hours')} ${minutes}${t('vote.minutes')} ${secs}${t('vote.seconds')}`
+  if (hours > 0) return `${hours}${t('vote.hours')} ${minutes}${t('vote.minutes')} ${secs}${t('vote.seconds')}`
+  if (minutes > 0) return `${minutes}${t('vote.minutes')} ${secs}${t('vote.seconds')}`
+  return `${secs}${t('vote.seconds')}`
+})
+
+function updateCountdown() {
+  if (!poll.value) return
+  const now = Date.now()
+  if (isNotStarted.value && poll.value.startTime) {
+    countdownSeconds.value = Math.max(0, Math.floor((new Date(poll.value.startTime).getTime() - now) / 1000))
+  } else if (!isExpired.value && poll.value.endTime) {
+    countdownSeconds.value = Math.max(0, Math.floor((new Date(poll.value.endTime).getTime() - now) / 1000))
+  } else {
+    countdownSeconds.value = 0
+  }
+}
+
+function startCountdownTimer() {
+  if (countdownTimer) clearInterval(countdownTimer)
+  updateCountdown()
+  countdownTimer = setInterval(updateCountdown, 1000)
+}
 
 const loginRequired = computed(() => {
   return poll.value && !poll.value.anonymous && !authStore.isLoggedIn
@@ -266,6 +310,7 @@ async function loadPoll() {
   try {
     const res = await voteApi.getByShareId(route.params.shareId as string)
     poll.value = res.data.data
+    startCountdownTimer()
     connectWebSocket()
   } catch (e: any) {
     message.error(e?.response?.data?.message || 'Error loading vote')
@@ -377,6 +422,10 @@ onUnmounted(() => {
     parent.style.backgroundSize = ''
     parent.style.backgroundPosition = ''
     parent.style.backgroundRepeat = ''
+  }
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
   }
   if (stompClient) {
     stompClient.deactivate()
