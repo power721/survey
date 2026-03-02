@@ -72,6 +72,11 @@ public class VoteService {
             throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
+        Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE);
+        if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
+            throw new BusinessException("error.endTimeBeforeStartTime");
+        }
+
         VotePoll poll = VotePoll.builder()
                 .shareId(generateShareId())
                 .title(request.getTitle())
@@ -86,7 +91,8 @@ public class VoteService {
                 .maxTotalVotes(request.getMaxTotalVotes())
                 .maxOptions(request.getMaxOptions())
                 .maxVotesPerOption(request.getMaxVotesPerOption())
-                .endTime(request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE))
+                .startTime(request.getStartTime())
+                .endTime(endTime)
                 .options(new ArrayList<>())
                 .build();
 
@@ -125,7 +131,12 @@ public class VoteService {
         poll.setMaxTotalVotes(request.getMaxTotalVotes());
         poll.setMaxOptions(request.getMaxOptions());
         poll.setMaxVotesPerOption(request.getMaxVotesPerOption());
-        poll.setEndTime(request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE));
+        Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE);
+        if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
+            throw new BusinessException("error.endTimeBeforeStartTime");
+        }
+        poll.setStartTime(request.getStartTime());
+        poll.setEndTime(endTime);
 
         // Build map of existing options by ID
         Map<Long, VoteOption> existingOptionMap = poll.getOptions().stream()
@@ -195,6 +206,20 @@ public class VoteService {
 
         if (poll.getStatus() != Survey.SurveyStatus.PUBLISHED) {
             throw new BusinessException("vote.not.published");
+        }
+
+        if (poll.getStartTime() != null && poll.getStartTime().isAfter(Instant.now())) {
+            VotePollDto dto = new VotePollDto();
+            dto.setId(poll.getId());
+            dto.setShareId(poll.getShareId());
+            dto.setTitle(poll.getTitle());
+            dto.setStatus(poll.getStatus().name());
+            dto.setStartTime(poll.getStartTime());
+            dto.setEndTime(poll.getEndTime());
+            dto.setCreatorName(poll.getUser().getNickname());
+            dto.setCreatedAt(poll.getCreatedAt());
+            dto.setOptions(List.of());
+            return dto;
         }
 
         String ip = getClientIp(request);
@@ -324,6 +349,9 @@ public class VoteService {
 
         if (poll.getStatus() != Survey.SurveyStatus.PUBLISHED) {
             throw new BusinessException("vote.not.published");
+        }
+        if (poll.getStartTime() != null && poll.getStartTime().isAfter(Instant.now())) {
+            throw new BusinessException("vote.not.started");
         }
         if (poll.getEndTime() != null && poll.getEndTime().isBefore(Instant.now())) {
             throw new BusinessException("vote.closed");
@@ -505,6 +533,7 @@ public class VoteService {
         dto.setMaxTotalVotes(poll.getMaxTotalVotes());
         dto.setMaxOptions(poll.getMaxOptions());
         dto.setMaxVotesPerOption(poll.getMaxVotesPerOption());
+        dto.setStartTime(poll.getStartTime());
         dto.setEndTime(poll.getEndTime());
         dto.setTotalVoteCount(poll.getTotalVoteCount());
         dto.setCreatorName(poll.getUser().getNickname());

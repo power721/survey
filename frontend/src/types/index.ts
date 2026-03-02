@@ -152,6 +152,7 @@ export interface VotePollDto {
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
+  startTime: string
   endTime: string
   totalVoteCount: number
   options: VoteOptionDto[]
@@ -183,6 +184,7 @@ export interface VotePollCreateRequest {
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
+  startTime: string | null
   endTime: string | null
   options: VoteOptionRequest[]
 }

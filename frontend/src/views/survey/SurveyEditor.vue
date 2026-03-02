@@ -27,9 +27,18 @@
           </n-gi>
         </n-grid>
 
-        <n-form-item :label="t('survey.endTime')">
-          <n-date-picker v-model:value="endTimeTs" type="datetime" clearable style="width: 100%" />
-        </n-form-item>
+        <n-grid :cols="2" :x-gap="16">
+          <n-gi>
+            <n-form-item :label="t('common.startTime')" required>
+              <n-date-picker v-model:value="startTimeTs" type="datetime" style="width: 100%" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item :label="t('survey.endTime')" required>
+              <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%" />
+            </n-form-item>
+          </n-gi>
+        </n-grid>
 
         <n-divider>{{ t('survey.questions') }}</n-divider>
 
@@ -100,7 +109,9 @@ const message = useMessage()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
-const endTimeTs = ref<number | null>(null)
+const startTimeTs = ref<number | null>(Date.now())
+const defaultEndTime = Date.now() + 30 * 24 * 60 * 60 * 1000
+const endTimeTs = ref<number | null>(defaultEndTime)
 let keySeq = 0
 function nextKey() { return `q_${++keySeq}` }
 
@@ -200,6 +211,10 @@ async function loadSurvey() {
         _key: nextKey(),
       })),
     }
+    if (survey.startTime) {
+      const ts = new Date(survey.startTime).getTime()
+      startTimeTs.value = Number.isNaN(ts) ? null : ts
+    }
     if (survey.endTime) {
       const ts = new Date(survey.endTime).getTime()
       endTimeTs.value = Number.isNaN(ts) ? null : ts
@@ -214,8 +229,21 @@ async function handleSave() {
     message.warning(t('survey.surveyTitle'))
     return
   }
+  if (!startTimeTs.value) {
+    message.warning(t('common.startTimeRequired'))
+    return
+  }
+  if (!endTimeTs.value) {
+    message.warning(t('survey.endTimeRequired'))
+    return
+  }
+  if (endTimeTs.value <= startTimeTs.value) {
+    message.warning(t('common.endTimeBeforeStartTime'))
+    return
+  }
   saving.value = true
   try {
+    form.value.startTime = startTimeTs.value ? new Date(startTimeTs.value).toISOString() : null
     form.value.endTime = endTimeTs.value ? new Date(endTimeTs.value).toISOString() : null
     form.value.questions.forEach((q, i) => { q.sortOrder = i })
     if (isEdit.value) {

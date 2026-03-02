@@ -11,6 +11,7 @@
               <n-space>
                 <n-tag v-if="survey.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
                 <n-tag size="small" type="info">{{ survey.responseCount }} {{ t('survey.responses') }}</n-tag>
+                <n-text v-if="survey.startTime && new Date(survey.startTime).getTime() > Date.now()" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
                 <n-text depth="3">{{ survey.creatorName }}</n-text>
               </n-space>
             </template>

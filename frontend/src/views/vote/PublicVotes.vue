@@ -14,6 +14,7 @@
                 </n-tag>
                 <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
                 <n-tag size="small" type="success">{{ poll.totalVoteCount }} {{ t('vote.votes') }}</n-tag>
+                <n-text v-if="poll.startTime && new Date(poll.startTime).getTime() > Date.now()" depth="3">{{ t('common.startTime') }}: {{ new Date(poll.startTime).toLocaleString() }}</n-text>
                 <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ new Date(poll.endTime).toLocaleString() }}</n-text>
                 <n-text depth="3">{{ poll.creatorName }}</n-text>
               </n-space>

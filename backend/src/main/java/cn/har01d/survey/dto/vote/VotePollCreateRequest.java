@@ -27,6 +27,7 @@ public class VotePollCreateRequest {
     private Integer maxTotalVotes;
     private Integer maxOptions;
     private Integer maxVotesPerOption;
+    private Instant startTime;
     private Instant endTime;
 
     @NotEmpty

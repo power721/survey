@@ -17,7 +17,8 @@
 
           <n-space style="margin-bottom: 16px">
             <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
-            <n-text v-if="survey.createdAt" depth="3">{{ t('common.createdAt') }}: {{ new Date(survey.createdAt).toLocaleString() }}</n-text>
+            <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
+            <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
           </n-space>
 
           <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
@@ -56,16 +57,26 @@
       <template v-else-if="survey">
         <n-card :title="survey.title">
           <template #header-extra>
-            <n-tag v-if="survey.anonymous" type="info" size="small">{{ t('survey.anonymous') }}</n-tag>
+            <n-space>
+              <n-tag v-if="!isNotStarted && survey.anonymous" type="info" size="small">{{ t('survey.anonymous') }}</n-tag>
+            </n-space>
           </template>
-          <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
+          <n-space style="margin-bottom: 16px">
+            <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
+            <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
+            <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
+          </n-space>
+
+          <n-alert v-if="isNotStarted" type="warning" style="margin-bottom: 16px">
+            {{ t('survey.notStarted') }}
+          </n-alert>
 
           <n-alert v-if="loginRequired" type="warning" style="margin-bottom: 16px">
             {{ t('survey.loginRequired') }}
             <n-button text type="primary" @click="router.push('/login')" style="margin-left: 8px">{{ t('common.login') }}</n-button>
           </n-alert>
 
-          <n-form v-if="!loginRequired" label-placement="top">
+          <n-form v-if="!loginRequired && !isNotStarted" label-placement="top">
             <div v-for="(question, qi) in survey.questions" :key="question.id" style="margin-bottom: 24px">
               <n-form-item>
                 <template #label>
@@ -170,6 +181,11 @@ const myResponse = ref<SurveyResponseDto | null>(null)
 
 const loginRequired = computed(() => {
   return survey.value && !survey.value.anonymous && !authStore.isLoggedIn
+})
+
+const isNotStarted = computed(() => {
+  if (!survey.value?.startTime) return false
+  return new Date(survey.value.startTime).getTime() > Date.now()
 })
 
 const answers = reactive<Record<number, { textValue: string; selectedOptionId: number | null; selectedOptionIds: number[]; numberValue: number | null }>>({})

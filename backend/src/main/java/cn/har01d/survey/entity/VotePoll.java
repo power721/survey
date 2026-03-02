@@ -79,6 +79,8 @@ public class VotePoll {
 
     private Integer maxVotesPerOption;
 
+    private Instant startTime;
+
     private Instant endTime;
 
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)

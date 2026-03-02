@@ -1,5 +1,6 @@
 package cn.har01d.survey.service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +76,11 @@ public class SurveyService {
             throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
+        Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(Duration.ofDays(30));
+        if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
+            throw new BusinessException("error.endTimeBeforeStartTime");
+        }
+
         Survey survey = Survey.builder()
                 .shareId(generateShareId())
                 .title(request.getTitle())
@@ -86,7 +92,7 @@ public class SurveyService {
                 .template(request.isTemplate())
                 .allowUpdate(request.isAllowUpdate())
                 .startTime(request.getStartTime())
-                .endTime(request.getEndTime())
+                .endTime(endTime)
                 .questions(new ArrayList<>())
                 .build();
 
@@ -138,8 +144,12 @@ public class SurveyService {
         survey.setAnonymous(request.isAnonymous());
         survey.setTemplate(request.isTemplate());
         survey.setAllowUpdate(request.isAllowUpdate());
+        Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(Duration.ofDays(30));
+        if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
+            throw new BusinessException("error.endTimeBeforeStartTime");
+        }
         survey.setStartTime(request.getStartTime());
-        survey.setEndTime(request.getEndTime());
+        survey.setEndTime(endTime);
 
         // Build a map of existing questions by ID
         Map<Long, Question> existingQuestionMap = survey.getQuestions().stream()
@@ -260,6 +270,19 @@ public class SurveyService {
         if (survey.getStatus() != Survey.SurveyStatus.PUBLISHED) {
             throw new BusinessException("survey.not.published");
         }
+        if (survey.getStartTime() != null && survey.getStartTime().isAfter(Instant.now())) {
+            SurveyDto dto = new SurveyDto();
+            dto.setId(survey.getId());
+            dto.setShareId(survey.getShareId());
+            dto.setTitle(survey.getTitle());
+            dto.setStatus(survey.getStatus().name());
+            dto.setStartTime(survey.getStartTime());
+            dto.setEndTime(survey.getEndTime());
+            dto.setCreatorName(survey.getUser().getNickname());
+            dto.setCreatedAt(survey.getCreatedAt());
+            dto.setQuestions(List.of());
+            return dto;
+        }
         if (survey.getEndTime() != null && survey.getEndTime().isBefore(Instant.now())) {
             throw new BusinessException("survey.closed");
         }
@@ -351,6 +374,9 @@ public class SurveyService {
 
         if (survey.getStatus() != Survey.SurveyStatus.PUBLISHED) {
             throw new BusinessException("survey.not.published");
+        }
+        if (survey.getStartTime() != null && survey.getStartTime().isAfter(Instant.now())) {
+            throw new BusinessException("survey.not.started");
         }
         if (survey.getEndTime() != null && survey.getEndTime().isBefore(Instant.now())) {
             throw new BusinessException("survey.closed");

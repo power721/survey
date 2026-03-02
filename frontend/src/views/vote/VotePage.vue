@@ -5,20 +5,26 @@
         <n-card :title="poll.title">
           <template #header-extra>
             <n-space>
-              <n-tag :type="voteTypeTagType" size="small">{{ voteTypeLabel }}</n-tag>
-              <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
-              <n-tag size="small" type="success">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-tag>
+              <template v-if="!isNotStarted">
+                <n-tag :type="voteTypeTagType" size="small">{{ voteTypeLabel }}</n-tag>
+                <n-tag v-if="poll.anonymous" size="small" type="info">{{ t('survey.anonymous') }}</n-tag>
+                <n-tag size="small" type="success">{{ t('vote.totalVotes') }}: {{ poll.totalVoteCount }}</n-tag>
+                <n-tag v-if="isExpired" type="error" size="small">{{ t('vote.expired') }}</n-tag>
+              </template>
             </n-space>
           </template>
 
           <n-space style="margin-bottom: 16px">
             <n-text v-if="poll.creatorName" depth="3">{{ t('common.creator') }}: {{ poll.creatorName }}</n-text>
-            <n-text v-if="poll.createdAt" depth="3">{{ t('common.createdAt') }}: {{ new Date(poll.createdAt).toLocaleString() }}</n-text>
-            <n-text depth="3">{{ t('vote.endTime') }}: {{ formatTime(poll.endTime) }}</n-text>
-            <n-tag v-if="isExpired" type="error" size="small" style="margin-left: 8px">{{ t('vote.expired') }}</n-tag>
+            <n-text v-if="poll.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(poll.startTime).toLocaleString() }}</n-text>
+            <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ formatTime(poll.endTime) }}</n-text>
           </n-space>
 
           <p v-if="poll.description" style="margin-bottom: 16px; color: #666">{{ poll.description }}</p>
+
+          <n-alert v-if="isNotStarted" type="warning" style="margin-bottom: 16px">
+            {{ t('vote.notStarted') }}
+          </n-alert>
 
           <n-alert v-if="isExpired && !hasVoted && !voted" type="warning" style="margin-bottom: 16px">
             {{ t('vote.votingClosed') }}
@@ -30,7 +36,7 @@
           </n-alert>
 
           <!-- Voting form -->
-          <template v-if="!hasVoted && !voted && !isExpired && !loginRequired">
+          <template v-if="!hasVoted && !voted && !isExpired && !isNotStarted && !loginRequired">
             <n-space vertical size="large" style="margin-bottom: 24px">
               <!-- SINGLE: radio buttons -->
               <template v-if="poll.voteType === 'SINGLE'">
@@ -166,6 +172,11 @@ const hasVoted = computed(() => poll.value?.hasVoted ?? false)
 const isExpired = computed(() => {
   if (!poll.value?.endTime) return false
   return new Date(poll.value.endTime).getTime() < Date.now()
+})
+
+const isNotStarted = computed(() => {
+  if (!poll.value?.startTime) return false
+  return new Date(poll.value.startTime).getTime() > Date.now()
 })
 
 const loginRequired = computed(() => {

@@ -37,6 +37,8 @@
             <n-space>
               <n-text depth="3">{{ t('survey.responseCount') }}: {{ survey.responseCount }}</n-text>
               <n-text depth="3">{{ t('survey.accessLevel') }}: {{ survey.accessLevel === 'PUBLIC' ? t('common.public') : t('common.private') }}</n-text>
+              <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
+              <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
               <n-text depth="3" v-if="survey.status === 'PUBLISHED'">
                 {{ t('survey.fill') }}: <a :href="`/s/${survey.shareId}`" target="_blank">{{ baseUrl }}/s/{{ survey.shareId }}</a>
               </n-text>

@@ -42,10 +42,18 @@
 
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
+            <n-form-item :label="t('common.startTime')" required>
+              <n-date-picker v-model:value="startTimeTs" type="datetime" style="width: 100%" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
             <n-form-item :label="t('vote.endTime')" required>
               <n-date-picker v-model:value="endTimeTs" type="datetime" style="width: 100%" />
             </n-form-item>
           </n-gi>
+        </n-grid>
+
+        <n-grid :cols="2" :x-gap="16">
           <n-gi v-if="form.voteType === 'MULTIPLE'">
             <n-form-item :label="t('vote.maxOptions')">
               <n-input-number v-model:value="form.maxOptions" :min="2" clearable style="width: 100%" />
@@ -142,6 +150,7 @@ function closePreview() {
   previewImage.value = null
 }
 const defaultEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000
+const startTimeTs = ref<number | null>(Date.now())
 const endTimeTs = ref<number | null>(defaultEndTime)
 let keySeq = 0
 function nextKey() { return `opt_${++keySeq}` }
@@ -157,6 +166,7 @@ const form = ref<VotePollCreateRequest>({
   maxTotalVotes: null,
   maxOptions: null,
   maxVotesPerOption: null,
+  startTime: null,
   endTime: null,
   options: [
     { title: '', sortOrder: 0, _key: nextKey() },
@@ -237,6 +247,7 @@ async function loadPoll() {
       maxTotalVotes: poll.maxTotalVotes,
       maxOptions: poll.maxOptions,
       maxVotesPerOption: poll.maxVotesPerOption,
+      startTime: poll.startTime,
       endTime: poll.endTime,
       options: poll.options.map((o) => ({
         id: o.id,
@@ -246,6 +257,10 @@ async function loadPoll() {
         sortOrder: o.sortOrder,
         _key: nextKey(),
       })),
+    }
+    if (poll.startTime) {
+      const ts = new Date(poll.startTime).getTime()
+      startTimeTs.value = Number.isNaN(ts) ? null : ts
     }
     if (poll.endTime) {
       const ts = new Date(poll.endTime).getTime()
@@ -265,8 +280,16 @@ async function handleSave() {
     message.warning(t('vote.optionTitle'))
     return
   }
+  if (!startTimeTs.value) {
+    message.warning(t('common.startTimeRequired'))
+    return
+  }
   if (!endTimeTs.value) {
     message.warning(t('vote.endTimeRequired'))
+    return
+  }
+  if (endTimeTs.value <= startTimeTs.value) {
+    message.warning(t('common.endTimeBeforeStartTime'))
     return
   }
   if (form.value.voteType === 'SCORED') {
@@ -282,6 +305,7 @@ async function handleSave() {
 
   saving.value = true
   try {
+    form.value.startTime = startTimeTs.value ? new Date(startTimeTs.value).toISOString() : null
     form.value.endTime = endTimeTs.value ? new Date(endTimeTs.value).toISOString() : null
     form.value.options.forEach((o, i) => { o.sortOrder = i })
     if (isEdit.value) {
