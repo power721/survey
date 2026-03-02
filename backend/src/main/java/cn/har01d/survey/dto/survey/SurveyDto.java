@@ -16,6 +16,7 @@ public class SurveyDto {
     private boolean anonymous;
     private boolean template;
     private boolean allowUpdate;
+    private String logoUrl;
     private Instant startTime;
     private Instant endTime;
     private int responseCount;

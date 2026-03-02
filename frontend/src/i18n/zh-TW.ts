@@ -41,6 +41,8 @@ export default {
     startTime: '開始時間',
     startTimeRequired: '請設定開始時間',
     endTimeBeforeStartTime: '結束時間必須大於開始時間',
+      logoUrl: 'Logo 圖片連結',
+      logoUrlPlaceholder: '請輸入 Logo 圖片連結（可選）',
   },
   auth: {
     username: '使用者名稱',

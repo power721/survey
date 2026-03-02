@@ -41,6 +41,8 @@ export default {
     startTime: 'Start Time',
     startTimeRequired: 'Please set a start time',
     endTimeBeforeStartTime: 'End time must be after start time',
+      logoUrl: 'Logo Image URL',
+      logoUrlPlaceholder: 'Enter logo image URL (optional)',
   },
   auth: {
     username: 'Username',

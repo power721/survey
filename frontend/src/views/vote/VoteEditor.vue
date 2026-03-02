@@ -8,6 +8,9 @@
         <n-form-item :label="t('survey.description')">
           <n-input v-model:value="form.description" type="textarea" :rows="3" />
         </n-form-item>
+        <n-form-item :label="t('common.logoUrl')">
+          <n-input v-model:value="form.logoUrl" :placeholder="t('common.logoUrlPlaceholder')"/>
+        </n-form-item>
 
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
@@ -123,13 +126,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
 import draggable from 'vuedraggable'
-import { voteApi } from '@/api/vote'
-import type { VotePollCreateRequest } from '@/types'
+import {voteApi} from '@/api/vote'
+import type {VotePollCreateRequest} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
@@ -158,6 +161,7 @@ function nextKey() { return `opt_${++keySeq}` }
 const form = ref<VotePollCreateRequest>({
   title: '',
   description: '',
+  logoUrl: null,
   voteType: 'SINGLE',
   frequency: 'ONCE',
   accessLevel: 'PUBLIC',
@@ -239,6 +243,7 @@ async function loadPoll() {
     form.value = {
       title: poll.title,
       description: poll.description || '',
+      logoUrl: poll.logoUrl || null,
       voteType: poll.voteType,
       frequency: poll.frequency,
       accessLevel: poll.accessLevel,

@@ -8,6 +8,9 @@
         <n-form-item :label="t('survey.description')">
           <n-input v-model:value="form.description" type="textarea" :rows="3" :placeholder="t('survey.description')" />
         </n-form-item>
+        <n-form-item :label="t('common.logoUrl')">
+          <n-input v-model:value="form.logoUrl" :placeholder="t('common.logoUrlPlaceholder')"/>
+        </n-form-item>
 
         <n-grid :cols="3" :x-gap="16">
           <n-gi>
@@ -94,13 +97,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
 import draggable from 'vuedraggable'
-import { surveyApi } from '@/api/survey'
-import type { SurveyCreateRequest, QuestionRequest, OptionRequest } from '@/types'
+import {surveyApi} from '@/api/survey'
+import type {SurveyCreateRequest} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
@@ -118,6 +121,7 @@ function nextKey() { return `q_${++keySeq}` }
 const form = ref<SurveyCreateRequest>({
   title: '',
   description: '',
+  logoUrl: null,
   accessLevel: 'PUBLIC',
   anonymous: true,
   template: false,
@@ -194,6 +198,7 @@ async function loadSurvey() {
     form.value = {
       title: survey.title,
       description: survey.description || '',
+      logoUrl: survey.logoUrl || null,
       accessLevel: survey.accessLevel,
       anonymous: survey.anonymous,
       template: survey.template,

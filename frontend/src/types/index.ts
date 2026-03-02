@@ -31,6 +31,7 @@ export interface SurveyDto {
   anonymous: boolean
   template: boolean
   allowUpdate: boolean
+    logoUrl: string | null
   startTime: string | null
   endTime: string | null
   responseCount: number
@@ -63,6 +64,7 @@ export interface SurveyCreateRequest {
   anonymous: boolean
   template: boolean
   allowUpdate: boolean
+    logoUrl: string | null
   startTime: string | null
   endTime: string | null
   questions: QuestionRequest[]
@@ -152,6 +154,7 @@ export interface VotePollDto {
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
+    logoUrl: string | null
   startTime: string
   endTime: string
   totalVoteCount: number
@@ -184,6 +187,7 @@ export interface VotePollCreateRequest {
   maxTotalVotes: number | null
   maxOptions: number | null
   maxVotesPerOption: number | null
+    logoUrl: string | null
   startTime: string | null
   endTime: string | null
   options: VoteOptionRequest[]

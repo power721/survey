@@ -41,6 +41,8 @@ export default {
     startTime: '開始日時',
     startTimeRequired: '開始日時を設定してください',
     endTimeBeforeStartTime: '終了日時は開始日時より後に設定してください',
+      logoUrl: 'ロゴ画像URL',
+      logoUrlPlaceholder: 'ロゴ画像のURLを入力（任意）',
   },
   auth: {
     username: 'ユーザー名',

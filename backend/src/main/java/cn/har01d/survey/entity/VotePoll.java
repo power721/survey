@@ -79,6 +79,9 @@ public class VotePoll {
 
     private Integer maxVotesPerOption;
 
+    @Column(length = 500)
+    private String logoUrl;
+
     private Instant startTime;
 
     private Instant endTime;

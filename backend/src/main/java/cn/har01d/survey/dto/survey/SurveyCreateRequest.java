@@ -22,6 +22,8 @@ public class SurveyCreateRequest {
     private boolean anonymous = true;
     private boolean template = false;
     private boolean allowUpdate = false;
+    @Size(max = 500)
+    private String logoUrl;
     private Instant startTime;
     private Instant endTime;
 

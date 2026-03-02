@@ -67,6 +67,9 @@ public class Survey {
 
     private boolean allowUpdate = false;
 
+    @Column(length = 500)
+    private String logoUrl;
+
     private Instant startTime;
 
     private Instant endTime;

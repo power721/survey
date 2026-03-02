@@ -41,6 +41,8 @@ export default {
     startTime: '시작 시간',
     startTimeRequired: '시작 시간을 설정해 주세요',
     endTimeBeforeStartTime: '종료 시간은 시작 시간 이후여야 합니다',
+      logoUrl: '로고 이미지 URL',
+      logoUrlPlaceholder: '로고 이미지 URL을 입력하세요 (선택)',
   },
   auth: {
     username: '사용자명',

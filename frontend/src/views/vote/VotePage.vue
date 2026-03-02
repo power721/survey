@@ -2,7 +2,9 @@
   <div class="card-container">
     <n-spin :show="loading">
       <template v-if="poll">
-        <n-card :title="poll.title">
+        <img v-if="poll.logoUrl" :src="poll.logoUrl" :alt="poll.title"
+             style="width: 100%; display: block; border-radius: 8px 8px 0 0"/>
+        <n-card :title="poll.title" :style="poll.logoUrl ? { borderTopLeftRadius: 0, borderTopRightRadius: 0 } : {}">
           <template #header-extra>
             <n-space>
               <template v-if="!isNotStarted">
@@ -142,14 +144,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import { voteApi } from '@/api/vote'
-import type { VotePollDto } from '@/types'
-import { Client } from '@stomp/stompjs'
-import { useAuthStore } from '@/stores/auth'
+import {computed, onMounted, onUnmounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
+import {voteApi} from '@/api/vote'
+import type {VotePollDto} from '@/types'
+import {Client} from '@stomp/stompjs'
+import {useAuthStore} from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()

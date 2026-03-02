@@ -81,6 +81,7 @@ public class VoteService {
                 .shareId(generateShareId())
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .logoUrl(request.getLogoUrl())
                 .user(user)
                 .voteType(VotePoll.VoteType.valueOf(request.getVoteType()))
                 .frequency(VotePoll.VoteFrequency.valueOf(request.getFrequency()))
@@ -123,6 +124,7 @@ public class VoteService {
 
         poll.setTitle(request.getTitle());
         poll.setDescription(request.getDescription());
+        poll.setLogoUrl(request.getLogoUrl());
         poll.setVoteType(VotePoll.VoteType.valueOf(request.getVoteType()));
         poll.setFrequency(VotePoll.VoteFrequency.valueOf(request.getFrequency()));
         poll.setAccessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()));
@@ -524,6 +526,7 @@ public class VoteService {
         dto.setShareId(poll.getShareId());
         dto.setTitle(poll.getTitle());
         dto.setDescription(poll.getDescription());
+        dto.setLogoUrl(poll.getLogoUrl());
         dto.setVoteType(poll.getVoteType().name());
         dto.setFrequency(poll.getFrequency().name());
         dto.setStatus(poll.getStatus().name());

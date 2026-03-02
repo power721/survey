@@ -10,7 +10,10 @@
       </template>
 
       <template v-else-if="myResponse && survey && !editing">
-        <n-card :title="survey.title">
+        <img v-if="survey.logoUrl" :src="survey.logoUrl" :alt="survey.title"
+             style="width: 100%; display: block; border-radius: 8px 8px 0 0"/>
+        <n-card :title="survey.title"
+                :style="survey.logoUrl ? { borderTopLeftRadius: 0, borderTopRightRadius: 0 } : {}">
           <template #header-extra>
             <n-tag type="success" size="small">{{ t('survey.alreadySubmitted') }}</n-tag>
           </template>
@@ -55,12 +58,16 @@
       </template>
 
       <template v-else-if="survey">
-        <n-card :title="survey.title">
+        <img v-if="survey.logoUrl" :src="survey.logoUrl" :alt="survey.title"
+             style="width: 100%; display: block; border-radius: 8px 8px 0 0"/>
+        <n-card :title="survey.title"
+                :style="survey.logoUrl ? { borderTopLeftRadius: 0, borderTopRightRadius: 0 } : {}">
           <template #header-extra>
             <n-space>
               <n-tag v-if="!isNotStarted && survey.anonymous" type="info" size="small">{{ t('survey.anonymous') }}</n-tag>
             </n-space>
           </template>
+
           <n-space style="margin-bottom: 16px">
             <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
             <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}</n-text>
@@ -157,14 +164,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import { surveyApi } from '@/api/survey'
-import { fileApi } from '@/api/file'
-import { useAuthStore } from '@/stores/auth'
-import type { SurveyDto, SurveySubmitRequest, SurveyResponseDto } from '@/types'
+import {computed, onBeforeUnmount, onMounted, reactive, ref} from 'vue'
+import {onBeforeRouteLeave, useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
+import {surveyApi} from '@/api/survey'
+import {fileApi} from '@/api/file'
+import {useAuthStore} from '@/stores/auth'
+import type {SurveyDto, SurveyResponseDto, SurveySubmitRequest} from '@/types'
 
 const router = useRouter()
 const route = useRoute()
