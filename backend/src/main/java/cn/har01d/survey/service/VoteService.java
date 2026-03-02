@@ -100,6 +100,7 @@ public class VoteService {
                 .showVoters(request.isShowVoters())
                 .maxTotalVotes(request.getMaxTotalVotes())
                 .maxOptions(request.getMaxOptions())
+                .minOptions(request.getMinOptions())
                 .maxVotesPerOption(request.getMaxVotesPerOption())
                 .startTime(request.getStartTime())
                 .endTime(endTime)
@@ -143,6 +144,7 @@ public class VoteService {
         poll.setShowVoters(request.isShowVoters());
         poll.setMaxTotalVotes(request.getMaxTotalVotes());
         poll.setMaxOptions(request.getMaxOptions());
+        poll.setMinOptions(request.getMinOptions());
         poll.setMaxVotesPerOption(request.getMaxVotesPerOption());
         Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(DEFAULT_DEADLINE);
         if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
@@ -584,6 +586,7 @@ public class VoteService {
         dto.setTitle(poll.getTitle());
         dto.setLogoUrl(poll.getLogoUrl());
         dto.setVoteType(poll.getVoteType().name());
+        dto.setFrequency(poll.getFrequency().name());
         dto.setStatus(poll.getStatus().name());
         dto.setAccessLevel(poll.getAccessLevel().name());
         dto.setAnonymous(poll.isAnonymous());
@@ -612,6 +615,7 @@ public class VoteService {
         dto.setShowVoters(poll.isShowVoters());
         dto.setMaxTotalVotes(poll.getMaxTotalVotes());
         dto.setMaxOptions(poll.getMaxOptions());
+        dto.setMinOptions(poll.getMinOptions());
         dto.setMaxVotesPerOption(poll.getMaxVotesPerOption());
         dto.setStartTime(poll.getStartTime());
         dto.setEndTime(poll.getEndTime());

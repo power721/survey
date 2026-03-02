@@ -224,6 +224,7 @@ export interface VotePollDto {
     showVoters: boolean
     maxTotalVotes: number | null
     maxOptions: number | null
+    minOptions: number | null
     maxVotesPerOption: number | null
     logoUrl: string | null
     backgroundUrl: string | null
@@ -263,6 +264,7 @@ export interface VotePollCreateRequest {
     showVoters: boolean
     maxTotalVotes: number | null
     maxOptions: number | null
+    minOptions: number | null
     maxVotesPerOption: number | null
     logoUrl: string | null
     backgroundUrl: string | null

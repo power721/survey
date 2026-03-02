@@ -77,6 +77,8 @@ public class VotePoll {
 
     private Integer maxOptions;
 
+    private Integer minOptions;
+
     private Integer maxVotesPerOption;
 
     @Column(length = 500)

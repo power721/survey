@@ -154,6 +154,8 @@ export default {
         daily: 'Once per day',
         maxTotalVotes: 'Max Votes Per Person',
         maxVotesPerOption: 'Max Votes Per Option',
+        minOptions: 'Min Options To Select',
+        minOptionsPlaceholder: 'Leave blank for no limit',
         maxOptions: 'Max Options To Select',
         remainingVotes: 'Remaining Votes',
         optionTitle: 'Option Title',

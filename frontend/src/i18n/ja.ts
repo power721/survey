@@ -154,6 +154,8 @@ export default {
         daily: '1日1回',
         maxTotalVotes: '1人あたりの最大投票数',
         maxVotesPerOption: '1項目あたりの最大投票数',
+        minOptions: '最小選択数',
+        minOptionsPlaceholder: '未入力の場合は無制限',
         maxOptions: '最大選択数',
         remainingVotes: '残り投票数',
         optionTitle: '選択肢タイトル',

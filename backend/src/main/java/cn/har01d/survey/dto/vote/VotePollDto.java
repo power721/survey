@@ -20,6 +20,7 @@ public class VotePollDto {
     private boolean showVoters;
     private Integer maxTotalVotes;
     private Integer maxOptions;
+    private Integer minOptions;
     private Integer maxVotesPerOption;
     private String logoUrl;
     private String backgroundUrl;

@@ -61,8 +61,13 @@
 
         <n-grid :cols="2" :x-gap="16">
           <n-gi v-if="form.voteType === 'MULTIPLE'">
+            <n-form-item :label="t('vote.minOptions')">
+              <n-input-number v-model:value="form.minOptions" :min="1" clearable style="width: 100%" :placeholder="t('vote.minOptionsPlaceholder')"/>
+            </n-form-item>
+          </n-gi>
+          <n-gi v-if="form.voteType === 'MULTIPLE'">
             <n-form-item :label="t('vote.maxOptions')">
-              <n-input-number v-model:value="form.maxOptions" :min="2" clearable style="width: 100%"/>
+              <n-input-number v-model:value="form.maxOptions" :min="1" clearable style="width: 100%"/>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -181,6 +186,7 @@ const form = ref<VotePollCreateRequest>({
   showVoters: true,
   maxTotalVotes: null,
   maxOptions: null,
+  minOptions: null,
   maxVotesPerOption: null,
   startTime: null,
   endTime: null,
@@ -264,6 +270,7 @@ async function loadPoll() {
       showVoters: poll.showVoters,
       maxTotalVotes: poll.maxTotalVotes,
       maxOptions: poll.maxOptions,
+      minOptions: poll.minOptions,
       maxVotesPerOption: poll.maxVotesPerOption,
       startTime: poll.startTime,
       endTime: poll.endTime,

@@ -154,6 +154,8 @@ export default {
         daily: '每天一次',
         maxTotalVotes: '每人最多投票数',
         maxVotesPerOption: '每项最多投票数',
+        minOptions: '最少可选项数',
+        minOptionsPlaceholder: '不填则无限制',
         maxOptions: '最多可选项数',
         remainingVotes: '剩余票数',
         optionTitle: '选项标题',

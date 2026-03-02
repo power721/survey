@@ -154,6 +154,8 @@ export default {
         daily: '하루 1회',
         maxTotalVotes: '1인당 최대 투표 수',
         maxVotesPerOption: '항목당 최대 투표 수',
+        minOptions: '최소 선택 수',
+        minOptionsPlaceholder: '비워두면 무제한',
         maxOptions: '최대 선택 수',
         remainingVotes: '남은 투표 수',
         optionTitle: '선택지 제목',

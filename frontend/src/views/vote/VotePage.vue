@@ -124,6 +124,9 @@
             </n-space>
 
             <n-space vertical align="center" style="margin-bottom: 12px">
+              <n-text v-if="poll.voteType === 'MULTIPLE' && poll.minOptions" depth="3">
+                {{ t('vote.minOptions') }}: {{ poll.minOptions }}
+              </n-text>
               <n-text v-if="poll.voteType === 'MULTIPLE' && poll.maxOptions" depth="3">
                 {{ t('vote.maxOptions') }}: {{ poll.maxOptions }}
               </n-text>
@@ -312,6 +315,11 @@ const multipleReachedMax = computed(() => {
   return selectedMultiple.value.length >= poll.value.maxOptions
 })
 
+const multipleReachedMin = computed(() => {
+  if (!poll.value?.minOptions) return true
+  return selectedMultiple.value.length >= poll.value.minOptions
+})
+
 function onMultipleChange(values: (string | number)[]) {
   if (poll.value?.maxOptions && values.length > poll.value.maxOptions) {
     message.warning(`${t('vote.maxOptions')}: ${poll.value.maxOptions}`)
@@ -470,9 +478,15 @@ async function handleVote() {
       return
     }
 
-    if (poll.value.voteType === 'MULTIPLE' && poll.value.maxOptions && optionIds.length > poll.value.maxOptions) {
-      message.warning(`${t('vote.maxOptions')}: ${poll.value.maxOptions}`)
-      return
+    if (poll.value.voteType === 'MULTIPLE') {
+      if (poll.value.minOptions && optionIds.length < poll.value.minOptions) {
+        message.warning(`${t('vote.minOptions')}: ${poll.value.minOptions}`)
+        return
+      }
+      if (poll.value.maxOptions && optionIds.length > poll.value.maxOptions) {
+        message.warning(`${t('vote.maxOptions')}: ${poll.value.maxOptions}`)
+        return
+      }
     }
 
     submitting.value = true
