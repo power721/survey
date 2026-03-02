@@ -120,7 +120,8 @@
                 </template>
 
                 <template v-else-if="question.type === 'RATING'">
-                  <n-rate v-model:value="answers[question.id].numberValue" :count="5" />
+                  <n-rate :value="answers[question.id].numberValue ?? undefined"
+                          @update:value="(v: number) => answers[question.id].numberValue = v" :count="5"/>
                 </template>
 
                 <template v-else-if="question.type === 'DATE'">

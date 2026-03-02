@@ -266,12 +266,12 @@ const multipleReachedMax = computed(() => {
   return selectedMultiple.value.length >= poll.value.maxOptions
 })
 
-function onMultipleChange(values: number[]) {
+function onMultipleChange(values: (string | number)[]) {
   if (poll.value?.maxOptions && values.length > poll.value.maxOptions) {
     message.warning(`${t('vote.maxOptions')}: ${poll.value.maxOptions}`)
     return
   }
-  selectedMultiple.value = values
+  selectedMultiple.value = values as number[]
 }
 
 const totalScoredVotes = computed(() => {

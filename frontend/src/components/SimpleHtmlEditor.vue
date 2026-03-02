@@ -201,7 +201,7 @@ watch(() => props.modelValue, (val) => {
   if (!editor.value) return
   const current = editor.value.getHTML()
   if (current !== val) {
-    editor.value.commands.setContent(val || '', false)
+    editor.value.commands.setContent(val || '', {emitUpdate: false})
   }
 })
 
