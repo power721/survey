@@ -186,6 +186,7 @@ export default {
         registerEnabled: '회원가입 허용',
         oauth2Settings: '소셜 로그인',
         oauth2Enabled: '소셜 로그인 활성화',
+        oauth2RedirectUri: '콜백 URL (Redirect URI)',
         clientId: 'Client ID',
         clientSecret: 'Client Secret',
         uploadSettings: '파일 업로드',

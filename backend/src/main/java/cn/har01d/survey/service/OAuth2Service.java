@@ -77,19 +77,24 @@ public class OAuth2Service {
         return val.isEmpty() ? properties.getGoogle().getClientSecret() : val;
     }
 
+    private String getFrontendUrl() {
+        String val = configService.get(SystemConfigService.OAUTH2_REDIRECT_URI);
+        return val.isEmpty() ? properties.getFrontendUrl() : val;
+    }
+
     public String getAuthorizationUrl(String provider) {
         checkOAuth2Enabled();
         return switch (provider.toLowerCase()) {
             case "github" -> UriComponentsBuilder.fromUriString("https://github.com/login/oauth/authorize")
                     .queryParam("client_id", getGithubClientId())
                     .queryParam("scope", "read:user user:email")
-                    .queryParam("redirect_uri", properties.getFrontendUrl() + "/oauth2/callback/" + provider)
+                    .queryParam("redirect_uri", getFrontendUrl() + "/oauth2/callback/" + provider)
                     .build().toUriString();
             case "google" -> UriComponentsBuilder.fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
                     .queryParam("client_id", getGoogleClientId())
                     .queryParam("response_type", "code")
                     .queryParam("scope", "openid email profile")
-                    .queryParam("redirect_uri", properties.getFrontendUrl() + "/oauth2/callback/" + provider)
+                    .queryParam("redirect_uri", getFrontendUrl() + "/oauth2/callback/" + provider)
                     .build().toUriString();
             default -> throw new BusinessException("auth.oauth2.unsupported.provider");
         };
@@ -112,7 +117,7 @@ public class OAuth2Service {
                 "client_id", getGithubClientId(),
                 "client_secret", getGithubClientSecret(),
                 "code", code,
-                "redirect_uri", properties.getFrontendUrl() + "/oauth2/callback/github"
+                "redirect_uri", getFrontendUrl() + "/oauth2/callback/github"
         );
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
@@ -153,7 +158,7 @@ public class OAuth2Service {
                 "code", code,
                 "client_id", getGoogleClientId(),
                 "client_secret", getGoogleClientSecret(),
-                "redirect_uri", properties.getFrontendUrl() + "/oauth2/callback/google",
+                "redirect_uri", getFrontendUrl() + "/oauth2/callback/google",
                 "grant_type", "authorization_code"
         );
 

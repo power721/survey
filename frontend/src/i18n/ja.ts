@@ -186,6 +186,7 @@ export default {
         registerEnabled: '新規登録を許可',
         oauth2Settings: 'ソーシャルログイン',
         oauth2Enabled: 'ソーシャルログインを有効にする',
+        oauth2RedirectUri: 'コールバックURL (Redirect URI)',
         clientId: 'Client ID',
         clientSecret: 'Client Secret',
         uploadSettings: 'ファイルアップロード',

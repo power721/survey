@@ -186,6 +186,7 @@ export default {
         registerEnabled: 'Allow Registration',
         oauth2Settings: 'Third-party Login',
         oauth2Enabled: 'Enable Third-party Login',
+        oauth2RedirectUri: 'Callback URL (Redirect URI)',
         clientId: 'Client ID',
         clientSecret: 'Client Secret',
         uploadSettings: 'File Upload',

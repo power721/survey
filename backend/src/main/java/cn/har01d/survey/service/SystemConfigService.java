@@ -2,6 +2,9 @@ package cn.har01d.survey.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ public class SystemConfigService {
 
     // OAuth2
     public static final String OAUTH2_ENABLED = "oauth2.enabled";
+    public static final String OAUTH2_REDIRECT_URI = "oauth2.redirect-uri";
     public static final String GITHUB_CLIENT_ID = "oauth2.github.client-id";
     public static final String GITHUB_CLIENT_SECRET = "oauth2.github.client-secret";
     public static final String GOOGLE_CLIENT_ID = "oauth2.google.client-id";
@@ -39,15 +43,19 @@ public class SystemConfigService {
     public static final String JWT_SECRET = "jwt.secret";
 
     private final SystemConfigRepository configRepository;
+    private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public SystemConfigService(SystemConfigRepository configRepository) {
         this.configRepository = configRepository;
     }
 
+    @PostConstruct
+    public void init() {
+        configRepository.findAll().forEach(c -> cache.put(c.getConfigKey(), c.getConfigValue()));
+    }
+
     public String get(String key, String defaultValue) {
-        return configRepository.findByConfigKey(key)
-                .map(SystemConfig::getConfigValue)
-                .orElse(defaultValue);
+        return cache.getOrDefault(key, defaultValue);
     }
 
     public String get(String key) {
@@ -60,12 +68,11 @@ public class SystemConfigService {
                 .orElse(SystemConfig.builder().configKey(key).build());
         config.setConfigValue(value);
         configRepository.save(config);
+        cache.put(key, value);
     }
 
     public Map<String, String> getAll() {
-        Map<String, String> map = new HashMap<>();
-        configRepository.findAll().forEach(c -> map.put(c.getConfigKey(), c.getConfigValue()));
-        return map;
+        return new HashMap<>(cache);
     }
 
     @Transactional

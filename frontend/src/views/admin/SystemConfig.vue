@@ -30,6 +30,9 @@
             <n-switch v-model:value="form.oauth2Enabled"/>
           </n-form-item>
           <template v-if="form.oauth2Enabled">
+            <n-form-item :label="t('admin.oauth2RedirectUri')">
+              <n-input v-model:value="form.oauth2RedirectUri" placeholder="https://your-domain.com"/>
+            </n-form-item>
             <n-h4 prefix="bar">GitHub</n-h4>
             <n-form-item :label="t('admin.clientId')">
               <n-input v-model:value="form.githubClientId" placeholder="GitHub Client ID"/>
@@ -100,6 +103,7 @@ const form = ref({
   timezone: 'Asia/Shanghai',
   registerEnabled: true,
   oauth2Enabled: false,
+  oauth2RedirectUri: '',
   githubClientId: '',
   githubClientSecret: '',
   googleClientId: '',
@@ -129,6 +133,7 @@ onMounted(async () => {
     form.value.timezone = data['timezone'] || 'Asia/Shanghai'
     form.value.registerEnabled = data['register.enabled'] !== 'false'
     form.value.oauth2Enabled = data['oauth2.enabled'] === 'true'
+    form.value.oauth2RedirectUri = data['oauth2.redirect-uri'] || ''
     form.value.githubClientId = data['oauth2.github.client-id'] || ''
     form.value.githubClientSecret = data['oauth2.github.client-secret'] || ''
     form.value.googleClientId = data['oauth2.google.client-id'] || ''
@@ -157,6 +162,7 @@ async function handleSave() {
       'timezone': form.value.timezone,
       'register.enabled': String(form.value.registerEnabled),
       'oauth2.enabled': String(form.value.oauth2Enabled),
+      'oauth2.redirect-uri': form.value.oauth2RedirectUri,
       'oauth2.github.client-id': form.value.githubClientId,
       'oauth2.github.client-secret': form.value.githubClientSecret,
       'oauth2.google.client-id': form.value.googleClientId,

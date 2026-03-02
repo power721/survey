@@ -186,6 +186,7 @@ export default {
         registerEnabled: '开放注册',
         oauth2Settings: '第三方登录',
         oauth2Enabled: '开启第三方登录',
+        oauth2RedirectUri: '回调地址 (Redirect URI)',
         clientId: 'Client ID',
         clientSecret: 'Client Secret',
         uploadSettings: '文件上传',
