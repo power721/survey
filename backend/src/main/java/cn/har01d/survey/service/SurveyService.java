@@ -45,6 +45,7 @@ import cn.har01d.survey.repository.QuestionOptionRepository;
 import cn.har01d.survey.repository.QuestionRepository;
 import cn.har01d.survey.repository.SurveyRepository;
 import cn.har01d.survey.repository.SurveyResponseRepository;
+import cn.har01d.survey.util.HtmlSanitizer;
 
 @Service
 public class SurveyService {
@@ -84,7 +85,7 @@ public class SurveyService {
         Survey survey = Survey.builder()
                 .shareId(generateShareId())
                 .title(request.getTitle())
-                .description(request.getDescription())
+                .description(HtmlSanitizer.sanitize(request.getDescription()))
                 .logoUrl(request.getLogoUrl())
                 .backgroundUrl(request.getBackgroundUrl())
                 .user(user)
@@ -141,7 +142,7 @@ public class SurveyService {
         }
 
         survey.setTitle(request.getTitle());
-        survey.setDescription(request.getDescription());
+        survey.setDescription(HtmlSanitizer.sanitize(request.getDescription()));
         survey.setLogoUrl(request.getLogoUrl());
         survey.setBackgroundUrl(request.getBackgroundUrl());
         survey.setAccessLevel(Survey.AccessLevel.valueOf(request.getAccessLevel()));

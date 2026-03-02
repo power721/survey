@@ -27,7 +27,8 @@
             {{ countdownLabel }}: {{ countdownText }}
           </n-alert>
 
-          <p v-if="poll.description" style="margin-bottom: 16px; color: #666">{{ poll.description }}</p>
+          <div v-if="poll.description" class="description-html" style="margin-bottom: 16px; color: #666"
+               v-html="poll.description"></div>
 
           <n-alert v-if="isNotStarted" type="warning" style="margin-bottom: 16px">
             {{ t('vote.notStarted') }}
@@ -477,5 +478,25 @@ onUnmounted(() => {
   cursor: pointer;
   line-height: 1;
   user-select: none;
+}
+
+.description-html :deep(img) {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.description-html :deep(a) {
+  color: #2080f0;
+  text-decoration: underline;
+}
+
+.description-html :deep(p) {
+  margin: 0 0 8px;
+}
+
+.description-html :deep(ul),
+.description-html :deep(ol) {
+  padding-left: 20px;
+  margin: 0 0 8px;
 }
 </style>

@@ -39,6 +39,7 @@ import cn.har01d.survey.exception.ResourceNotFoundException;
 import cn.har01d.survey.repository.VoteOptionRepository;
 import cn.har01d.survey.repository.VotePollRepository;
 import cn.har01d.survey.repository.VoteRecordRepository;
+import cn.har01d.survey.util.HtmlSanitizer;
 
 @Service
 public class VoteService {
@@ -80,7 +81,7 @@ public class VoteService {
         VotePoll poll = VotePoll.builder()
                 .shareId(generateShareId())
                 .title(request.getTitle())
-                .description(request.getDescription())
+                .description(HtmlSanitizer.sanitize(request.getDescription()))
                 .logoUrl(request.getLogoUrl())
                 .backgroundUrl(request.getBackgroundUrl())
                 .user(user)
@@ -124,7 +125,7 @@ public class VoteService {
         }
 
         poll.setTitle(request.getTitle());
-        poll.setDescription(request.getDescription());
+        poll.setDescription(HtmlSanitizer.sanitize(request.getDescription()));
         poll.setLogoUrl(request.getLogoUrl());
         poll.setBackgroundUrl(request.getBackgroundUrl());
         poll.setVoteType(VotePoll.VoteType.valueOf(request.getVoteType()));

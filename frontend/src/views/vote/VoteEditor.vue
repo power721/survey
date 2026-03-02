@@ -6,7 +6,7 @@
           <n-input v-model:value="form.title" :placeholder="t('vote.voteTitle')" />
         </n-form-item>
         <n-form-item :label="t('vote.description')">
-          <n-input v-model:value="form.description" type="textarea" :rows="3" />
+          <SimpleHtmlEditor v-model="form.description"/>
         </n-form-item>
         <n-form-item :label="t('common.logoUrl')">
           <n-input v-model:value="form.logoUrl" :placeholder="t('common.logoUrlPlaceholder')"/>
@@ -136,6 +136,7 @@ import {useMessage} from 'naive-ui'
 import draggable from 'vuedraggable'
 import {voteApi} from '@/api/vote'
 import type {VotePollCreateRequest} from '@/types'
+import SimpleHtmlEditor from '@/components/SimpleHtmlEditor.vue'
 
 const router = useRouter()
 const route = useRoute()

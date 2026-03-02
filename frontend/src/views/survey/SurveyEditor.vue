@@ -6,7 +6,7 @@
           <n-input v-model:value="form.title" :placeholder="t('survey.surveyTitle')" />
         </n-form-item>
         <n-form-item :label="t('survey.description')">
-          <n-input v-model:value="form.description" type="textarea" :rows="3" :placeholder="t('survey.description')" />
+          <SimpleHtmlEditor v-model="form.description"/>
         </n-form-item>
         <n-form-item :label="t('common.logoUrl')">
           <n-input v-model:value="form.logoUrl" :placeholder="t('common.logoUrlPlaceholder')"/>
@@ -107,6 +107,7 @@ import {useMessage} from 'naive-ui'
 import draggable from 'vuedraggable'
 import {surveyApi} from '@/api/survey'
 import type {SurveyCreateRequest} from '@/types'
+import SimpleHtmlEditor from '@/components/SimpleHtmlEditor.vue'
 
 const router = useRouter()
 const route = useRoute()

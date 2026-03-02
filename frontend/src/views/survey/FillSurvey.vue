@@ -24,7 +24,8 @@
             <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}: {{ new Date(survey.endTime).toLocaleString() }}</n-text>
           </n-space>
 
-          <p v-if="survey.description" style="margin-bottom: 24px; color: #666">{{ survey.description }}</p>
+          <div v-if="survey.description" class="description-html" style="margin-bottom: 24px; color: #666"
+               v-html="survey.description"></div>
 
           <n-alert type="info" style="margin-bottom: 16px">{{ t('survey.viewMyResponse') }}</n-alert>
 
@@ -410,3 +411,25 @@ watchEffect(() => {
 
 onMounted(loadSurvey)
 </script>
+
+<style scoped>
+.description-html :deep(img) {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.description-html :deep(a) {
+  color: #2080f0;
+  text-decoration: underline;
+}
+
+.description-html :deep(p) {
+  margin: 0 0 8px;
+}
+
+.description-html :deep(ul),
+.description-html :deep(ol) {
+  padding-left: 20px;
+  margin: 0 0 8px;
+}
+</style>
