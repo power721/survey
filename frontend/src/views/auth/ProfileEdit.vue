@@ -3,11 +3,14 @@
     <n-card :title="t('common.editProfile')">
       <n-spin :show="loading">
         <div style="display: flex; justify-content: center; margin-bottom: 24px">
-          <n-avatar :src="form.avatar || undefined" :size="80" round>
-            <template v-if="!form.avatar" #default>
-              <span style="font-size: 32px">{{ (form.nickname || form.username || '?').charAt(0) }}</span>
-            </template>
-          </n-avatar>
+          <a href="https://gravatar.com" target="_blank" rel="noopener noreferrer"
+             style="display: inline-block; cursor: pointer">
+            <n-avatar :src="form.avatar || undefined" :size="80" round>
+              <template v-if="!form.avatar" #default>
+                <span style="font-size: 32px">{{ (form.nickname || form.username || '?').charAt(0) }}</span>
+              </template>
+            </n-avatar>
+          </a>
         </div>
         <n-form ref="formRef" :model="form" label-placement="top">
           <n-form-item :label="t('auth.username')">

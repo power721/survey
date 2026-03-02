@@ -20,7 +20,14 @@
                 <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}:
                   {{ new Date(poll.endTime).toLocaleString() }}
                 </n-text>
-                <n-text depth="3">{{ poll.creatorName }}</n-text>
+                <n-space align="center" :size="4">
+                  <n-avatar :src="poll.creatorAvatar || undefined" :size="20" round style="vertical-align: middle">
+                    <template v-if="!poll.creatorAvatar" #default>
+                      <span style="font-size: 11px">{{ (poll.creatorName || '?').charAt(0) }}</span>
+                    </template>
+                  </n-avatar>
+                  <n-text depth="3">{{ poll.creatorName }}</n-text>
+                </n-space>
               </n-space>
             </template>
           </n-card>

@@ -19,7 +19,15 @@
           </template>
 
           <n-space style="margin-bottom: 16px">
-            <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
+            <n-space v-if="survey.creatorName" align="center" :size="4">
+              <n-text depth="3">{{ t('common.creator') }}:</n-text>
+              <n-avatar :src="survey.creatorAvatar || undefined" :size="20" round>
+                <template v-if="!survey.creatorAvatar" #default>
+                  <span style="font-size: 11px">{{ (survey.creatorName || '?').charAt(0) }}</span>
+                </template>
+              </n-avatar>
+              <n-text depth="3">{{ survey.creatorName }}</n-text>
+            </n-space>
             <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}:
               {{ new Date(survey.startTime).toLocaleString() }}
             </n-text>
@@ -83,7 +91,15 @@
           </template>
 
           <n-space style="margin-bottom: 16px">
-            <n-text v-if="survey.creatorName" depth="3">{{ t('common.creator') }}: {{ survey.creatorName }}</n-text>
+            <n-space v-if="survey.creatorName" align="center" :size="4">
+              <n-text depth="3">{{ t('common.creator') }}:</n-text>
+              <n-avatar :src="survey.creatorAvatar || undefined" :size="20" round>
+                <template v-if="!survey.creatorAvatar" #default>
+                  <span style="font-size: 11px">{{ (survey.creatorName || '?').charAt(0) }}</span>
+                </template>
+              </n-avatar>
+              <n-text depth="3">{{ survey.creatorName }}</n-text>
+            </n-space>
             <n-text v-if="survey.startTime" depth="3">{{ t('common.startTime') }}:
               {{ new Date(survey.startTime).toLocaleString() }}
             </n-text>

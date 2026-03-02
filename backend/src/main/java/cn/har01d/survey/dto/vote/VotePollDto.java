@@ -27,6 +27,7 @@ public class VotePollDto {
     private int totalVoteCount;
     private List<VoteOptionDto> options;
     private String creatorName;
+    private String creatorAvatar;
     private boolean hasVoted;
     private Instant createdAt;
     private Instant updatedAt;

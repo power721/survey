@@ -17,7 +17,15 @@
           </template>
 
           <n-space style="margin-bottom: 16px">
-            <n-text v-if="poll.creatorName" depth="3">{{ t('common.creator') }}: {{ poll.creatorName }}</n-text>
+            <n-space v-if="poll.creatorName" align="center" :size="4">
+              <n-text depth="3">{{ t('common.creator') }}:</n-text>
+              <n-avatar :src="poll.creatorAvatar || undefined" :size="20" round>
+                <template v-if="!poll.creatorAvatar" #default>
+                  <span style="font-size: 11px">{{ (poll.creatorName || '?').charAt(0) }}</span>
+                </template>
+              </n-avatar>
+              <n-text depth="3">{{ poll.creatorName }}</n-text>
+            </n-space>
             <n-text v-if="poll.startTime" depth="3">{{ t('common.startTime') }}:
               {{ new Date(poll.startTime).toLocaleString() }}
             </n-text>

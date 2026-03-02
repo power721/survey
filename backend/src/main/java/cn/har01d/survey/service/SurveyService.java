@@ -45,6 +45,7 @@ import cn.har01d.survey.repository.QuestionOptionRepository;
 import cn.har01d.survey.repository.QuestionRepository;
 import cn.har01d.survey.repository.SurveyRepository;
 import cn.har01d.survey.repository.SurveyResponseRepository;
+import cn.har01d.survey.util.GravatarUtil;
 import cn.har01d.survey.util.HtmlSanitizer;
 
 @Service
@@ -284,6 +285,7 @@ public class SurveyService {
             dto.setStartTime(survey.getStartTime());
             dto.setEndTime(survey.getEndTime());
             dto.setCreatorName(survey.getUser().getNickname());
+            dto.setCreatorAvatar(resolveAvatar(survey.getUser()));
             dto.setCreatedAt(survey.getCreatedAt());
             dto.setQuestions(List.of());
             return dto;
@@ -601,6 +603,7 @@ public class SurveyService {
         dto.setEndTime(survey.getEndTime());
         dto.setResponseCount(survey.getResponseCount());
         dto.setCreatorName(survey.getUser().getNickname());
+        dto.setCreatorAvatar(resolveAvatar(survey.getUser()));
         dto.setCreatedAt(survey.getCreatedAt());
         dto.setUpdatedAt(survey.getUpdatedAt());
 
@@ -667,5 +670,15 @@ public class SurveyService {
             dto.setSelectedOptionContents(contents);
         }
         return dto;
+    }
+
+    private String resolveAvatar(User user) {
+        if (user.getAvatar() != null && !user.getAvatar().isBlank()) {
+            return user.getAvatar();
+        }
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return GravatarUtil.getAvatarUrl(user.getEmail());
+        }
+        return GravatarUtil.getAvatarUrl(user.getUsername());
     }
 }

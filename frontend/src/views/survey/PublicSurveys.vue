@@ -14,7 +14,14 @@
                 <n-text v-if="survey.startTime && new Date(survey.startTime).getTime() > Date.now()" depth="3">
                   {{ t('common.startTime') }}: {{ new Date(survey.startTime).toLocaleString() }}
                 </n-text>
-                <n-text depth="3">{{ survey.creatorName }}</n-text>
+                <n-space align="center" :size="4">
+                  <n-avatar :src="survey.creatorAvatar || undefined" :size="20" round style="vertical-align: middle">
+                    <template v-if="!survey.creatorAvatar" #default>
+                      <span style="font-size: 11px">{{ (survey.creatorName || '?').charAt(0) }}</span>
+                    </template>
+                  </n-avatar>
+                  <n-text depth="3">{{ survey.creatorName }}</n-text>
+                </n-space>
               </n-space>
             </template>
           </n-card>

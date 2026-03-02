@@ -23,6 +23,7 @@ public class SurveyDto {
     private int responseCount;
     private List<QuestionDto> questions;
     private String creatorName;
+    private String creatorAvatar;
     private Instant createdAt;
     private Instant updatedAt;
 }

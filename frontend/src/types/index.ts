@@ -39,6 +39,7 @@ export interface SurveyDto {
     responseCount: number
     questions: QuestionDto[]
     creatorName: string
+    creatorAvatar: string | null
     createdAt: string
     updatedAt: string
 }
@@ -164,6 +165,7 @@ export interface VotePollDto {
     totalVoteCount: number
     options: VoteOptionDto[]
     creatorName: string
+    creatorAvatar: string | null
     hasVoted: boolean
     createdAt: string
     updatedAt: string

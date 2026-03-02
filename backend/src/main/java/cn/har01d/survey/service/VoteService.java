@@ -224,6 +224,7 @@ public class VoteService {
             dto.setStartTime(poll.getStartTime());
             dto.setEndTime(poll.getEndTime());
             dto.setCreatorName(poll.getUser().getNickname());
+            dto.setCreatorAvatar(resolveAvatar(poll.getUser()));
             dto.setCreatedAt(poll.getCreatedAt());
             dto.setOptions(List.of());
             return dto;
@@ -546,6 +547,7 @@ public class VoteService {
         dto.setEndTime(poll.getEndTime());
         dto.setTotalVoteCount(poll.getTotalVoteCount());
         dto.setCreatorName(poll.getUser().getNickname());
+        dto.setCreatorAvatar(resolveAvatar(poll.getUser()));
         dto.setHasVoted(hasVoted != null && hasVoted);
         dto.setCreatedAt(poll.getCreatedAt());
         dto.setUpdatedAt(poll.getUpdatedAt());
@@ -585,6 +587,16 @@ public class VoteService {
         dto.setOptions(optionDtos);
 
         return dto;
+    }
+
+    private String resolveAvatar(User user) {
+        if (user.getAvatar() != null && !user.getAvatar().isBlank()) {
+            return user.getAvatar();
+        }
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return GravatarUtil.getAvatarUrl(user.getEmail());
+        }
+        return GravatarUtil.getAvatarUrl(user.getUsername());
     }
 
     @Scheduled(fixedRate = 300000)
