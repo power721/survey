@@ -218,16 +218,19 @@ Dockerfile 多阶段构建：
 
 **请求数据**：
 
-| 字段 | 类型 | 必填 | 约束 | 说明 |
-|------|------|------|------|------|
-| `title` | String | 是 | 最长 200 字符 | 问卷标题 |
-| `description` | String | 否 | 最长 2000 字符 | 问卷描述 |
-| `accessLevel` | Enum | 否 | PUBLIC / PRIVATE，默认 PUBLIC | 访问权限 |
-| `anonymous` | Boolean | 否 | 默认 true | 是否匿名 |
-| `template` | Boolean | 否 | 默认 false | 是否为模板 |
-| `startTime` | Instant | 否 | — | 开始时间 |
-| `endTime` | Instant | 否 | — | 截止时间 |
-| `questions` | List | 否 | — | 题目列表 |
+| 字段              | 类型      | 必填 | 约束                          | 说明           |
+|-----------------|---------|----|-----------------------------|--------------|
+| `title`         | String  | 是  | 最长 200 字符                   | 问卷标题         |
+| `description`   | String  | 否  | 最长 2000 字符，支持简单 HTML（服务端净化） | 问卷描述         |
+| `accessLevel`   | Enum    | 否  | PUBLIC / PRIVATE，默认 PUBLIC  | 访问权限         |
+| `anonymous`     | Boolean | 否  | 默认 true                     | 是否匿名         |
+| `template`      | Boolean | 否  | 默认 false                    | 是否为模板        |
+| `startTime`     | Instant | 否  | —                           | 开始时间，未到时隐藏内容 |
+| `endTime`       | Instant | 否  | —                           | 截止时间         |
+| `logoUrl`       | String  | 否  | 最长 500 字符                   | 问卷 Logo URL  |
+| `backgroundUrl` | String  | 否  | 最长 500 字符                   | 问卷背景图片 URL   |
+| `questions`     | List    | 否  | 层平题目列表（无分组时使用）              | 题目列表         |
+| `sections`      | List    | 否  | 分组列表（与 questions 互斥）        | 题目分组         |
 
 **题目数据（QuestionRequest）**：
 
@@ -268,6 +271,8 @@ Dockerfile 多阶段构建：
 - 自动生成 12 位随机 `shareId`（UUID 去横线截取前 12 位）
 - 初始状态为 DRAFT
 - 返回完整问卷 DTO，包含所有题目和选项
+- `description` 经 `HtmlSanitizer` 净化后存储
+- 有 `startTime` 且未到达时：返回问卷基本信息不返回题目内容，前端显示开始倒计时
 
 #### 3.2.2 编辑问卷
 
@@ -302,7 +307,26 @@ Dockerfile 多阶段构建：
 | 公开问卷列表 | `GET /api/surveys/public` | 公开 | 仅 PUBLISHED + PUBLIC 的问卷，按创建时间倒序分页 |
 | 问卷模板 | `GET /api/surveys/templates` | 已登录 | 仅 `template=true` 的问卷，分页 |
 
-#### 3.2.5 填写问卷
+#### 3.2.5 题目分组（SurveySection）
+
+题目可按分组组织，`SurveySectionRequest` 字段：
+
+| 字段          | 类型     | 说明          |
+|-------------|--------|-------------|
+| `id`        | Long   | 更新时提供，新增时为空 |
+| `title`     | String | 分组标题（可空）    |
+| `sortOrder` | int    | 排序顺序        |
+| `questions` | List   | 分组内题目列表     |
+
+**业务规则**：
+
+- 问卷必须至少有一个题目（层平或分组内均可）
+- `sections` 与 `questions` 互斥，不可同时传入
+- 提交回复时，`questionRepository.findBySurveyId` 统一查询所有题目（含分组题目）
+- 前端编辑器支持拖拽排序分组和分组内题目，默认创建一个分组
+- 填写时按分组分步展示（`n-steps`），每步独立校验后才能进入下一步
+
+#### 3.2.6 填写问卷
 
 **前置条件**：问卷状态为 PUBLISHED 且未过截止时间
 
@@ -329,8 +353,22 @@ Dockerfile 多阶段构建：
 - IP 获取优先级：`X-Forwarded-For` → `X-Real-IP` → `remoteAddr`
 - 非匿名问卷记录当前用户信息（如已登录）
 - 提交后问卷 `responseCount` 自增
+- **防重复提交**：
+    - 已登录用户（`allowUpdate=false`）：检查 `existsBySurveyIdAndUserId`，重复则返回 HTTP 400
+    - 匿名用户：检查 `existsBySurveyIdAndIp`，前端同时写入 `localStorage` 标记
+    - 重复提交返回错误码 `survey.already.submitted`
 
-#### 3.2.6 回复管理
+#### 3.2.7 查看自己的回复
+
+**接口**：`GET /api/surveys/s/{shareId}/my-response`
+
+**前置条件**：用户已登录
+
+**返回**：该用户最近一次提交的回复，包含所有答案详情；未提交则返回 `null`。
+
+**业务规则**：用于 `allowUpdate=true` 时前端加载历史答案回填表单。
+
+#### 3.2.8 回复管理
 
 **前置条件**：用户已登录，且为问卷创建者
 
@@ -341,7 +379,7 @@ Dockerfile 多阶段构建：
 
 **分页**：默认按创建时间倒序，每页 10 条
 
-#### 3.2.7 统计分析
+#### 3.2.9 统计分析
 
 **前置条件**：用户已登录，且为问卷创建者
 
@@ -359,7 +397,7 @@ Dockerfile 多阶段构建：
   - 选择题：每个选项的选择次数和百分比
   - 非选择题：所有文本答案列表
 
-#### 3.2.8 导出 Excel
+#### 3.2.10 导出 Excel
 
 **前置条件**：用户已登录，且为问卷创建者
 
@@ -388,19 +426,22 @@ Dockerfile 多阶段构建：
 
 **请求数据（VotePollCreateRequest）**：
 
-| 字段 | 类型 | 必填 | 约束 | 说明 |
-|------|------|------|------|------|
-| `title` | String | 是 | 最长 200 字符 | 投票标题 |
-| `description` | String | 否 | 最长 2000 字符 | 投票描述 |
-| `voteType` | Enum | 否 | SINGLE / MULTIPLE / SCORED，默认 SINGLE | 投票类型 |
-| `frequency` | Enum | 否 | ONCE / DAILY，默认 ONCE | 投票频率 |
-| `accessLevel` | Enum | 否 | PUBLIC / PRIVATE，默认 PUBLIC | 访问权限 |
-| `anonymous` | Boolean | 否 | 默认 true | 是否匿名 |
-| `maxTotalVotes` | Integer | 否 | — | 每人最多总票数（仅 SCORED） |
-| `maxOptions` | Integer | 否 | — | 最多可选项数（仅 MULTIPLE） |
-| `maxVotesPerOption` | Integer | 否 | — | 每项最多投票数（仅 SCORED） |
-| `endTime` | Instant | 否 | — | 截止时间 |
-| `options` | List | 是 | 不能为空 | 投票选项列表 |
+| 字段                  | 类型      | 必填 | 约束                                   | 说明                 |
+|---------------------|---------|----|--------------------------------------|--------------------|
+| `title`             | String  | 是  | 最长 200 字符                            | 投票标题               |
+| `description`       | String  | 否  | 最长 2000 字符，支持简单 HTML（服务端净化）          | 投票描述               |
+| `voteType`          | Enum    | 否  | SINGLE / MULTIPLE / SCORED，默认 SINGLE | 投票类型               |
+| `frequency`         | Enum    | 否  | ONCE / DAILY，默认 ONCE                 | 投票频率               |
+| `accessLevel`       | Enum    | 否  | PUBLIC / PRIVATE，默认 PUBLIC           | 访问权限               |
+| `anonymous`         | Boolean | 否  | 默认 true                              | 是否匿名               |
+| `maxTotalVotes`     | Integer | 否  | —                                    | 每人最多总票数（仅 SCORED）  |
+| `maxOptions`        | Integer | 否  | —                                    | 最多可选项数（仅 MULTIPLE） |
+| `maxVotesPerOption` | Integer | 否  | —                                    | 每项最多投票数（仅 SCORED）  |
+| `startTime`         | Instant | 否  | —                                    | 开始时间，未到时隐藏内容       |
+| `endTime`           | Instant | 否  | —                                    | 截止时间               |
+| `logoUrl`           | String  | 否  | 最长 500 字符                            | 投票 Logo URL        |
+| `backgroundUrl`     | String  | 否  | 最长 500 字符                            | 投票背景图片 URL         |
+| `options`           | List    | 是  | 不能为空                                 | 投票选项列表             |
 
 **选项数据（VoteOptionRequest）**：
 
@@ -411,7 +452,22 @@ Dockerfile 多阶段构建：
 | `imageUrl` | String | 否 | 最长 1000 字符 | 选项图片 URL |
 | `sortOrder` | int | 否 | 默认按数组索引 | 排序顺序 |
 
-#### 3.3.2 投票类型详细说明
+#### 3.3.2 批量添加选项
+
+编辑器提供批量输入模式：在文本框中每行输入一个选项，格式为：
+
+```
+选项标题
+选项标题 https://example.com/image.jpg
+```
+
+**业务规则**：
+
+- 每行以空格分割：第一部分为标题，第二部分（可选）为图片 URL
+- 空行和空白行忽略
+- 一次性创建多个选项，添加到现有选项列表末尾
+
+#### 3.3.3 投票类型详细说明
 
 ##### SINGLE（单选投票）
 
@@ -440,7 +496,7 @@ Dockerfile 多阶段构建：
   - 票数为 0 的选项不记录
 - 违反规则返回相应错误消息
 
-#### 3.3.3 投票频率控制
+#### 3.3.4 投票频率控制
 
 | 频率 | Redis 键格式 | TTL | 说明 |
 |------|-------------|-----|------|
@@ -451,7 +507,7 @@ Dockerfile 多阶段构建：
 - 已登录用户：`user:{userId}`
 - 未登录用户：`ip:{ipAddress}`
 
-#### 3.3.4 防重复投票机制
+#### 3.3.5 防重复投票机制
 
 采用**多层次**检测策略，按优先级执行：
 
@@ -465,14 +521,14 @@ Dockerfile 多阶段构建：
    └── 无 deviceId → 按 ip + pollId 查询
 ```
 
-#### 3.3.5 API 限流
+#### 3.3.6 API 限流
 
 - 使用 **Bucket4j 令牌桶算法**
 - 限流粒度：`vote:{ip}` 键
 - 限流规则：**每分钟 10 次请求**
 - 超限返回 HTTP 429 Too Many Requests
 
-#### 3.3.6 提交投票
+#### 3.3.7 提交投票
 
 **请求数据（VoteSubmitRequest）**：
 
@@ -496,7 +552,26 @@ Dockerfile 多阶段构建：
 9. 返回最新投票数据
 ```
 
-#### 3.3.7 实时结果推送
+#### 3.3.8 倒计时显示
+
+- 投票页面实时计算当前时间状态：
+
+| 状态               | 限制   | 前端展示         |
+|------------------|------|--------------|
+| `startTime` 未到   | 不能投票 | 隐藏选项，展示开始倒计时 |
+| 进行中（有 `endTime`） | 可投票  | 展示结束倒计时      |
+| 进行中（无 `endTime`） | 可投票  | 不显示倒计时       |
+| `endTime` 已过     | 不能投票 | 显示已结束提示      |
+
+- 问卷页面同理：`startTime` 未到时隐藏题目内容，显示开始倒计时
+
+#### 3.3.9 投票结果排名
+
+- 投票选项按得票数降序排列
+- 并列选项显示相同排名（如两个选项并列第 1，下一项为第 3）
+- 实时推送的 `VotePollDto` 中包含每个选项的 `rank` 字段
+
+#### 3.3.10 实时结果推送
 
 - 协议：**STOMP over WebSocket**
 - 服务端端点：`/ws`（支持 SockJS 回退）
@@ -505,7 +580,7 @@ Dockerfile 多阶段构建：
 - 推送内容：完整的 `VotePollDto`，包含所有选项的最新票数和百分比
 - 前端自动更新投票计数和百分比进度条
 
-#### 3.3.8 编辑投票
+#### 3.3.11 编辑投票
 
 **前置条件**：用户已登录，且为投票创建者
 
@@ -515,7 +590,7 @@ Dockerfile 多阶段构建：
 - 删除选项前先删除关联的投票记录（`recordRepository.deleteByOptionId`）
 - 更新现有选项时**保留** `voteCount`
 
-#### 3.3.9 投票状态管理
+#### 3.3.12 投票状态管理
 
 | 操作 | 权限 | 说明 |
 |------|------|------|
@@ -523,7 +598,7 @@ Dockerfile 多阶段构建：
 | **关闭** | 创建者 | PUBLISHED → CLOSED |
 | **删除** | 创建者 | 先删除所有投票记录再删除投票 |
 
-#### 3.3.10 获取投票
+#### 3.3.13 获取投票
 
 | 场景 | 接口 | 权限 | 特殊处理 |
 |------|------|------|----------|
@@ -532,7 +607,7 @@ Dockerfile 多阶段构建：
 | 我的投票列表 | `GET /api/votes/my` | 已登录 | 按创建时间倒序分页 |
 | 公开投票列表 | `GET /api/votes/public` | 公开 | 仅 PUBLISHED + PUBLIC |
 
-#### 3.3.11 投票选项图片
+#### 3.3.14 投票选项图片
 
 - 每个选项可配置 `imageUrl`
 - 前端投票页面以大图方式展示（最大宽度 100%，最大高度 300px）
@@ -567,6 +642,58 @@ Dockerfile 多阶段构建：
 - Content-Type：`application/octet-stream`
 - Content-Disposition：`attachment; filename="{fileName}"`
 - 文件不存在返回 HTTP 404
+
+---
+
+### 3.5 管理员系统配置模块
+
+**前置条件**：用户角色为 ADMIN
+
+系统配置存储在数据库 `system_config` 表（键值对），启动时加载到内存缓存（`ConcurrentHashMap`），修改后立即生效。
+
+#### 3.5.1 配置项说明
+
+| 分类         | 配置键                           | 说明                                |
+|------------|-------------------------------|-----------------------------------|
+| **站点信息**   | `site.title`                  | 站点标题                              |
+|            | `site.description`            | 站点描述                              |
+|            | `site.logo`                   | Logo URL                          |
+|            | `site.footer`                 | 页脚文字                              |
+|            | `timezone`                    | 服务器时区                             |
+| **注册控制**   | `register.enabled`            | 是否允许用户注册（`true`/`false`）          |
+| **OAuth2** | `oauth2.enabled`              | 是否启用第三方登录                         |
+|            | `oauth2.redirect-uri`         | 前端回调基础 URL                        |
+|            | `oauth2.github.client-id`     | GitHub OAuth2 Client ID           |
+|            | `oauth2.github.client-secret` | GitHub OAuth2 Client Secret       |
+|            | `oauth2.google.client-id`     | Google OAuth2 Client ID           |
+|            | `oauth2.google.client-secret` | Google OAuth2 Client Secret       |
+| **文件上传**   | `upload.max-size`             | 最大文件大小（字节）                        |
+|            | `upload.allowed-extensions`   | 允许的扩展名（逗号分隔）                      |
+| **安全**     | `login.max-attempts`          | 登录最大失败次数                          |
+|            | `jwt.expiration-ms`           | JWT 有效期（毫秒）                       |
+|            | `jwt.secret`                  | JWT 签名密钥（首次启动自动随机生成 32 字节 Base64） |
+
+#### 3.5.2 接口
+
+| 方法  | 路径                   | 说明                              | 认证    |
+|-----|----------------------|---------------------------------|-------|
+| GET | `/api/admin/config`  | 获取所有配置                          | ADMIN |
+| PUT | `/api/admin/config`  | 批量更新配置                          | ADMIN |
+| GET | `/api/config/public` | 获取公开配置（站点信息、注册开关、oauth2Enabled） | 否     |
+
+#### 3.5.3 集成点
+
+- **AuthService**：注册时检查 `register.enabled`，关闭时返回 HTTP 403
+- **OAuth2Service**：读取 DB 中的 client-id/secret 和 `oauth2.redirect-uri`，回退到 `application.yml`
+- **FileService**：读取 `upload.max-size` 和 `upload.allowed-extensions`，回退到默认值
+- **AuthController**：读取 `login.max-attempts` 用于登录失败限流
+- **JwtTokenProvider**：读取 `jwt.expiration-ms` 和 `jwt.secret`；首次启动时自动生成随机密钥并持久化
+
+#### 3.5.4 前端页面
+
+- 路由：`/admin/config`（需要 ADMIN 角色）
+- 5 个分组：基本信息、用户注册、OAuth2、文件上传、安全配置
+- 应用启动时从 `/api/config/public` 获取公开配置，用于显示站点 Logo、页脚、注册入口、社交登录按钮
 
 ---
 
@@ -642,14 +769,15 @@ Dockerfile 多阶段构建：
 #### 前端国际化
 
 - 框架：Vue I18n
-- 支持语言：**中文（zh-CN）** / **English（en）**
+- 支持语言：**zh-CN**（简体）/ **zh-TW**（繁体）/ **en** / **ja** / **ko**
 - 切换方式：顶部导航栏下拉选择，存储在 `localStorage`
-- Naive UI 组件库跟随语言切换（`zhCN` / `enUS`，日期同步）
+- Naive UI 组件库跟随语言切换
 
 #### 后端国际化
 
 - 框架：Spring MessageSource
-- 消息文件：`i18n/messages.properties`（英文）、`i18n/messages_zh_CN.properties`（中文）
+- 消息文件：`messages.properties`（英文）、`messages_zh_CN`（中文简体）、`messages_zh_TW`（繁体）、`messages_ja`（日语）、
+  `messages_ko`（韩语）
 - 编码：UTF-8
 
 ---
@@ -664,7 +792,9 @@ User (1) ──────────── (N) VotePoll
 User (1) ──────────── (N) SurveyResponse
 User (1) ──────────── (N) VoteRecord
 
-Survey (1) ────────── (N) Question
+Survey (1) ────────── (N) SurveySection
+Survey (1) ────────── (N) Question  (层平题目，居中兼容)
+SurveySection (1) ─── (N) Question  (分组内题目)
 Question (1) ──────── (N) QuestionOption
 Survey (1) ────────── (N) SurveyResponse
 SurveyResponse (1) ── (N) Answer
@@ -680,49 +810,61 @@ VoteOption (1) ─────── (N) VoteRecord
 
 #### users 表
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | BIGINT | PK, AUTO_INCREMENT | 用户 ID |
-| `username` | VARCHAR(50) | UNIQUE, NOT NULL | 用户名 |
-| `password` | VARCHAR(255) | NOT NULL | BCrypt 密码哈希 |
-| `email` | VARCHAR(100) | UNIQUE, NULLABLE | 邮箱 |
-| `nickname` | VARCHAR(50) | NULLABLE | 昵称 |
-| `avatar` | VARCHAR(500) | NULLABLE | 头像 URL |
-| `role` | VARCHAR(20) | NOT NULL, 默认 USER | 角色枚举 |
-| `enabled` | BOOLEAN | 默认 true | 是否启用 |
-| `created_at` | TIMESTAMP | 自动生成 | 创建时间 |
-| `updated_at` | TIMESTAMP | 自动更新 | 更新时间 |
+| 字段           | 类型           | 约束                 | 说明                          |
+|--------------|--------------|--------------------|-----------------------------|
+| `id`         | BIGINT       | PK, AUTO_INCREMENT | 用户 ID                       |
+| `username`   | VARCHAR(50)  | UNIQUE, NOT NULL   | 用户名                         |
+| `password`   | VARCHAR(255) | NOT NULL           | BCrypt 密码哈希                 |
+| `email`      | VARCHAR(100) | UNIQUE, NULLABLE   | 邮箱                          |
+| `nickname`   | VARCHAR(50)  | NULLABLE           | 昵称                          |
+| `avatar`     | VARCHAR(500) | NULLABLE           | 头像 URL（有邮箱时前端自动使用 Gravatar） |
+| `role`       | VARCHAR(20)  | NOT NULL, 默认 USER  | 角色枚举                        |
+| `enabled`    | BOOLEAN      | 默认 true            | 是否启用                        |
+| `created_at` | TIMESTAMP    | 自动生成               | 创建时间                        |
+| `updated_at` | TIMESTAMP    | 自动更新               | 更新时间                        |
 
 #### surveys 表
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | BIGINT | PK, AUTO_INCREMENT | 问卷 ID |
-| `share_id` | VARCHAR(32) | UNIQUE, NOT NULL | 分享 ID |
-| `title` | VARCHAR(200) | NOT NULL | 标题 |
-| `description` | VARCHAR(2000) | NULLABLE | 描述 |
-| `user_id` | BIGINT | FK → users, NOT NULL | 创建者 |
-| `status` | VARCHAR(20) | NOT NULL, 默认 DRAFT | 状态枚举 |
-| `access_level` | VARCHAR(20) | NOT NULL, 默认 PUBLIC | 访问权限 |
-| `anonymous` | BOOLEAN | 默认 true | 是否匿名 |
-| `template` | BOOLEAN | 默认 false | 是否为模板 |
-| `start_time` | TIMESTAMP | NULLABLE | 开始时间 |
-| `end_time` | TIMESTAMP | NULLABLE | 截止时间 |
-| `response_count` | INT | 默认 0 | 回复数量 |
-| `created_at` | TIMESTAMP | 自动生成 | 创建时间 |
-| `updated_at` | TIMESTAMP | 自动更新 | 更新时间 |
+| 字段               | 类型            | 约束                   | 说明          |
+|------------------|---------------|----------------------|-------------|
+| `id`             | BIGINT        | PK, AUTO_INCREMENT   | 问卷 ID       |
+| `share_id`       | VARCHAR(32)   | UNIQUE, NOT NULL     | 分享 ID       |
+| `title`          | VARCHAR(200)  | NOT NULL             | 标题          |
+| `description`    | VARCHAR(2000) | NULLABLE             | 描述          |
+| `user_id`        | BIGINT        | FK → users, NOT NULL | 创建者         |
+| `status`         | VARCHAR(20)   | NOT NULL, 默认 DRAFT   | 状态枚举        |
+| `access_level`   | VARCHAR(20)   | NOT NULL, 默认 PUBLIC  | 访问权限        |
+| `anonymous`      | BOOLEAN       | 默认 true              | 是否匿名        |
+| `template`       | BOOLEAN       | 默认 false             | 是否为模板       |
+| `start_time`     | TIMESTAMP     | NULLABLE             | 开始时间        |
+| `end_time`       | TIMESTAMP     | NULLABLE             | 截止时间        |
+| `logo_url`       | VARCHAR(500)  | NULLABLE             | 问卷 Logo URL |
+| `background_url` | VARCHAR(500)  | NULLABLE             | 问卷背景图片 URL  |
+| `response_count` | INT           | 默认 0                 | 回复数量        |
+| `created_at`     | TIMESTAMP     | 自动生成                 | 创建时间        |
+| `updated_at`     | TIMESTAMP     | 自动更新                 | 更新时间        |
+
+#### survey_sections 表
+
+| 字段           | 类型           | 约束                     | 说明    |
+|--------------|--------------|------------------------|-------|
+| `id`         | BIGINT       | PK, AUTO_INCREMENT     | 分组 ID |
+| `survey_id`  | BIGINT       | FK → surveys, NOT NULL | 所属问卷  |
+| `title`      | VARCHAR(200) | NULLABLE               | 分组标题  |
+| `sort_order` | INT          | 默认 0                   | 排序顺序  |
 
 #### questions 表
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | BIGINT | PK, AUTO_INCREMENT | 题目 ID |
-| `survey_id` | BIGINT | FK → surveys, NOT NULL | 所属问卷 |
-| `type` | VARCHAR(30) | NOT NULL | 题型枚举 |
-| `title` | VARCHAR(500) | NOT NULL | 题目标题 |
-| `description` | VARCHAR(1000) | NULLABLE | 题目描述 |
-| `required` | BOOLEAN | 默认 false | 是否必填 |
-| `sort_order` | INT | 默认 0 | 排序顺序 |
+| 字段            | 类型            | 约束                             | 说明            |
+|---------------|---------------|--------------------------------|---------------|
+| `id`          | BIGINT        | PK, AUTO_INCREMENT             | 题目 ID         |
+| `survey_id`   | BIGINT        | FK → surveys, NOT NULL         | 所属问卷          |
+| `section_id`  | BIGINT        | FK → survey_sections, NULLABLE | 所属分组（分组模式时非空） |
+| `type`        | VARCHAR(30)   | NOT NULL                       | 题型枚举          |
+| `title`       | VARCHAR(500)  | NOT NULL                       | 题目标题          |
+| `description` | VARCHAR(1000) | NULLABLE                       | 题目描述          |
+| `required`    | BOOLEAN       | 默认 false                       | 是否必填          |
+| `sort_order`  | INT           | 默认 0                           | 排序顺序          |
 
 #### question_options 表
 
@@ -757,25 +899,28 @@ VoteOption (1) ─────── (N) VoteRecord
 
 #### vote_polls 表
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | BIGINT | PK, AUTO_INCREMENT | 投票 ID |
-| `share_id` | VARCHAR(32) | UNIQUE, NOT NULL | 分享 ID |
-| `title` | VARCHAR(200) | NOT NULL | 标题 |
-| `description` | VARCHAR(2000) | NULLABLE | 描述 |
-| `user_id` | BIGINT | FK → users, NOT NULL | 创建者 |
-| `vote_type` | VARCHAR(20) | NOT NULL, 默认 SINGLE | 投票类型 |
-| `frequency` | VARCHAR(20) | NOT NULL, 默认 ONCE | 投票频率 |
-| `status` | VARCHAR(20) | NOT NULL, 默认 DRAFT | 状态 |
-| `access_level` | VARCHAR(20) | NOT NULL, 默认 PUBLIC | 访问权限 |
-| `anonymous` | BOOLEAN | 默认 true | 是否匿名 |
-| `max_total_votes` | INT | NULLABLE | 每人最多总票数 |
-| `max_options` | INT | NULLABLE | 最多可选项数 |
-| `max_votes_per_option` | INT | NULLABLE | 每项最多投票数 |
-| `end_time` | TIMESTAMP | NULLABLE | 截止时间 |
-| `total_vote_count` | INT | 默认 0 | 总票数 |
-| `created_at` | TIMESTAMP | 自动生成 | 创建时间 |
-| `updated_at` | TIMESTAMP | 自动更新 | 更新时间 |
+| 字段                     | 类型            | 约束                   | 说明          |
+|------------------------|---------------|----------------------|-------------|
+| `id`                   | BIGINT        | PK, AUTO_INCREMENT   | 投票 ID       |
+| `share_id`             | VARCHAR(32)   | UNIQUE, NOT NULL     | 分享 ID       |
+| `title`                | VARCHAR(200)  | NOT NULL             | 标题          |
+| `description`          | VARCHAR(2000) | NULLABLE             | 描述          |
+| `user_id`              | BIGINT        | FK → users, NOT NULL | 创建者         |
+| `vote_type`            | VARCHAR(20)   | NOT NULL, 默认 SINGLE  | 投票类型        |
+| `frequency`            | VARCHAR(20)   | NOT NULL, 默认 ONCE    | 投票频率        |
+| `status`               | VARCHAR(20)   | NOT NULL, 默认 DRAFT   | 状态          |
+| `access_level`         | VARCHAR(20)   | NOT NULL, 默认 PUBLIC  | 访问权限        |
+| `anonymous`            | BOOLEAN       | 默认 true              | 是否匿名        |
+| `max_total_votes`      | INT           | NULLABLE             | 每人最多总票数     |
+| `max_options`          | INT           | NULLABLE             | 最多可选项数      |
+| `max_votes_per_option` | INT           | NULLABLE             | 每项最多投票数     |
+| `start_time`           | TIMESTAMP     | NULLABLE             | 开始时间        |
+| `end_time`             | TIMESTAMP     | NULLABLE             | 截止时间        |
+| `logo_url`             | VARCHAR(500)  | NULLABLE             | 投票 Logo URL |
+| `background_url`       | VARCHAR(500)  | NULLABLE             | 投票背景图片 URL  |
+| `total_vote_count`     | INT           | 默认 0                 | 总票数         |
+| `created_at`           | TIMESTAMP     | 自动生成                 | 创建时间        |
+| `updated_at`           | TIMESTAMP     | 自动更新                 | 更新时间        |
 
 #### vote_options 表
 
@@ -972,7 +1117,12 @@ VoteOption (1) ─────── (N) VoteRecord
 
 #### GET /api/surveys/s/{shareId}
 
-通过分享 ID 获取问卷（公开，必须 PUBLISHED 且未过期）。
+通过分享 ID 获取问卷（公开，必须 PUBLISHED 且未过期）。返回数据包含 `sections`（分组列表，每组含 `questions`）和 `questions`
+（层平题目，兼容旧格式）。
+
+#### GET /api/surveys/s/{shareId}/my-response
+
+获取当前登录用户对该问卷的最近一次回复记录（含答案详情）。未提交则返回 `null`。需要 Authorization 头。
 
 #### GET /api/surveys/my?keyword=xxx&page=0&size=10&sort=createdAt,desc
 
@@ -1210,28 +1360,47 @@ client.activate()
 
 ---
 
+## 6.7 构建脚本
+
+项目提供一键构建脚本，将前端产物打包并复制到后端 `src/main/resources/static/` 目录，通过 Spring Boot 直接响应静态文件，无需单独部署
+Nginx：
+
+| 脚本          | 系统            | 说明                  |
+|-------------|---------------|---------------------|
+| `build.bat` | Windows       | 构建前端 + 复制到后端 static |
+| `build.sh`  | Linux / macOS | 同上                  |
+
+**构建步骤**：
+
+1. 在 `frontend/` 目录执行 `npm run build`
+2. 清空后端 `src/main/resources/static/` 目录
+3. 将 `frontend/dist/` 内容复制到上述目录
+4. 后端直接通过 Spring Boot 静态资源服务响应前端页面
+
+---
+
 ## 7. 前端页面需求
 
 ### 7.1 页面清单
 
-| # | 路由 | 页面 | 认证 | 说明 |
-|---|------|------|------|------|
-| 1 | `/` | 首页 | 否 | 欢迎页，展示创建问卷/投票入口 |
-| 2 | `/login` | 登录 | 游客 | 用户名 + 密码表单 |
-| 3 | `/register` | 注册 | 游客 | 用户名 + 密码 + 邮箱 + 昵称表单 |
-| 4 | `/profile` | 个人信息 | 是 | 编辑昵称、邮箱、头像、密码 |
-| 5 | `/surveys` | 我的问卷 | 是 | 问卷列表，支持搜索、分页、操作（编辑/发布/关闭/删除/统计/回复） |
-| 6 | `/surveys/create` | 创建问卷 | 是 | 问卷编辑器，拖拽排序题目，12 种题型 |
-| 7 | `/surveys/:id/edit` | 编辑问卷 | 是 | 同创建，加载已有数据 |
-| 8 | `/surveys/:id/stats` | 统计分析 | 是 | 各题目选择比例进度条 + 文本答案列表 + 导出 Excel |
-| 9 | `/surveys/:id/responses` | 回复列表 | 是 | 分页展示回复详情 |
-| 10 | `/surveys/public` | 公开问卷 | 否 | 公开问卷列表 |
-| 11 | `/s/:shareId` | 填写问卷 | 否 | 问卷填写表单 + 提交成功页 |
-| 12 | `/votes` | 我的投票 | 是 | 投票列表 |
-| 13 | `/votes/create` | 创建投票 | 是 | 投票编辑器，拖拽排序选项 |
-| 14 | `/votes/:id/edit` | 编辑投票 | 是 | 同创建，加载已有数据 |
-| 15 | `/votes/public` | 公开投票 | 否 | 公开投票列表 |
-| 16 | `/v/:shareId` | 投票页面 | 否 | 投票表单 + 实时结果（WebSocket）+ 图片全屏预览 |
+| #  | 路由                       | 页面   | 认证 | 说明                                 |
+|----|--------------------------|------|----|------------------------------------|
+| 1  | `/`                      | 首页   | 否  | 欢迎页，展示创建问卷/投票入口，支持中文/英文多语言切换       |
+| 2  | `/login`                 | 登录   | 游客 | 用户名 + 密码表单                         |
+| 3  | `/register`              | 注册   | 游客 | 用户名 + 密码 + 邮箱 + 昵称表单               |
+| 4  | `/profile`               | 个人信息 | 是  | 编辑昵称、邮箱、头像、密码                      |
+| 5  | `/surveys`               | 我的问卷 | 是  | 问卷列表，支持搜索、分页、操作（编辑/发布/关闭/删除/统计/回复） |
+| 6  | `/surveys/create`        | 创建问卷 | 是  | 问卷编辑器，拖拽排序题目，12 种题型                |
+| 7  | `/surveys/:id/edit`      | 编辑问卷 | 是  | 同创建，加载已有数据                         |
+| 8  | `/surveys/:id/stats`     | 统计分析 | 是  | 各题目选择比例进度条 + 文本答案列表 + 导出 Excel     |
+| 9  | `/surveys/:id/responses` | 回复列表 | 是  | 分页展示回复详情                           |
+| 10 | `/surveys/public`        | 公开问卷 | 否  | 公开问卷列表                             |
+| 11 | `/s/:shareId`            | 填写问卷 | 否  | 问卷填写表单 + 提交成功页                     |
+| 12 | `/votes`                 | 我的投票 | 是  | 投票列表                               |
+| 13 | `/votes/create`          | 创建投票 | 是  | 投票编辑器，拖拽排序选项                       |
+| 14 | `/votes/:id/edit`        | 编辑投票 | 是  | 同创建，加载已有数据                         |
+| 15 | `/votes/public`          | 公开投票 | 否  | 公开投票列表                             |
+| 16 | `/v/:shareId`            | 投票页面 | 否  | 投票表单 + 实时结果（WebSocket）+ 图片全屏预览     |
 
 ### 7.2 布局
 
@@ -1244,13 +1413,17 @@ client.activate()
 ### 7.3 前端交互细节
 
 #### 问卷编辑器
-- 拖拽手柄图标（☰）排序题目
+
+- **分组管理**：支持添加/删除/拖拽排序分组，每个分组可设置标题
+- 拖拽手柄图标（☰）排序分组和分组内题目
 - 每个题目卡片：类型选择、标题输入、必填开关
 - 单选/多选题额外显示选项列表（可增删）
 - 复制题目功能
-- 保存时自动更新 `sortOrder`
+- 保存时自动更新分组和题目的 `sortOrder`
 
 #### 问卷填写
+
+- **分步展示**：有分组时使用 `n-steps` 按分组分步展示，每步独立校验后才能前进；无分组时一页展示所有题目
 - 根据题型渲染不同输入组件：
   - `SINGLE_CHOICE` → Radio Group
   - `MULTIPLE_CHOICE` → Checkbox Group
@@ -1263,9 +1436,17 @@ client.activate()
   - `FILE` → Upload 组件 + 文件名展示
 - 必填题显示红色 "必填" 标签
 - 提交前前端校验必填项
+- 已登录用户加载历史回复（`my-response`）自动回填答案，`allowUpdate=true` 时展示更新按钮
+- 匿名问卷提交成功后写入 `localStorage` 标记防止重复提交
 - 提交成功显示感谢页面
 
 #### 投票页面
+
+- **倒计时**：
+    - 未到 `startTime`：隐藏选项内容，显示开始倒计时
+    - 进行中（有 `endTime`）：显示结束倒计时
+    - 已过 `endTime`：显示已结束提示，禁止投票
+- **Logo/背景图**：若投票设置了 `logoUrl` 或 `backgroundUrl`，在页面顶部展示
 - 根据投票类型渲染：
   - `SINGLE` → Radio Group
   - `MULTIPLE` → Checkbox Group（受 `maxOptions` 限制）
@@ -1273,13 +1454,26 @@ client.activate()
 - 选项图片以大图方式显示（最大 100%×300px），鼠标悬停降低透明度
 - 点击图片全屏预览（深色遮罩 + 居中展示 + 关闭按钮）
 - 已投票状态显示信息提示
-- 投票结果显示：每个选项的票数、百分比、彩色进度条
-- WebSocket 连接：自动重连（5 秒），实时更新结果
+- 投票结果显示：每个选项的票数、百分比、彩色进度条、**排名**（第 N 名）
+- WebSocket 连接：自动重连（5 秒），实时更新结果和排名
 
 #### 投票编辑器
 - 拖拽排序选项
 - 每个选项：标题、描述、图片 URL + 图片预览（最大 200px）
 - 点击预览图片可全屏查看
+- **批量添加**：切换到批量模式，文本框每行输入一个选项（可含图片 URL），一键生成
+
+#### 问卷填写（补充）
+
+- **未到 `startTime`**：隐藏题目，显示开始倒计时
+- **Logo/背景图**：若问卷设置了 `logoUrl` 或 `backgroundUrl`，在页面顶部展示
+- **描述富文本**：问卷/投票描述使用 `v-html` 渲染，支持简单 HTML
+
+#### 用户头像
+
+- 个人信息页和导航栏展示用户头像
+- 有邮箱时自动使用 Gravatar（`https://www.gravatar.com/avatar/{md5(email)}`）
+- 无邮箱或头像时显示默认头像
 
 ---
 
