@@ -533,6 +533,7 @@ public class SurveyService {
 
         SurveyStatsDto stats = new SurveyStatsDto();
         stats.setSurveyId(survey.getId());
+        stats.setShareId(survey.getShareId());
         stats.setTitle(survey.getTitle());
         stats.setTotalResponses(survey.getResponseCount());
 

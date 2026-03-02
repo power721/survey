@@ -172,6 +172,7 @@ export interface AnswerDto {
 
 export interface SurveyStatsDto {
     surveyId: number
+    shareId: string
     title: string
     totalResponses: number
     questionStats: QuestionStatsDto[]

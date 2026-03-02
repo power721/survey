@@ -35,6 +35,7 @@
             <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}:
               {{ new Date(survey.endTime).toLocaleString() }}
             </n-text>
+            <n-button size="small" text type="primary" @click="showQrCode">{{ t('survey.qrCode') }}</n-button>
           </n-space>
 
           <div v-if="survey.description" class="description-html" style="margin-bottom: 24px; color: #666"
@@ -113,6 +114,7 @@
             <n-text v-if="survey.endTime" depth="3">{{ t('survey.endTime') }}:
               {{ new Date(survey.endTime).toLocaleString() }}
             </n-text>
+            <n-button size="small" text type="primary" @click="showQrCode">{{ t('survey.qrCode') }}</n-button>
           </n-space>
 
           <n-alert v-if="survey.maxResponses" type="default" style="margin-bottom: 16px">
@@ -230,17 +232,26 @@
         </n-card>
       </template>
     </n-spin>
+
+    <n-modal v-model:show="qrModalVisible" preset="card" :title="t('survey.qrCode')" style="width: 350px">
+      <n-space vertical align="center">
+        <div ref="qrCodeRef" style="padding: 16px; background: white; border-radius: 8px"></div>
+        <n-text depth="3">{{ qrCodeUrl }}</n-text>
+        <n-button type="primary" @click="downloadQrCode">{{ t('survey.download') }}</n-button>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect} from 'vue'
+import {computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watchEffect} from 'vue'
 import {onBeforeRouteLeave, useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
 import {surveyApi} from '@/api/survey'
 import {fileApi} from '@/api/file'
 import {useAuthStore} from '@/stores/auth'
+import QRCode from 'qrcode'
 import type {QuestionDto, SurveyDto, SurveyResponseDto, SurveySubmitRequest} from '@/types'
 
 const router = useRouter()
@@ -251,6 +262,9 @@ const message = useMessage()
 const authStore = useAuthStore()
 const containerRef = ref<HTMLElement | null>(null)
 const loading = ref(true)
+const qrModalVisible = ref(false)
+const qrCodeRef = ref<HTMLElement | null>(null)
+const qrCodeUrl = ref('')
 const submitting = ref(false)
 const submitted = ref(false)
 const editing = ref(false)
@@ -526,6 +540,30 @@ function onBeforeUnload() {
   if (submitted.value || newUploadedFiles.value.length === 0) return
   for (const fileName of newUploadedFiles.value) {
     navigator.sendBeacon(`/api/files/${fileName}/delete`)
+  }
+}
+
+async function showQrCode() {
+  if (!survey.value?.shareId) return
+  const url = `${window.location.origin}/s/${survey.value.shareId}`
+  qrCodeUrl.value = url
+  qrModalVisible.value = true
+  await nextTick()
+  if (qrCodeRef.value) {
+    qrCodeRef.value.innerHTML = ''
+    const canvas = await QRCode.toCanvas(url, {width: 250, margin: 2})
+    canvas.style.display = 'block'
+    qrCodeRef.value.appendChild(canvas)
+  }
+}
+
+function downloadQrCode() {
+  const canvas = qrCodeRef.value?.querySelector('canvas')
+  if (canvas) {
+    const link = document.createElement('a')
+    link.download = `qrcode_survey_${survey.value?.title || 'survey'}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
   }
 }
 

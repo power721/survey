@@ -5,6 +5,7 @@
         <n-space justify="space-between" align="center" style="margin-bottom: 16px">
           <h2>{{ stats.title }} - {{ t('survey.statistics') }}</h2>
           <n-space>
+            <n-button @click="showQrCode">{{ t('survey.qrCode') }}</n-button>
             <n-button @click="exportExcel" :loading="exporting">{{ t('survey.export') }}</n-button>
             <n-button @click="router.back()">{{ t('common.back') }}</n-button>
           </n-space>
@@ -44,15 +45,24 @@
         </n-space>
       </template>
     </n-spin>
+
+    <n-modal v-model:show="qrModalVisible" preset="card" :title="t('survey.qrCode')" style="width: 350px">
+      <n-space vertical align="center">
+        <div ref="qrCodeRef" style="padding: 16px; background: white; border-radius: 8px"></div>
+        <n-text depth="3">{{ qrCodeUrl }}</n-text>
+        <n-button type="primary" @click="downloadQrCode">{{ t('survey.download') }}</n-button>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import {nextTick, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
 import {surveyApi} from '@/api/survey'
+import QRCode from 'qrcode'
 import type {SurveyStatsDto} from '@/types'
 
 const router = useRouter()
@@ -63,6 +73,33 @@ const message = useMessage()
 const loading = ref(true)
 const exporting = ref(false)
 const stats = ref<SurveyStatsDto | null>(null)
+const qrModalVisible = ref(false)
+const qrCodeRef = ref<HTMLElement | null>(null)
+const qrCodeUrl = ref('')
+
+async function showQrCode() {
+  if (!stats.value?.shareId) return
+  const url = `${window.location.origin}/s/${stats.value.shareId}`
+  qrCodeUrl.value = url
+  qrModalVisible.value = true
+  await nextTick()
+  if (qrCodeRef.value) {
+    qrCodeRef.value.innerHTML = ''
+    const canvas = await QRCode.toCanvas(url, {width: 250, margin: 2})
+    canvas.style.display = 'block'
+    qrCodeRef.value.appendChild(canvas)
+  }
+}
+
+function downloadQrCode() {
+  const canvas = qrCodeRef.value?.querySelector('canvas')
+  if (canvas) {
+    const link = document.createElement('a')
+    link.download = `qrcode_${stats.value?.title || 'survey'}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
+}
 
 const colors = ['#18a058', '#2080f0', '#f0a020', '#d03050', '#8a2be2', '#ff6347']
 

@@ -31,6 +31,7 @@
               {{ new Date(poll.startTime).toLocaleString() }}
             </n-text>
             <n-text v-if="poll.endTime" depth="3">{{ t('vote.endTime') }}: {{ formatTime(poll.endTime) }}</n-text>
+            <n-button size="small" text type="primary" @click="showQrCode">{{ t('survey.qrCode') }}</n-button>
           </n-space>
 
           <n-alert v-if="countdownLabel && countdownText" :type="isNotStarted ? 'info' : 'warning'"
@@ -187,14 +188,24 @@
     <img :src="previewImage" class="image-preview-full" @click.stop/>
     <span class="image-preview-close" @click="closePreview">&times;</span>
   </div>
+
+  <!-- QR Code Modal -->
+  <n-modal v-model:show="qrModalVisible" preset="card" :title="t('survey.qrCode')" style="width: 350px">
+    <n-space vertical align="center">
+      <div ref="qrCodeRef" style="padding: 16px; background: white; border-radius: 8px"></div>
+      <n-text depth="3">{{ qrCodeUrl }}</n-text>
+      <n-button type="primary" @click="downloadQrCode">{{ t('survey.download') }}</n-button>
+    </n-space>
+  </n-modal>
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, reactive, ref, watchEffect} from 'vue'
+import {computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, reactive, ref, watchEffect} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
 import {voteApi} from '@/api/vote'
+import QRCode from 'qrcode'
 import type {VotePollDto} from '@/types'
 import {Client} from '@stomp/stompjs'
 import {useAuthStore} from '@/stores/auth'
@@ -216,6 +227,9 @@ const voted = ref(false)
 const selectedSingle = ref<number | null>(null)
 const selectedMultiple = ref<number[]>([])
 const scoredVotes = reactive<Record<number, number>>({})
+const qrModalVisible = ref(false)
+const qrCodeRef = ref<HTMLElement | null>(null)
+const qrCodeUrl = ref('')
 let stompClient: Client | null = null
 
 const hasVoted = computed(() => poll.value?.hasVoted ?? false)
@@ -348,6 +362,30 @@ function formatTime(time: string) {
   return new Date(time).toLocaleString()
 }
 
+async function showQrCode() {
+  if (!poll.value?.shareId) return
+  const url = `${window.location.origin}/v/${poll.value.shareId}`
+  qrCodeUrl.value = url
+  qrModalVisible.value = true
+  await nextTick()
+  if (qrCodeRef.value) {
+    qrCodeRef.value.innerHTML = ''
+    const canvas = await QRCode.toCanvas(url, {width: 250, margin: 2})
+    canvas.style.display = 'block'
+    qrCodeRef.value.appendChild(canvas)
+  }
+}
+
+function downloadQrCode() {
+  const canvas = qrCodeRef.value?.querySelector('canvas')
+  if (canvas) {
+    const link = document.createElement('a')
+    link.download = `qrcode_vote_${poll.value?.title || 'vote'}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
+}
+
 function getDeviceId(): string {
   let deviceId = localStorage.getItem('deviceId')
   if (!deviceId) {
@@ -466,7 +504,7 @@ watchEffect(() => {
   }
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   const parent = containerRef.value?.parentElement
   if (parent) {
     parent.style.backgroundImage = ''
@@ -474,6 +512,9 @@ onUnmounted(() => {
     parent.style.backgroundPosition = ''
     parent.style.backgroundRepeat = ''
   }
+})
+
+onUnmounted(() => {
   if (countdownTimer) {
     clearInterval(countdownTimer)
     countdownTimer = null

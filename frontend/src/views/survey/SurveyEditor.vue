@@ -115,7 +115,10 @@
                             <n-input v-model:value="opt.content" :placeholder="`${t('survey.options')} ${oi + 1}`"/>
                             <n-button @click="removeOption(si, qi, oi)" type="error" ghost>✕</n-button>
                           </n-input-group>
-                          <n-button dashed block @click="addOption(si, qi)">+ {{ t('survey.addOption') }}</n-button>
+                          <n-space>
+                            <n-button dashed @click="addOption(si, qi)">+ {{ t('survey.addOption') }}</n-button>
+                            <n-button dashed @click="openBatchAddModal(si, qi)">{{ t('survey.batchAddOptions') }}</n-button>
+                          </n-space>
                         </n-space>
                       </n-form-item>
                     </template>
@@ -171,6 +174,24 @@
         </n-space>
       </n-form>
     </n-card>
+
+    <!-- Batch Add Options Modal -->
+    <n-modal v-model:show="batchAddModalVisible" preset="card" :title="t('survey.batchAddOptions')" style="width: 500px">
+      <n-space vertical>
+        <n-text depth="3">{{ t('survey.batchAddOptionsHint') }}</n-text>
+        <n-input
+          v-model:value="batchAddText"
+          type="textarea"
+          :placeholder="t('survey.batchAddOptionsPlaceholder')"
+          :rows="10"
+          :autosize="{ minRows: 5, maxRows: 15 }"
+        />
+        <n-space justify="end">
+          <n-button @click="batchAddModalVisible = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" @click="confirmBatchAdd">{{ t('common.confirm') }}</n-button>
+        </n-space>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
@@ -194,6 +215,9 @@ const saving = ref(false)
 const startTimeTs = ref<number | null>(Date.now())
 const defaultEndTime = Date.now() + 30 * 24 * 60 * 60 * 1000
 const endTimeTs = ref<number | null>(defaultEndTime)
+const batchAddModalVisible = ref(false)
+const batchAddText = ref('')
+const currentBatchAddTarget = ref<{ si: number; qi: number } | null>(null)
 let keySeq = 0
 
 function nextKey() {
@@ -300,6 +324,34 @@ function addOption(si: number, qi: number) {
 
 function removeOption(si: number, qi: number, oi: number) {
   form.value.sections[si].questions[qi].options.splice(oi, 1)
+}
+
+function openBatchAddModal(si: number, qi: number) {
+  currentBatchAddTarget.value = { si, qi }
+  batchAddText.value = ''
+  batchAddModalVisible.value = true
+}
+
+function confirmBatchAdd() {
+  if (!currentBatchAddTarget.value) return
+  const { si, qi } = currentBatchAddTarget.value
+  const opts = form.value.sections[si].questions[qi].options
+
+  // Split by newlines and filter out empty lines
+  const lines = batchAddText.value
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+
+  // Add each non-empty line as a new option
+  for (const line of lines) {
+    opts.push({ content: line, sortOrder: opts.length })
+  }
+
+  batchAddModalVisible.value = false
+  batchAddText.value = ''
+  currentBatchAddTarget.value = null
+  message.success(t('survey.addedOptions', { count: lines.length }))
 }
 
 function conditionQuestionOptions(si: number, qi: number) {

@@ -62,6 +62,9 @@
                 {{ t('survey.fill') }}: <a :href="`/s/${survey.shareId}`" target="_blank">{{
                   baseUrl
                 }}/s/{{ survey.shareId }}</a>
+                <n-button size="tiny" text type="primary" @click.stop="showQrCode(survey.shareId)" style="margin-left: 8px">
+                  {{ t('survey.qrCode') }}
+                </n-button>
               </n-text>
             </n-space>
           </n-space>
@@ -77,15 +80,24 @@
         />
       </n-space>
     </n-spin>
+
+    <n-modal v-model:show="qrModalVisible" preset="card" :title="t('survey.qrCode')" style="width: 350px">
+      <n-space vertical align="center">
+        <div ref="qrCodeRef" style="padding: 16px; background: white; border-radius: 8px"></div>
+        <n-text depth="3">{{ qrCodeUrl }}</n-text>
+        <n-button type="primary" @click="downloadQrCode">{{ t('survey.download') }}</n-button>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import {nextTick, onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useDialog, useMessage} from 'naive-ui'
 import {surveyApi} from '@/api/survey'
+import QRCode from 'qrcode'
 import type {SurveyListDto} from '@/types'
 
 const router = useRouter()
@@ -99,6 +111,32 @@ const keyword = ref('')
 const page = ref(1)
 const totalPages = ref(0)
 const baseUrl = window.location.origin
+const qrModalVisible = ref(false)
+const qrCodeRef = ref<HTMLElement | null>(null)
+const qrCodeUrl = ref('')
+
+async function showQrCode(shareId: string) {
+  const url = `${baseUrl}/s/${shareId}`
+  qrCodeUrl.value = url
+  qrModalVisible.value = true
+  await nextTick()
+  if (qrCodeRef.value) {
+    qrCodeRef.value.innerHTML = ''
+    const canvas = await QRCode.toCanvas(url, {width: 250, margin: 2})
+    canvas.style.display = 'block'
+    qrCodeRef.value.appendChild(canvas)
+  }
+}
+
+function downloadQrCode() {
+  const canvas = qrCodeRef.value?.querySelector('canvas')
+  if (canvas) {
+    const link = document.createElement('a')
+    link.download = `qrcode_${qrCodeUrl.value.split('/').pop()}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
+}
 
 function statusType(status: string) {
   if (status === 'PUBLISHED') return 'success'
