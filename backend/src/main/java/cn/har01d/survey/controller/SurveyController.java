@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cn.har01d.survey.dto.ApiResponse;
 import cn.har01d.survey.dto.survey.SurveyCreateRequest;
 import cn.har01d.survey.dto.survey.SurveyDto;
+import cn.har01d.survey.dto.survey.SurveyListDto;
 import cn.har01d.survey.dto.survey.SurveyResponseDto;
 import cn.har01d.survey.dto.survey.SurveyStatsDto;
 import cn.har01d.survey.dto.survey.SurveySubmitRequest;
@@ -68,25 +69,25 @@ public class SurveyController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<Page<SurveyDto>>> getMySurveys(
+    public ResponseEntity<ApiResponse<Page<SurveyListDto>>> getMySurveys(
             @RequestParam(required = false) String keyword,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<SurveyDto> surveys = surveyService.getMySurveys(keyword, pageable);
+        Page<SurveyListDto> surveys = surveyService.getMySurveys(keyword, pageable);
         return ResponseEntity.ok(ApiResponse.ok(surveys));
     }
 
     @GetMapping("/public")
-    public ResponseEntity<ApiResponse<Page<SurveyDto>>> getPublicSurveys(
+    public ResponseEntity<ApiResponse<Page<SurveyListDto>>> getPublicSurveys(
             @RequestParam(required = false) String username,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<SurveyDto> surveys = surveyService.getPublicSurveys(username, pageable);
+        Page<SurveyListDto> surveys = surveyService.getPublicSurveys(username, pageable);
         return ResponseEntity.ok(ApiResponse.ok(surveys));
     }
 
     @GetMapping("/templates")
-    public ResponseEntity<ApiResponse<Page<SurveyDto>>> getTemplates(
+    public ResponseEntity<ApiResponse<Page<SurveyListDto>>> getTemplates(
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<SurveyDto> surveys = surveyService.getTemplates(pageable);
+        Page<SurveyListDto> surveys = surveyService.getTemplates(pageable);
         return ResponseEntity.ok(ApiResponse.ok(surveys));
     }
 

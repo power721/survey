@@ -73,14 +73,14 @@ import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useDialog, useMessage} from 'naive-ui'
 import {voteApi} from '@/api/vote'
-import type {VotePollDto} from '@/types'
+import type {VotePollListDto} from '@/types'
 
 const router = useRouter()
 const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
-const polls = ref<VotePollDto[]>([])
+const polls = ref<VotePollListDto[]>([])
 const loading = ref(false)
 const page = ref(1)
 const totalPages = ref(0)

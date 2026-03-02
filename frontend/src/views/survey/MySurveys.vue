@@ -86,14 +86,14 @@ import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useDialog, useMessage} from 'naive-ui'
 import {surveyApi} from '@/api/survey'
-import type {SurveyDto} from '@/types'
+import type {SurveyListDto} from '@/types'
 
 const router = useRouter()
 const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
-const surveys = ref<SurveyDto[]>([])
+const surveys = ref<SurveyListDto[]>([])
 const loading = ref(false)
 const keyword = ref('')
 const page = ref(1)

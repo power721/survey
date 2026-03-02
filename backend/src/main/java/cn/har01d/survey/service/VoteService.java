@@ -28,6 +28,7 @@ import cn.har01d.survey.dto.vote.VoteOptionDto;
 import cn.har01d.survey.dto.vote.VoteOptionRequest;
 import cn.har01d.survey.dto.vote.VotePollCreateRequest;
 import cn.har01d.survey.dto.vote.VotePollDto;
+import cn.har01d.survey.dto.vote.VotePollListDto;
 import cn.har01d.survey.dto.vote.VoteRecordDto;
 import cn.har01d.survey.dto.vote.VoteSubmitRequest;
 import cn.har01d.survey.dto.vote.VoterDto;
@@ -238,9 +239,9 @@ public class VoteService {
     }
 
     @Transactional(readOnly = true)
-    public Page<VotePollDto> getMyPolls(Pageable pageable) {
+    public Page<VotePollListDto> getMyPolls(Pageable pageable) {
         User user = authService.getCurrentUser();
-        return pollRepository.findByUser(user, pageable).map(p -> toDto(p, null));
+        return pollRepository.findByUser(user, pageable).map(this::toListDto);
     }
 
     @Transactional(readOnly = true)
@@ -309,13 +310,13 @@ public class VoteService {
     }
 
     @Transactional(readOnly = true)
-    public Page<VotePollDto> getPublicPolls(String username, Pageable pageable) {
+    public Page<VotePollListDto> getPublicPolls(String username, Pageable pageable) {
         if (username != null && !username.isBlank()) {
             return pollRepository.findByStatusAndAccessLevelAndUserUsername(
-                    Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, username, pageable).map(p -> toDto(p, null));
+                    Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, username, pageable).map(this::toListDto);
         }
         return pollRepository.findByStatusAndAccessLevel(Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, pageable)
-                .map(p -> toDto(p, null));
+                .map(this::toListDto);
     }
 
     @Transactional
@@ -528,6 +529,25 @@ public class VoteService {
             ip = ip.split(",")[0].trim();
         }
         return ip;
+    }
+
+    private VotePollListDto toListDto(VotePoll poll) {
+        VotePollListDto dto = new VotePollListDto();
+        dto.setId(poll.getId());
+        dto.setShareId(poll.getShareId());
+        dto.setTitle(poll.getTitle());
+        dto.setLogoUrl(poll.getLogoUrl());
+        dto.setVoteType(poll.getVoteType().name());
+        dto.setStatus(poll.getStatus().name());
+        dto.setAccessLevel(poll.getAccessLevel().name());
+        dto.setAnonymous(poll.isAnonymous());
+        dto.setStartTime(poll.getStartTime());
+        dto.setEndTime(poll.getEndTime());
+        dto.setTotalVoteCount(poll.getTotalVoteCount());
+        dto.setCreator(new CreatorDto(poll.getUser().getUsername(), poll.getUser().getNickname(), resolveAvatar(poll.getUser())));
+        dto.setCreatedAt(poll.getCreatedAt());
+        dto.setUpdatedAt(poll.getUpdatedAt());
+        return dto;
     }
 
     private VotePollDto toDto(VotePoll poll, Boolean hasVoted) {

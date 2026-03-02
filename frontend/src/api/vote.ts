@@ -1,5 +1,13 @@
 import http from './http'
-import type {ApiResponse, Page, VotePollCreateRequest, VotePollDto, VoteRecordDto, VoteSubmitRequest} from '@/types'
+import type {
+    ApiResponse,
+    Page,
+    VotePollCreateRequest,
+    VotePollDto,
+    VotePollListDto,
+    VoteRecordDto,
+    VoteSubmitRequest
+} from '@/types'
 
 export const voteApi = {
     create(data: VotePollCreateRequest) {
@@ -15,10 +23,10 @@ export const voteApi = {
         return http.get<ApiResponse<VotePollDto>>(`/votes/v/${shareId}`)
     },
     getMy(params?: { page?: number; size?: number }) {
-        return http.get<ApiResponse<Page<VotePollDto>>>('/votes/my', {params})
+        return http.get<ApiResponse<Page<VotePollListDto>>>('/votes/my', {params})
     },
     getPublic(params?: { page?: number; size?: number; username?: string }) {
-        return http.get<ApiResponse<Page<VotePollDto>>>('/votes/public', {params})
+        return http.get<ApiResponse<Page<VotePollListDto>>>('/votes/public', {params})
     },
     publish(id: number) {
         return http.post<ApiResponse<VotePollDto>>(`/votes/${id}/publish`)

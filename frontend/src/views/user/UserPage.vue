@@ -79,7 +79,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {surveyApi} from '@/api/survey'
 import {voteApi} from '@/api/vote'
-import type {SurveyDto, VotePollDto} from '@/types'
+import type {SurveyListDto, VotePollListDto} from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -91,12 +91,12 @@ const activeTab = ref((route.query.tab as string) || 'surveys')
 const creatorName = ref('')
 const creatorAvatar = ref<string | null>(null)
 
-const surveys = ref<SurveyDto[]>([])
+const surveys = ref<SurveyListDto[]>([])
 const loadingSurveys = ref(false)
 const surveyPage = ref(1)
 const surveyTotalPages = ref(0)
 
-const votes = ref<VotePollDto[]>([])
+const votes = ref<VotePollListDto[]>([])
 const loadingVotes = ref(false)
 const votePage = ref(1)
 const voteTotalPages = ref(0)

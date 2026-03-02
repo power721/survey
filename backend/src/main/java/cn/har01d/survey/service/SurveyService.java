@@ -30,6 +30,7 @@ import cn.har01d.survey.dto.survey.QuestionRequest;
 import cn.har01d.survey.dto.survey.QuestionStatsDto;
 import cn.har01d.survey.dto.survey.SurveyCreateRequest;
 import cn.har01d.survey.dto.survey.SurveyDto;
+import cn.har01d.survey.dto.survey.SurveyListDto;
 import cn.har01d.survey.dto.survey.SurveyResponseDto;
 import cn.har01d.survey.dto.survey.SurveyStatsDto;
 import cn.har01d.survey.dto.survey.SurveySubmitRequest;
@@ -297,27 +298,27 @@ public class SurveyService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SurveyDto> getMySurveys(String keyword, Pageable pageable) {
+    public Page<SurveyListDto> getMySurveys(String keyword, Pageable pageable) {
         User user = authService.getCurrentUser();
         if (keyword != null && !keyword.isBlank()) {
-            return surveyRepository.findByUserAndTitleContaining(user, keyword, pageable).map(this::toDto);
+            return surveyRepository.findByUserAndTitleContaining(user, keyword, pageable).map(this::toListDto);
         }
-        return surveyRepository.findByUser(user, pageable).map(this::toDto);
+        return surveyRepository.findByUser(user, pageable).map(this::toListDto);
     }
 
     @Transactional(readOnly = true)
-    public Page<SurveyDto> getPublicSurveys(String username, Pageable pageable) {
+    public Page<SurveyListDto> getPublicSurveys(String username, Pageable pageable) {
         if (username != null && !username.isBlank()) {
             return surveyRepository.findByStatusAndAccessLevelAndUserUsername(
-                    Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, username, pageable).map(this::toDto);
+                    Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, username, pageable).map(this::toListDto);
         }
         return surveyRepository.findByStatusAndAccessLevel(Survey.SurveyStatus.PUBLISHED, Survey.AccessLevel.PUBLIC, pageable)
-                .map(this::toDto);
+                .map(this::toListDto);
     }
 
     @Transactional(readOnly = true)
-    public Page<SurveyDto> getTemplates(Pageable pageable) {
-        return surveyRepository.findByTemplateTrue(pageable).map(this::toDto);
+    public Page<SurveyListDto> getTemplates(Pageable pageable) {
+        return surveyRepository.findByTemplateTrue(pageable).map(this::toListDto);
     }
 
     @Transactional
@@ -588,6 +589,26 @@ public class SurveyService {
             ip = ip.split(",")[0].trim();
         }
         return ip;
+    }
+
+    private SurveyListDto toListDto(Survey survey) {
+        SurveyListDto dto = new SurveyListDto();
+        dto.setId(survey.getId());
+        dto.setShareId(survey.getShareId());
+        dto.setTitle(survey.getTitle());
+        dto.setLogoUrl(survey.getLogoUrl());
+        dto.setStatus(survey.getStatus().name());
+        dto.setAccessLevel(survey.getAccessLevel().name());
+        dto.setAnonymous(survey.isAnonymous());
+        dto.setTemplate(survey.isTemplate());
+        dto.setAllowUpdate(survey.isAllowUpdate());
+        dto.setStartTime(survey.getStartTime());
+        dto.setEndTime(survey.getEndTime());
+        dto.setResponseCount(survey.getResponseCount());
+        dto.setCreator(new CreatorDto(survey.getUser().getUsername(), survey.getUser().getNickname(), resolveAvatar(survey.getUser())));
+        dto.setCreatedAt(survey.getCreatedAt());
+        dto.setUpdatedAt(survey.getUpdatedAt());
+        return dto;
     }
 
     private SurveyDto toDto(Survey survey) {

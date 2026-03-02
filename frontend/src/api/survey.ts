@@ -4,6 +4,7 @@ import type {
     Page,
     SurveyCreateRequest,
     SurveyDto,
+    SurveyListDto,
     SurveyResponseDto,
     SurveyStatsDto,
     SurveySubmitRequest
@@ -23,13 +24,13 @@ export const surveyApi = {
         return http.get<ApiResponse<SurveyDto>>(`/surveys/s/${shareId}`)
     },
     getMy(params?: { keyword?: string; page?: number; size?: number }) {
-        return http.get<ApiResponse<Page<SurveyDto>>>('/surveys/my', {params})
+        return http.get<ApiResponse<Page<SurveyListDto>>>('/surveys/my', {params})
     },
     getPublic(params?: { page?: number; size?: number; username?: string }) {
-        return http.get<ApiResponse<Page<SurveyDto>>>('/surveys/public', {params})
+        return http.get<ApiResponse<Page<SurveyListDto>>>('/surveys/public', {params})
     },
     getTemplates(params?: { page?: number; size?: number }) {
-        return http.get<ApiResponse<Page<SurveyDto>>>('/surveys/templates', {params})
+        return http.get<ApiResponse<Page<SurveyListDto>>>('/surveys/templates', {params})
     },
     publish(id: number) {
         return http.post<ApiResponse<SurveyDto>>(`/surveys/${id}/publish`)

@@ -28,6 +28,24 @@ export interface UserProfile {
     createdAt: string
 }
 
+export interface SurveyListDto {
+    id: number
+    shareId: string
+    title: string
+    status: string
+    accessLevel: string
+    anonymous: boolean
+    template: boolean
+    allowUpdate: boolean
+    logoUrl: string | null
+    startTime: string | null
+    endTime: string | null
+    responseCount: number
+    creator: CreatorDto
+    createdAt: string
+    updatedAt: string
+}
+
 export interface SurveyDto {
     id: number
     shareId: string
@@ -147,6 +165,23 @@ export interface OptionStatsDto {
     content: string
     count: number
     percentage: number
+}
+
+export interface VotePollListDto {
+    id: number
+    shareId: string
+    title: string
+    voteType: string
+    status: string
+    accessLevel: string
+    anonymous: boolean
+    logoUrl: string | null
+    startTime: string
+    endTime: string
+    totalVoteCount: number
+    creator: CreatorDto
+    createdAt: string
+    updatedAt: string
 }
 
 export interface VotePollDto {

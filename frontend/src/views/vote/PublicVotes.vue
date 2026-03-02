@@ -53,12 +53,12 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {voteApi} from '@/api/vote'
-import type {VotePollDto} from '@/types'
+import type {VotePollListDto} from '@/types'
 
 const router = useRouter()
 const {t} = useI18n()
 
-const polls = ref<VotePollDto[]>([])
+const polls = ref<VotePollListDto[]>([])
 const loading = ref(true)
 const page = ref(1)
 const totalPages = ref(0)

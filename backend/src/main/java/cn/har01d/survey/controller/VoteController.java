@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cn.har01d.survey.dto.ApiResponse;
 import cn.har01d.survey.dto.vote.VotePollCreateRequest;
 import cn.har01d.survey.dto.vote.VotePollDto;
+import cn.har01d.survey.dto.vote.VotePollListDto;
 import cn.har01d.survey.dto.vote.VoteRecordDto;
 import cn.har01d.survey.dto.vote.VoteSubmitRequest;
 import cn.har01d.survey.service.VoteService;
@@ -62,17 +63,17 @@ public class VoteController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<Page<VotePollDto>>> getMyPolls(
+    public ResponseEntity<ApiResponse<Page<VotePollListDto>>> getMyPolls(
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<VotePollDto> polls = voteService.getMyPolls(pageable);
+        Page<VotePollListDto> polls = voteService.getMyPolls(pageable);
         return ResponseEntity.ok(ApiResponse.ok(polls));
     }
 
     @GetMapping("/public")
-    public ResponseEntity<ApiResponse<Page<VotePollDto>>> getPublicPolls(
+    public ResponseEntity<ApiResponse<Page<VotePollListDto>>> getPublicPolls(
             @RequestParam(required = false) String username,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<VotePollDto> polls = voteService.getPublicPolls(username, pageable);
+        Page<VotePollListDto> polls = voteService.getPublicPolls(username, pageable);
         return ResponseEntity.ok(ApiResponse.ok(polls));
     }
 

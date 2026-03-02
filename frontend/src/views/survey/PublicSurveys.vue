@@ -47,12 +47,12 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {surveyApi} from '@/api/survey'
-import type {SurveyDto} from '@/types'
+import type {SurveyListDto} from '@/types'
 
 const router = useRouter()
 const {t} = useI18n()
 
-const surveys = ref<SurveyDto[]>([])
+const surveys = ref<SurveyListDto[]>([])
 const loading = ref(true)
 const page = ref(1)
 const totalPages = ref(0)
