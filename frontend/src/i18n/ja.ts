@@ -190,6 +190,11 @@ export default {
     jwtExpiration: 'セッション有効期間',
     hours: '時間',
   },
+    home: {
+        description: 'アンケートや投票を簡単に作成し、データを収集・分析できます',
+        surveyFeatures: '単一選択、複数選択、テキスト、数値、評価、日付など多様な質問形式に対応',
+        voteFeatures: '単一/複数選択投票、不正防止機能、リアルタイム結果表示に対応',
+    },
   nav: {
     home: 'ホーム',
     surveys: 'アンケート',

@@ -190,6 +190,11 @@ export default {
     jwtExpiration: '會話有效期',
     hours: '小時',
   },
+    home: {
+        description: '輕鬆建立問卷調查和投票，收集資料，分析結果',
+        surveyFeatures: '支援單選、多選、填空、文字、數字、評分、日期等多種題型',
+        voteFeatures: '支援單選/多選投票，防灌票機制，即時結果展示',
+    },
   nav: {
     home: '首頁',
     surveys: '問卷',

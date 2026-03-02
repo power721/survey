@@ -190,6 +190,11 @@ export default {
     jwtExpiration: 'Session Duration',
     hours: 'hours',
   },
+    home: {
+        description: 'Easily create surveys and votes, collect data, analyze results',
+        surveyFeatures: 'Supports single choice, multiple choice, text, number, rating, date and more',
+        voteFeatures: 'Supports single/multiple choice voting, anti-fraud, real-time results',
+    },
   nav: {
     home: 'Home',
     surveys: 'Surveys',

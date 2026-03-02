@@ -190,6 +190,11 @@ export default {
     jwtExpiration: '세션 유효 기간',
     hours: '시간',
   },
+    home: {
+        description: '설문조사와 투표를 쉽게 만들고, 데이터를 수집하고, 결과를 분석하세요',
+        surveyFeatures: '단일 선택, 다중 선택, 텍스트, 숫자, 평점, 날짜 등 다양한 문항 유형 지원',
+        voteFeatures: '단일/다중 선택 투표, 부정 방지 기능, 실시간 결과 표시 지원',
+    },
   nav: {
     home: '홈',
     surveys: '설문',

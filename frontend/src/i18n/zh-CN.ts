@@ -190,6 +190,11 @@ export default {
     jwtExpiration: '会话有效期',
     hours: '小时',
   },
+    home: {
+        description: '轻松创建问卷调查和投票，收集数据，分析结果',
+        surveyFeatures: '支持单选、多选、填空、文本、数字、评分、日期等多种题型',
+        voteFeatures: '支持单选/多选投票，防刷票机制，实时结果展示',
+    },
   nav: {
     home: '首页',
     surveys: '问卷',
