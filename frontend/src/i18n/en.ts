@@ -122,6 +122,7 @@ export default {
     createVote: 'Create Vote',
     editVote: 'Edit Vote',
     voteTitle: 'Vote Title',
+      description: 'Vote Description',
     voteType: 'Vote Type',
     single: 'Single Choice',
     multiple: 'Multiple Choice',

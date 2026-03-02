@@ -5,7 +5,7 @@
         <n-form-item :label="t('vote.voteTitle')" path="title" required>
           <n-input v-model:value="form.title" :placeholder="t('vote.voteTitle')" />
         </n-form-item>
-        <n-form-item :label="t('survey.description')">
+        <n-form-item :label="t('vote.description')">
           <n-input v-model:value="form.description" type="textarea" :rows="3" />
         </n-form-item>
         <n-form-item :label="t('common.logoUrl')">

@@ -122,6 +122,7 @@ export default {
     createVote: '투표 생성',
     editVote: '투표 편집',
     voteTitle: '투표 제목',
+      description: '투표 설명',
     voteType: '투표 유형',
     single: '단일 선택',
     multiple: '다중 선택',

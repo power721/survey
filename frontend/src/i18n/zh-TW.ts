@@ -122,6 +122,7 @@ export default {
     createVote: '建立投票',
     editVote: '編輯投票',
     voteTitle: '投票標題',
+      description: '投票描述',
     voteType: '投票類型',
     single: '單選',
     multiple: '多選',
