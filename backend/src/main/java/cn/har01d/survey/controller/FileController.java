@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import cn.har01d.survey.config.RateLimiter;
+import cn.har01d.survey.service.RateLimitService;
 import cn.har01d.survey.dto.ApiResponse;
 import cn.har01d.survey.exception.BusinessException;
 import cn.har01d.survey.service.FileService;
@@ -31,18 +31,18 @@ import cn.har01d.survey.service.FileService;
 public class FileController {
 
     private final FileService fileService;
-    private final RateLimiter rateLimiter;
+    private final RateLimitService rateLimitService;
 
-    public FileController(FileService fileService, RateLimiter rateLimiter) {
+    public FileController(FileService fileService, RateLimitService rateLimitService) {
         this.fileService = fileService;
-        this.rateLimiter = rateLimiter;
+        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<Map<String, String>>> upload(@RequestParam("file") MultipartFile file,
                                                                    HttpServletRequest request) {
         String ip = getClientIp(request);
-        if (!rateLimiter.isAllowed("upload:" + ip, 5, 60_000)) {
+        if (!rateLimitService.isAllowed("upload:" + ip, 5, 60_000)) {
             throw new BusinessException("file.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
         String url = fileService.upload(file);
@@ -60,7 +60,7 @@ public class FileController {
     public ResponseEntity<ApiResponse<Void>> deleteByPost(@PathVariable String fileName,
                                                           HttpServletRequest request) {
         String ip = getClientIp(request);
-        if (!rateLimiter.isAllowed("delete:" + ip, 10, 60_000)) {
+        if (!rateLimitService.isAllowed("delete:" + ip, 10, 60_000)) {
             throw new BusinessException("file.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
         fileService.delete(fileName);

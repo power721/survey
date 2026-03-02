@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import cn.har01d.survey.config.RateLimiter;
+import cn.har01d.survey.service.RateLimitService;
 import cn.har01d.survey.dto.ApiResponse;
 import cn.har01d.survey.dto.auth.AuthResponse;
 import cn.har01d.survey.dto.auth.LoginRequest;
@@ -28,12 +28,12 @@ import cn.har01d.survey.service.SystemConfigService;
 public class AuthController {
 
     private final AuthService authService;
-    private final RateLimiter rateLimiter;
+    private final RateLimitService rateLimitService;
     private final SystemConfigService configService;
 
-    public AuthController(AuthService authService, RateLimiter rateLimiter, SystemConfigService configService) {
+    public AuthController(AuthService authService, RateLimitService rateLimitService, SystemConfigService configService) {
         this.authService = authService;
-        this.rateLimiter = rateLimiter;
+        this.rateLimitService = rateLimitService;
         this.configService = configService;
     }
 
@@ -53,7 +53,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request,
                                                               HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
-        if (!rateLimiter.isAllowed("register:" + ip, 5, 3600_000)) {
+        if (!rateLimitService.isAllowed("register:" + ip, 5, 3600_000)) {
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
         AuthResponse response = authService.register(request);
@@ -64,7 +64,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request,
                                                            HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
-        if (!rateLimiter.isAllowed("login:" + ip, getLoginMaxAttempts(), 60_000)) {
+        if (!rateLimitService.isAllowed("login:" + ip, getLoginMaxAttempts(), 60_000)) {
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
         AuthResponse response = authService.login(request);

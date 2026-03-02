@@ -40,6 +40,15 @@ public class RateLimitService {
         return !bucket.tryConsume(1);
     }
 
+    public boolean isAllowed(String key, int maxRequests, long windowMillis) {
+        Bucket bucket = buckets.computeIfAbsent(key, k ->
+                Bucket.builder()
+                        .addLimit(Bandwidth.simple(maxRequests, Duration.ofMillis(windowMillis)))
+                        .build()
+        );
+        return bucket.tryConsume(1);
+    }
+
     public boolean hasVoted(String pollId, String identifier) {
         String key = "vote:" + pollId + ":" + identifier;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));

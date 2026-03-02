@@ -53,16 +53,9 @@ public class TestRedisConfig {
     public RateLimitService rateLimitService(StringRedisTemplate stringRedisTemplate) {
         RateLimitService service = Mockito.mock(RateLimitService.class);
         when(service.isRateLimited(anyString())).thenReturn(false);
+        when(service.isAllowed(anyString(), anyInt(), anyLong())).thenReturn(true);
         when(service.hasVoted(anyString(), anyString())).thenReturn(false);
         when(service.hasVotedDaily(anyString(), anyString())).thenReturn(false);
         return service;
-    }
-
-    @Bean
-    @Primary
-    public RateLimiter rateLimiter() {
-        RateLimiter rateLimiter = Mockito.mock(RateLimiter.class);
-        when(rateLimiter.isAllowed(anyString(), anyInt(), anyLong())).thenReturn(true);
-        return rateLimiter;
     }
 }
