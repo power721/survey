@@ -241,7 +241,7 @@ function handleBatchAdd() {
 
 function removeOption(index: number) {
   if (form.value.options.length <= 2) {
-    message.warning('At least 2 options required')
+    message.warning(t('vote.atLeastTwoOptions'))
     return
   }
   form.value.options.splice(index, 1)
@@ -292,6 +292,10 @@ async function loadPoll() {
 async function handleSave() {
   if (!form.value.title.trim()) {
     message.warning(t('vote.voteTitle'))
+    return
+  }
+  if (form.value.options.length === 0) {
+    message.warning(t('vote.atLeastOneOption'))
     return
   }
   if (form.value.options.some((o) => !o.title.trim())) {

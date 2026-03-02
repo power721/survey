@@ -261,6 +261,10 @@ async function handleSave() {
     message.warning(t('common.endTimeBeforeStartTime'))
     return
   }
+  if (form.value.questions.length === 0) {
+    message.warning(t('survey.atLeastOneQuestion'))
+    return
+  }
   saving.value = true
   try {
     form.value.startTime = startTimeTs.value ? new Date(startTimeTs.value).toISOString() : null

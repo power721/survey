@@ -84,6 +84,9 @@ public class SurveyService {
         if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
             throw new BusinessException("error.endTimeBeforeStartTime");
         }
+        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
+            throw new BusinessException("survey.atLeastOneQuestion");
+        }
 
         Survey survey = Survey.builder()
                 .shareId(generateShareId())
@@ -155,6 +158,9 @@ public class SurveyService {
         Instant endTime = request.getEndTime() != null ? request.getEndTime() : Instant.now().plus(Duration.ofDays(30));
         if (request.getStartTime() != null && !endTime.isAfter(request.getStartTime())) {
             throw new BusinessException("error.endTimeBeforeStartTime");
+        }
+        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
+            throw new BusinessException("survey.atLeastOneQuestion");
         }
         survey.setStartTime(request.getStartTime());
         survey.setEndTime(endTime);
