@@ -1,5 +1,6 @@
 package cn.har01d.survey.security;
 
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
 
@@ -12,7 +13,9 @@ import cn.har01d.survey.service.SystemConfigService;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -21,12 +24,28 @@ public class JwtTokenProvider {
     private final SystemConfigService configService;
 
     public JwtTokenProvider(
-            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.secret:}") String secret,
             @Value("${app.jwt.expiration-ms}") long expirationMs,
             SystemConfigService configService) {
-        this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
         this.defaultExpirationMs = expirationMs;
         this.configService = configService;
+        this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(resolveSecret(secret)));
+    }
+
+    private String resolveSecret(String defaultSecret) {
+        String stored = configService.get(SystemConfigService.JWT_SECRET);
+        if (!stored.isEmpty()) {
+            return stored;
+        }
+        String secret = defaultSecret;
+        if (secret == null || secret.isEmpty()) {
+            byte[] bytes = new byte[32];
+            new SecureRandom().nextBytes(bytes);
+            secret = Base64.getEncoder().encodeToString(bytes);
+            log.info("Generated random JWT secret");
+        }
+        configService.set(SystemConfigService.JWT_SECRET, secret);
+        return secret;
     }
 
     private long getExpirationMs() {

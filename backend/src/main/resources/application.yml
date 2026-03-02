@@ -32,7 +32,6 @@ app:
     dir: uploads
     max-size: 104857600
   jwt:
-    secret: "YTJkNGY2ZjgtYzRiMC00YTg3LWE3ZmEtMjc2YzhhZTkwMDFhCg=="
     expiration-ms: 604800000
   cors:
     allowed-origins: "http://localhost:5173"

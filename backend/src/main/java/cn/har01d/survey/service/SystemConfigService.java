@@ -36,6 +36,7 @@ public class SystemConfigService {
     // Security
     public static final String LOGIN_MAX_ATTEMPTS = "login.max-attempts";
     public static final String JWT_EXPIRATION_MS = "jwt.expiration-ms";
+    public static final String JWT_SECRET = "jwt.secret";
 
     private final SystemConfigRepository configRepository;
 
