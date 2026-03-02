@@ -328,7 +328,7 @@ Dockerfile 多阶段构建：
 - 前端编辑器支持拖拽排序分组和分组内题目，默认创建一个分组
 - 填写时按分组分步展示（`n-steps`），每步独立校验后才能进入下一步
 
-#### 3.2.6 条件跳题逻辑
+#### 3.2.6 条件跳题逻辑 ✅
 
 每道题目可设置一个显示条件，由两个字段控制：
 
@@ -377,7 +377,7 @@ Dockerfile 多阶段构建：
     - 已登录用户（`allowUpdate=false`）：检查 `existsBySurveyIdAndUserId`，重复则返回 HTTP 400
     - 匿名用户：检查 `existsBySurveyIdAndIp`，前端同时写入 `localStorage` 标记
     - 重复提交返回错误码 `survey.already.submitted`
-- **问卷配额**：
+- **问卷配额** ✅：
     - 若 `maxResponses` 不为 null，提交前检查 `responseCount >= maxResponses`，超出返回 `survey.quota.reached`
     - 每次新提交成功后，若 `responseCount` 达到 `maxResponses`，自动将问卷状态改为 `CLOSED`
 
@@ -630,7 +630,71 @@ Dockerfile 多阶段构建：
 | 我的投票列表 | `GET /api/votes/my` | 已登录 | 按创建时间倒序分页 |
 | 公开投票列表 | `GET /api/votes/public` | 公开 | 仅 PUBLISHED + PUBLIC |
 
-#### 3.3.14 投票选项图片
+#### 3.3.14 投票记录管理 ✅
+
+**前置条件**：用户已登录，且为投票创建者或系统管理员
+
+**功能描述**：查看投票的所有投票记录详情。
+
+**接口**：`GET /api/votes/{id}/records`
+
+**权限验证**：
+
+- 仅投票创建者和 ADMIN 角色可访问
+- 非创建者且非管理员返回 HTTP 403 Forbidden
+
+**返回数据**：
+
+- 投票记录列表（分页）
+- 每条记录包含：投票人信息、选择的选项、投票时间、IP 地址
+
+**前端页面**：
+
+- 路由：`/votes/{id}/records`
+- 在"我的投票"列表中，每个投票有"查看记录"按钮
+
+#### 3.3.15 用户投票历史 ✅
+
+**前置条件**：用户已登录
+
+**功能描述**：用户查看自己在所有投票中的投票历史记录。
+
+**接口**：`GET /api/votes/history`
+
+**查询参数**：
+
+- 支持分页（`page`, `size`）
+- 默认按投票时间倒序排列
+
+**返回数据（VoteRecordDto）**：
+
+| 字段            | 说明           |
+|---------------|--------------|
+| `id`          | 记录 ID        |
+| `pollId`      | 投票 ID        |
+| `pollShareId` | 投票分享 ID      |
+| `pollTitle`   | 投票标题         |
+| `optionTitle` | 选择的选项标题      |
+| `voteCount`   | 投票数（计分投票时显示） |
+| `username`    | 投票用户名        |
+| `nickname`    | 投票用户昵称       |
+| `ip`          | 投票 IP        |
+| `createdAt`   | 投票时间         |
+
+**业务规则**：
+
+- 使用 `@Transactional(readOnly = true)` 避免懒加载异常
+- 通过 `pollShareId` 直接跳转到投票详情页（`/v/{shareId}`）
+- 仅返回当前登录用户的投票记录
+
+**前端页面**：
+
+- 路由：`/votes/history`（需要登录）
+- 侧边栏菜单："投票历史"
+- 显示投票标题、选择的选项、投票时间
+- 点击可跳转到投票详情页查看结果
+
+#### 3.3.16 投票选项图片
 
 - 每个选项可配置 `imageUrl`
 - 前端投票页面以大图方式展示（最大宽度 100%，最大高度 300px）
@@ -670,7 +734,7 @@ Dockerfile 多阶段构建：
 
 ### 3.5 管理员模块
 
-#### 3.5.1 数据仪表盘
+#### 3.5.1 数据仪表盘 ✅
 
 **前置条件**：用户角色为 ADMIN
 
@@ -781,6 +845,52 @@ Dockerfile 多阶段构建：
 - 路由：`/admin/config`（需要 ADMIN 角色）
 - 5 个分组：基本信息、用户注册、OAuth2、文件上传、安全配置
 - 应用启动时从 `/api/config/public` 获取公开配置，用于显示站点 Logo、页脚、注册入口、社交登录按钮
+
+#### 3.5.5 操作审计日志 ✅
+
+**前置条件**：用户角色为 ADMIN
+
+**功能描述**：记录系统关键操作，供管理员审计和追溯。
+
+**记录的操作类型**：
+
+| 操作类型            | 说明     |
+|-----------------|--------|
+| `CREATE_SURVEY` | 创建问卷   |
+| `UPDATE_SURVEY` | 更新问卷   |
+| `DELETE_SURVEY` | 删除问卷   |
+| `EXPORT_SURVEY` | 导出问卷数据 |
+| `CREATE_VOTE`   | 创建投票   |
+| `UPDATE_VOTE`   | 更新投票   |
+| `DELETE_VOTE`   | 删除投票   |
+| `LOGIN`         | 用户登录   |
+| `REGISTER`      | 用户注册   |
+
+**审计日志字段**：
+
+| 字段           | 说明                         |
+|--------------|----------------------------|
+| `id`         | 日志 ID                      |
+| `action`     | 操作类型（枚举）                   |
+| `entityType` | 实体类型（Survey / Vote / User） |
+| `entityId`   | 实体 ID                      |
+| `userId`     | 操作用户 ID                    |
+| `username`   | 操作用户名                      |
+| `ip`         | 操作 IP 地址                   |
+| `createdAt`  | 操作时间                       |
+
+**接口**：`GET /api/admin/audit-logs`
+
+**查询参数**：
+
+- 支持分页（`page`, `size`）
+- 默认按创建时间倒序排列
+
+**前端页面**：
+
+- 路由：`/admin/audit-logs`（需要 ADMIN 角色）
+- 使用 Naive UI 的 DataTable 组件展示日志列表
+- 支持分页浏览
 
 ---
 
