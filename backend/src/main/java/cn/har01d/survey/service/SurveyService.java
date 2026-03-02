@@ -405,6 +405,18 @@ public class SurveyService {
         }
         String ip = getClientIp(httpRequest);
 
+        // Duplicate submission check
+        if (user != null) {
+            if (!survey.isAllowUpdate() && responseRepository.existsBySurveyIdAndUserId(survey.getId(), user.getId())) {
+                throw new BusinessException("survey.already.submitted");
+            }
+        } else {
+            // Anonymous survey: check by IP
+            if (responseRepository.existsBySurveyIdAndIp(survey.getId(), ip)) {
+                throw new BusinessException("survey.already.submitted");
+            }
+        }
+
         boolean isUpdate = false;
         SurveyResponse response = null;
 

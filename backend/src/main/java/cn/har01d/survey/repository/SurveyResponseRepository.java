@@ -21,4 +21,8 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
 
     @EntityGraph(attributePaths = {"answers", "answers.question", "answers.selectedOption"})
     Optional<SurveyResponse> findFirstBySurveyIdAndUserIdOrderByCreatedAtDesc(Long surveyId, Long userId);
+
+    boolean existsBySurveyIdAndUserId(Long surveyId, Long userId);
+
+    boolean existsBySurveyIdAndIp(Long surveyId, String ip);
 }

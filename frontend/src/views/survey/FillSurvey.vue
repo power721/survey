@@ -415,11 +415,28 @@ function startEditing() {
   editing.value = true
 }
 
+function localSubmittedKey(shareId: string) {
+  return `survey_submitted_${shareId}`
+}
+
+function isLocallySubmitted(shareId: string) {
+  return !!localStorage.getItem(localSubmittedKey(shareId))
+}
+
+function markLocallySubmitted(shareId: string) {
+  localStorage.setItem(localSubmittedKey(shareId), '1')
+}
+
 async function loadSurvey() {
   try {
     const res = await surveyApi.getByShareId(route.params.shareId as string)
     survey.value = res.data.data
     initAnswers()
+
+    if (survey.value.anonymous && !authStore.isLoggedIn && isLocallySubmitted(route.params.shareId as string)) {
+      submitted.value = true
+      return
+    }
 
     if (authStore.isLoggedIn) {
       try {
@@ -462,6 +479,9 @@ async function handleSubmit() {
     }
     pendingFileDeletes.value = []
     newUploadedFiles.value = []
+    if (survey.value.anonymous && !authStore.isLoggedIn) {
+      markLocallySubmitted(route.params.shareId as string)
+    }
     submitted.value = true
   } catch (e: any) {
     message.error(e?.response?.data?.message || 'Error')
