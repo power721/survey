@@ -25,7 +25,7 @@ public class QuestionRequest {
     private int sortOrder = 0;
 
     private Long conditionQuestionId;
-    private Long conditionOptionId;
+    private List<Long> conditionOptionIds;
 
     private List<OptionRequest> options;
 }

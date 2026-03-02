@@ -121,24 +121,30 @@
                     </template>
 
                     <n-form-item :label="t('survey.conditionLogic')">
-                      <n-space align="center" wrap>
+                      <n-space vertical style="width: 100%">
                         <n-select
-                            v-model:value="q.conditionQuestionId"
+                            v-model:value="q.conditionQuestionKey"
                             :options="conditionQuestionOptions(si, qi)"
                             :placeholder="t('survey.conditionNone')"
                             clearable
                             style="min-width: 220px"
-                            @update:value="q.conditionOptionId = null"
+                            @update:value="q.conditionOptionIndices = []"
                         />
-                        <template v-if="q.conditionQuestionId">
-                          <n-text>{{ t('survey.conditionOption') }}</n-text>
-                          <n-select
-                              v-model:value="q.conditionOptionId"
-                              :options="conditionOptionOptions(si, q.conditionQuestionId)"
-                              clearable
-                              style="min-width: 180px"
-                          />
-                          <n-text depth="3">→ {{ t('survey.conditionThen') }}</n-text>
+                        <template v-if="q.conditionQuestionKey">
+                          <n-space align="center" wrap>
+                            <n-text>{{ t('survey.conditionOption') }}</n-text>
+                            <n-checkbox-group v-model:value="q.conditionOptionIndices">
+                              <n-space>
+                                <n-checkbox
+                                    v-for="opt in conditionOptionOptions(q.conditionQuestionKey)"
+                                    :key="opt.value"
+                                    :value="opt.value"
+                                    :label="opt.label"
+                                />
+                              </n-space>
+                            </n-checkbox-group>
+                            <n-text depth="3">→ {{ t('survey.conditionThen') }}</n-text>
+                          </n-space>
                         </template>
                       </n-space>
                     </n-form-item>
@@ -175,7 +181,7 @@ import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
 import draggable from 'vuedraggable'
 import {surveyApi} from '@/api/survey'
-import type {QuestionRequest, SurveyCreateRequest} from '@/types'
+import type {QuestionRequest, SurveyCreateRequest, SurveyDto} from '@/types'
 import SimpleHtmlEditor from '@/components/SimpleHtmlEditor.vue'
 
 const router = useRouter()
@@ -202,7 +208,9 @@ function newQuestion(sortOrder = 0): QuestionRequest {
     required: false,
     sortOrder,
     conditionQuestionId: null,
-    conditionOptionId: null,
+    conditionOptionIds: [],
+    conditionQuestionKey: null,
+    conditionOptionIndices: [],
     options: [{content: '', sortOrder: 0}, {content: '', sortOrder: 1}],
     _key: nextKey(),
   }
@@ -276,7 +284,9 @@ function copyQuestion(si: number, qi: number) {
     required: source.required,
     sortOrder: sec.questions.length,
     conditionQuestionId: source.conditionQuestionId,
-    conditionOptionId: source.conditionOptionId,
+    conditionOptionIds: [...source.conditionOptionIds],
+    conditionQuestionKey: source.conditionQuestionKey,
+    conditionOptionIndices: [...source.conditionOptionIndices],
     options: source.options.map((o) => ({content: o.content, sortOrder: o.sortOrder})),
     _key: nextKey(),
   }
@@ -293,33 +303,32 @@ function removeOption(si: number, qi: number, oi: number) {
 }
 
 function conditionQuestionOptions(si: number, qi: number) {
-  const result: { label: string, value: number }[] = []
+  const result: { label: string, value: string }[] = []
+  let globalIndex = 0
   for (let s = 0; s < form.value.sections.length; s++) {
     const sec = form.value.sections[s]
     for (let q = 0; q < sec.questions.length; q++) {
       if (s === si && q >= qi) break
       const question = sec.questions[q]
       if (question.type === 'SINGLE_CHOICE' || question.type === 'MULTIPLE_CHOICE') {
-        if (question.id) {
-          result.push({
-            label: `Q${q + 1}: ${question.title || t('survey.questionTitle')}`,
-            value: question.id,
-          })
-        }
+        result.push({
+          label: `Q${globalIndex + 1}: ${question.title || t('survey.questionTitle')}`,
+          value: question._key!,
+        })
       }
+      globalIndex++
     }
   }
   return result
 }
 
-function conditionOptionOptions(si: number, conditionQuestionId: number | null) {
-  if (!conditionQuestionId) return []
+function conditionOptionOptions(conditionQuestionKey: string | null) {
+  if (!conditionQuestionKey) return []
   for (const sec of form.value.sections) {
     for (const q of sec.questions) {
-      if (q.id === conditionQuestionId) {
+      if (q._key === conditionQuestionKey) {
         return q.options
-            .filter(o => o.content)
-            .map(o => ({label: o.content, value: o.id as number}))
+            .map((o, idx) => ({label: o.content || `${t('survey.options')} ${idx + 1}`, value: idx}))
       }
     }
   }
@@ -332,18 +341,39 @@ async function loadSurvey() {
     const res = await surveyApi.getById(Number(route.params.id))
     const survey = res.data.data
 
-    const mapQuestion = (q: any) => ({
-      id: q.id,
-      type: q.type,
-      title: q.title,
-      description: q.description || '',
-      required: q.required,
-      sortOrder: q.sortOrder,
-      conditionQuestionId: q.conditionQuestionId ?? null,
-      conditionOptionId: q.conditionOptionId ?? null,
-      options: q.options.map((o: any) => ({id: o.id, content: o.content, sortOrder: o.sortOrder})),
-      _key: nextKey(),
-    })
+    const rawQuestions: any[] = survey.sections && survey.sections.length > 0
+        ? survey.sections.flatMap((s: any) => s.questions)
+        : survey.questions
+
+    const idToKey = new Map<number, string>()
+    rawQuestions.forEach(q => idToKey.set(q.id, nextKey()))
+
+    const mapQuestion = (q: any) => {
+      const _key = idToKey.get(q.id)!
+      const condKey = q.conditionQuestionId ? (idToKey.get(q.conditionQuestionId) ?? null) : null
+      const condSourceOptions = condKey
+          ? rawQuestions.find((qq: any) => qq.id === q.conditionQuestionId)?.options ?? []
+          : []
+      const condOptIndices: number[] = (condKey && q.conditionOptionIds && q.conditionOptionIds.length > 0)
+          ? q.conditionOptionIds
+              .map((oid: number) => condSourceOptions.findIndex((o: any) => o.id === oid))
+              .filter((idx: number) => idx !== -1)
+          : []
+      return {
+        id: q.id,
+        type: q.type,
+        title: q.title,
+        description: q.description || '',
+        required: q.required,
+        sortOrder: q.sortOrder,
+        conditionQuestionId: q.conditionQuestionId ?? null,
+        conditionOptionIds: q.conditionOptionIds ?? [],
+        conditionQuestionKey: condKey,
+        conditionOptionIndices: condOptIndices,
+        options: q.options.map((o: any) => ({id: o.id, content: o.content, sortOrder: o.sortOrder})),
+        _key,
+      }
+    }
 
     let sections
     if (survey.sections && survey.sections.length > 0) {
@@ -417,18 +447,91 @@ async function handleSave() {
   try {
     form.value.startTime = startTimeTs.value ? new Date(startTimeTs.value).toISOString() : null
     form.value.endTime = endTimeTs.value ? new Date(endTimeTs.value).toISOString() : null
+
+    const orderedKeys: string[] = []
     form.value.sections.forEach((s, si) => {
       s.sortOrder = si
       s.questions.forEach((q, qi) => {
         q.sortOrder = qi
+        orderedKeys.push(q._key!)
       })
     })
+
+    const pendingConditions = new Map<string, { conditionQuestionKey: string; conditionOptionIndices: number[] }>()
+    form.value.sections.forEach(s => {
+      s.questions.forEach(q => {
+        if (q.conditionQuestionKey) {
+          pendingConditions.set(q._key!, {
+            conditionQuestionKey: q.conditionQuestionKey,
+            conditionOptionIndices: q.conditionOptionIndices,
+          })
+        }
+        q.conditionQuestionId = null
+        q.conditionOptionIds = []
+      })
+    })
+
     form.value.questions = []
+    let savedSurvey: SurveyDto
     if (isEdit.value) {
-      await surveyApi.update(Number(route.params.id), form.value)
+      savedSurvey = (await surveyApi.update(Number(route.params.id), form.value)).data.data
     } else {
-      await surveyApi.create(form.value)
+      savedSurvey = (await surveyApi.create(form.value)).data.data
     }
+
+    if (pendingConditions.size > 0) {
+      const savedFlat = savedSurvey.sections && savedSurvey.sections.length > 0
+          ? savedSurvey.sections.flatMap(s => s.questions)
+          : savedSurvey.questions
+
+      const keyToSavedQuestion = new Map<string, typeof savedFlat[0]>()
+      orderedKeys.forEach((key, idx) => {
+        if (savedFlat[idx]) keyToSavedQuestion.set(key, savedFlat[idx])
+      })
+
+      const updatedSections = savedSurvey.sections && savedSurvey.sections.length > 0
+          ? savedSurvey.sections.map(sec => {
+            let secOffset = 0
+            const secIdx = savedSurvey.sections!.indexOf(sec)
+            for (let i = 0; i < secIdx; i++) secOffset += savedSurvey.sections![i].questions.length
+            return {
+              id: sec.id,
+              title: sec.title,
+              sortOrder: sec.sortOrder,
+              questions: sec.questions.map((sq, qi) => {
+                const key = orderedKeys[secOffset + qi]
+                const cond = key ? pendingConditions.get(key) : null
+                const condSavedQ = cond ? keyToSavedQuestion.get(cond.conditionQuestionKey) : null
+                const condQId = condSavedQ?.id ?? null
+                const condOptIds = (condSavedQ && cond!.conditionOptionIndices.length > 0)
+                    ? cond!.conditionOptionIndices
+                        .map(idx => condSavedQ.options[idx]?.id)
+                        .filter((id): id is number => id != null)
+                    : []
+                return {
+                  id: sq.id,
+                  type: sq.type,
+                  title: sq.title,
+                  description: sq.description || '',
+                  required: sq.required,
+                  sortOrder: sq.sortOrder,
+                  conditionQuestionId: condQId,
+                  conditionOptionIds: condOptIds,
+                  conditionQuestionKey: null,
+                  conditionOptionIndices: [],
+                  options: sq.options.map(o => ({id: o.id, content: o.content, sortOrder: o.sortOrder})),
+                }
+              }),
+            }
+          })
+          : null
+
+      if (updatedSections) {
+        const patchRequest = {...form.value, sections: updatedSections, questions: []}
+        await surveyApi.update(savedSurvey.id, patchRequest)
+      }
+    }
+
     message.success(t('common.save'))
     router.push('/surveys')
   } catch (e: any) {

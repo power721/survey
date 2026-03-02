@@ -84,7 +84,7 @@ export interface QuestionDto {
     required: boolean
     sortOrder: number
     conditionQuestionId: number | null
-    conditionOptionId: number | null
+    conditionOptionIds: number[]
     options: OptionDto[]
 }
 
@@ -126,7 +126,9 @@ export interface QuestionRequest {
     required: boolean
     sortOrder: number
     conditionQuestionId: number | null
-    conditionOptionId: number | null
+    conditionOptionIds: number[]
+    conditionQuestionKey: string | null
+    conditionOptionIndices: number[]
     options: OptionRequest[]
     _key?: string
 }

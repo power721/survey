@@ -276,10 +276,11 @@ function isQuestionVisible(question: QuestionDto): boolean {
   if (!question.conditionQuestionId) return true
   const condAnswer = answers[question.conditionQuestionId]
   if (!condAnswer) return false
-  if (!question.conditionOptionId) return true
-  if (condAnswer.selectedOptionId === question.conditionOptionId) return true
-  if (condAnswer.selectedOptionIds && condAnswer.selectedOptionIds.includes(question.conditionOptionId)) return true
-  return false
+  if (!question.conditionOptionIds || question.conditionOptionIds.length === 0) return true
+  return question.conditionOptionIds.some(optId =>
+      condAnswer.selectedOptionId === optId ||
+      (condAnswer.selectedOptionIds && condAnswer.selectedOptionIds.includes(optId))
+  )
 }
 
 const allQuestions = computed((): QuestionDto[] => {

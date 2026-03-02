@@ -689,7 +689,7 @@ public class SurveyService {
                 .required(qr.isRequired())
                 .sortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index)
                 .conditionQuestionId(qr.getConditionQuestionId())
-                .conditionOptionId(qr.getConditionOptionId())
+                .conditionOptionIds(qr.getConditionOptionIds() != null ? qr.getConditionOptionIds().stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",")) : null)
                 .options(new ArrayList<>())
                 .build();
         if (qr.getOptions() != null) {
@@ -712,7 +712,7 @@ public class SurveyService {
         question.setRequired(qr.isRequired());
         question.setSortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index);
         question.setConditionQuestionId(qr.getConditionQuestionId());
-        question.setConditionOptionId(qr.getConditionOptionId());
+        question.setConditionOptionIds(qr.getConditionOptionIds() != null ? qr.getConditionOptionIds().stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",")) : null);
         Map<Long, QuestionOption> existingOptionMap = question.getOptions().stream()
                 .filter(o -> o.getId() != null)
                 .collect(Collectors.toMap(QuestionOption::getId, o -> o));
@@ -750,7 +750,10 @@ public class SurveyService {
         dto.setRequired(question.isRequired());
         dto.setSortOrder(question.getSortOrder());
         dto.setConditionQuestionId(question.getConditionQuestionId());
-        dto.setConditionOptionId(question.getConditionOptionId());
+        if (question.getConditionOptionIds() != null && !question.getConditionOptionIds().isEmpty()) {
+            dto.setConditionOptionIds(java.util.Arrays.stream(question.getConditionOptionIds().split(","))
+                    .map(Long::parseLong).collect(java.util.stream.Collectors.toList()));
+        }
         if (question.getOptions() != null) {
             dto.setOptions(question.getOptions().stream().map(this::toOptionDto).toList());
         }

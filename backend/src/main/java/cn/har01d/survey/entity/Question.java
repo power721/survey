@@ -60,7 +60,7 @@ public class Question {
 
     private Long conditionQuestionId;
 
-    private Long conditionOptionId;
+    private String conditionOptionIds;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")

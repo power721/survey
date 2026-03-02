@@ -13,6 +13,6 @@ public class QuestionDto {
     private boolean required;
     private int sortOrder;
     private Long conditionQuestionId;
-    private Long conditionOptionId;
+    private List<Long> conditionOptionIds;
     private List<OptionDto> options;
 }
