@@ -58,6 +58,18 @@ public class Question {
 
     private int sortOrder = 0;
 
+    @Column(name = "min_options")
+    private Integer minOptions;
+
+    @Column(name = "max_options")
+    private Integer maxOptions;
+
+    @Column(name = "min_value")
+    private Double minValue;
+
+    @Column(name = "max_value")
+    private Double maxValue;
+
     private Long conditionQuestionId;
 
     private String conditionOptionIds;

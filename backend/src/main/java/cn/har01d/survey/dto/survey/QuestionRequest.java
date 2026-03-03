@@ -28,4 +28,8 @@ public class QuestionRequest {
     private List<Long> conditionOptionIds;
 
     private List<OptionRequest> options;
+    private Integer minOptions;
+    private Integer maxOptions;
+    private Double minValue;
+    private Double maxValue;
 }

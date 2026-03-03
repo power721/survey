@@ -86,6 +86,10 @@ export interface QuestionDto {
     conditionQuestionId: number | null
     conditionOptionIds: number[]
     options: OptionDto[]
+    minOptions?: number | null
+    maxOptions?: number | null
+    minValue?: number | null
+    maxValue?: number | null
 }
 
 export interface OptionDto {
@@ -130,7 +134,12 @@ export interface QuestionRequest {
     conditionQuestionKey: string | null
     conditionOptionIndices: number[]
     options: OptionRequest[]
+    minOptions?: number | null
+    maxOptions?: number | null
+    minValue?: number | null
+    maxValue?: number | null
     _key?: string
+    _showAdvanced?: boolean
 }
 
 export interface OptionRequest {

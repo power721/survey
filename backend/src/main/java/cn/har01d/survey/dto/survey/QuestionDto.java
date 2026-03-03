@@ -15,4 +15,8 @@ public class QuestionDto {
     private Long conditionQuestionId;
     private List<Long> conditionOptionIds;
     private List<OptionDto> options;
+    private Integer minOptions;
+    private Integer maxOptions;
+    private Double minValue;
+    private Double maxValue;
 }

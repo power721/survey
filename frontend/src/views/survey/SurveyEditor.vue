@@ -108,6 +108,15 @@
                       <n-switch v-model:value="q.required"/>
                     </n-form-item>
 
+                    <n-divider style="margin: 8px 0">
+                      <n-button text @click="toggleAdvanced(q)" style="font-size: 12px">
+                        <template #icon>
+                          <span style="font-size: 10px">{{ q._showAdvanced ? '▼' : '▶' }}</span>
+                        </template>
+                        {{ t('survey.advancedSettings') }}
+                      </n-button>
+                    </n-divider>
+
                     <template v-if="q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE'">
                       <n-form-item :label="t('survey.options')">
                         <n-space vertical style="width: 100%">
@@ -121,36 +130,82 @@
                           </n-space>
                         </n-space>
                       </n-form-item>
+
+                      <template v-if="q.type === 'MULTIPLE_CHOICE'">
+                        <template v-if="q._showAdvanced">
+                          <n-form-item :label="t('survey.optionLimits')">
+                            <n-space align="center">
+                              <n-text depth="3">{{ t('survey.minOptions') }}</n-text>
+                              <n-input-number
+                                v-model:value="q.minOptions"
+                                :min="1"
+                                :placeholder="t('survey.minOptionsPlaceholder')"
+                                style="width: 165px"
+                              />
+                              <n-text depth="3">{{ t('survey.maxOptions') }}</n-text>
+                              <n-input-number
+                                v-model:value="q.maxOptions"
+                                :min="1"
+                                :placeholder="t('survey.maxOptionsPlaceholder')"
+                                style="width: 165px"
+                              />
+                            </n-space>
+                          </n-form-item>
+                        </template>
+                      </template>
                     </template>
 
-                    <n-form-item :label="t('survey.conditionLogic')">
-                      <n-space vertical style="width: 100%">
-                        <n-select
-                            v-model:value="q.conditionQuestionKey"
-                            :options="conditionQuestionOptions(si, qi)"
-                            :placeholder="t('survey.conditionNone')"
-                            clearable
-                            style="min-width: 220px"
-                            @update:value="q.conditionOptionIndices = []"
-                        />
-                        <template v-if="q.conditionQuestionKey">
-                          <n-space align="center" wrap>
-                            <n-text>{{ t('survey.conditionOption') }}</n-text>
-                            <n-checkbox-group v-model:value="q.conditionOptionIndices">
-                              <n-space>
-                                <n-checkbox
-                                    v-for="opt in conditionOptionOptions(q.conditionQuestionKey)"
-                                    :key="opt.value"
-                                    :value="opt.value"
-                                    :label="opt.label"
-                                />
-                              </n-space>
-                            </n-checkbox-group>
-                            <n-text depth="3">→ {{ t('survey.conditionThen') }}</n-text>
+                    <template v-if="q.type === 'NUMBER'">
+                      <template v-if="q._showAdvanced">
+                        <n-form-item :label="t('survey.valueLimits')">
+                          <n-space align="center">
+                            <n-text depth="3">{{ t('survey.minValue') }}</n-text>
+                            <n-input-number
+                              v-model:value="q.minValue"
+                              :placeholder="t('survey.minValuePlaceholder')"
+                              style="width: 165px"
+                            />
+                            <n-text depth="3">{{ t('survey.maxValue') }}</n-text>
+                            <n-input-number
+                              v-model:value="q.maxValue"
+                              :placeholder="t('survey.maxValuePlaceholder')"
+                              style="width: 165px"
+                            />
                           </n-space>
-                        </template>
-                      </n-space>
-                    </n-form-item>
+                        </n-form-item>
+                      </template>
+                    </template>
+
+                    <template v-if="q._showAdvanced">
+                      <n-form-item :label="t('survey.conditionLogic')">
+                        <n-space vertical style="width: 100%">
+                          <n-select
+                              v-model:value="q.conditionQuestionKey"
+                              :options="conditionQuestionOptions(si, qi)"
+                              :placeholder="t('survey.conditionNone')"
+                              clearable
+                              style="min-width: 220px"
+                              @update:value="q.conditionOptionIndices = []"
+                          />
+                          <template v-if="q.conditionQuestionKey">
+                            <n-space align="center" wrap>
+                              <n-text>{{ t('survey.conditionOption') }}</n-text>
+                              <n-checkbox-group v-model:value="q.conditionOptionIndices">
+                                <n-space>
+                                  <n-checkbox
+                                      v-for="opt in conditionOptionOptions(q.conditionQuestionKey)"
+                                      :key="opt.value"
+                                      :value="opt.value"
+                                      :label="opt.label"
+                                  />
+                                </n-space>
+                              </n-checkbox-group>
+                              <n-text depth="3">→ {{ t('survey.conditionThen') }}</n-text>
+                            </n-space>
+                          </template>
+                        </n-space>
+                      </n-form-item>
+                    </template>
                   </n-card>
                 </template>
               </draggable>
@@ -224,6 +279,10 @@ function nextKey() {
   return `q_${++keySeq}`
 }
 
+function toggleAdvanced(q: any) {
+  q._showAdvanced = !q._showAdvanced
+}
+
 function newQuestion(sortOrder = 0): QuestionRequest {
   return {
     type: 'SINGLE_CHOICE',
@@ -237,6 +296,7 @@ function newQuestion(sortOrder = 0): QuestionRequest {
     conditionOptionIndices: [],
     options: [{content: '', sortOrder: 0}, {content: '', sortOrder: 1}],
     _key: nextKey(),
+    _showAdvanced: false,
   }
 }
 
@@ -313,6 +373,7 @@ function copyQuestion(si: number, qi: number) {
     conditionOptionIndices: [...source.conditionOptionIndices],
     options: source.options.map((o) => ({content: o.content, sortOrder: o.sortOrder})),
     _key: nextKey(),
+    _showAdvanced: false,
   }
   sec.questions.splice(qi + 1, 0, copy)
 }
@@ -424,6 +485,7 @@ async function loadSurvey() {
         conditionOptionIndices: condOptIndices,
         options: q.options.map((o: any) => ({id: o.id, content: o.content, sortOrder: o.sortOrder})),
         _key,
+        _showAdvanced: false,
       }
     }
 

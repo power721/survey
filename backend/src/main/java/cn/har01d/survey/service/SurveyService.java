@@ -484,6 +484,9 @@ public class SurveyService {
             response.getAnswers().add(answer);
         }
 
+        // Validate answers
+        validateAnswers(survey, questionMap, response.getAnswers());
+
         if (!isUpdate) {
             survey.setResponseCount(survey.getResponseCount() + 1);
             if (survey.getMaxResponses() != null && survey.getResponseCount() >= survey.getMaxResponses()) {
@@ -604,6 +607,45 @@ public class SurveyService {
         return stats;
     }
 
+    private void validateAnswers(Survey survey, Map<Long, Question> questionMap, List<Answer> answers) {
+        for (Answer answer : answers) {
+            Question question = answer.getQuestion();
+
+            // Validate multiple choice min/max options
+            if (question.getType() == Question.QuestionType.MULTIPLE_CHOICE) {
+                String selectedIds = answer.getSelectedOptionIds();
+                if (selectedIds != null && !selectedIds.isEmpty()) {
+                    int selectedCount = selectedIds.split(",").length;
+
+                    if (question.getMinOptions() != null && selectedCount < question.getMinOptions()) {
+                        throw new BusinessException(String.format("Please select at least %d options", question.getMinOptions()));
+                    }
+                    if (question.getMaxOptions() != null && selectedCount > question.getMaxOptions()) {
+                        throw new BusinessException(String.format("Please select at most %d options", question.getMaxOptions()));
+                    }
+                }
+            }
+
+            // Validate number min/max value
+            if (question.getType() == Question.QuestionType.NUMBER) {
+                String textValue = answer.getTextValue();
+                if (textValue != null && !textValue.isEmpty()) {
+                    try {
+                        double value = Double.parseDouble(textValue);
+                        if (question.getMinValue() != null && value < question.getMinValue()) {
+                            throw new BusinessException(String.format("Value must be at least %s", question.getMinValue()));
+                        }
+                        if (question.getMaxValue() != null && value > question.getMaxValue()) {
+                            throw new BusinessException(String.format("Value must be at most %s", question.getMaxValue()));
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new BusinessException("Please enter a valid number");
+                    }
+                }
+            }
+        }
+    }
+
     private String generateShareId() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
@@ -696,6 +738,10 @@ public class SurveyService {
                 .sortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index)
                 .conditionQuestionId(qr.getConditionQuestionId())
                 .conditionOptionIds(qr.getConditionOptionIds() != null ? qr.getConditionOptionIds().stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",")) : null)
+                .minOptions(qr.getMinOptions())
+                .maxOptions(qr.getMaxOptions())
+                .minValue(qr.getMinValue())
+                .maxValue(qr.getMaxValue())
                 .options(new ArrayList<>())
                 .build();
         if (qr.getOptions() != null) {
@@ -719,6 +765,10 @@ public class SurveyService {
         question.setSortOrder(qr.getSortOrder() > 0 ? qr.getSortOrder() : index);
         question.setConditionQuestionId(qr.getConditionQuestionId());
         question.setConditionOptionIds(qr.getConditionOptionIds() != null ? qr.getConditionOptionIds().stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",")) : null);
+        question.setMinOptions(qr.getMinOptions());
+        question.setMaxOptions(qr.getMaxOptions());
+        question.setMinValue(qr.getMinValue());
+        question.setMaxValue(qr.getMaxValue());
         Map<Long, QuestionOption> existingOptionMap = question.getOptions().stream()
                 .filter(o -> o.getId() != null)
                 .collect(Collectors.toMap(QuestionOption::getId, o -> o));
@@ -763,6 +813,10 @@ public class SurveyService {
         if (question.getOptions() != null) {
             dto.setOptions(question.getOptions().stream().map(this::toOptionDto).toList());
         }
+        dto.setMinOptions(question.getMinOptions());
+        dto.setMaxOptions(question.getMaxOptions());
+        dto.setMinValue(question.getMinValue());
+        dto.setMaxValue(question.getMaxValue());
         return dto;
     }
 
