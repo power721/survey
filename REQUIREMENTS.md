@@ -244,6 +244,10 @@ Dockerfile 多阶段构建：
 | `conditionQuestionId` | Long    | 否  | 需为同问卷中前置单选/多选题 ID           | 条件题目 ID（跳题逻辑） |
 | `conditionOptionId`   | Long    | 否  | 需为 conditionQuestion 的选项 ID | 触发显示的选项 ID    |
 | `options`             | List    | 否  | 单选/多选题必填                    | 选项列表          |
+| `minOptions`          | Integer | 否  | 仅多选题有效，最小值 1               | 最少选项数         |
+| `maxOptions`          | Integer | 否  | 仅多选题有效，最小值 1               | 最多选项数         |
+| `minValue`           | Double  | 否  | 仅数字题有效                      | 最小值           |
+| `maxValue`           | Double  | 否  | 仅数字题有效                      | 最大值           |
 
 **选项数据（OptionRequest）**：
 
@@ -275,6 +279,16 @@ Dockerfile 多阶段构建：
 - 返回完整问卷 DTO，包含所有题目和选项
 - `description` 经 `HtmlSanitizer` 净化后存储
 - 有 `startTime` 且未到达时：返回问卷基本信息不返回题目内容，前端显示开始倒计时
+
+**题目约束验证**（提交问卷时）：
+- **多选题**：
+  - 若设置了 `minOptions`，选择的选项数必须 ≥ 最小值
+  - 若设置了 `maxOptions`，选择的选项数必须 ≤ 最大值
+  - 不满足时返回 HTTP 400，提示具体错误信息
+- **数字题**：
+  - 若设置了 `minValue`，输入的数字必须 ≥ 最小值
+  - 若设置了 `maxValue`，输入的数字必须 ≤ 最大值
+  - 不满足时返回 HTTP 400，提示具体错误信息
 
 #### 3.2.2 编辑问卷
 
@@ -854,17 +868,20 @@ Dockerfile 多阶段构建：
 
 **记录的操作类型**：
 
-| 操作类型            | 说明     |
-|-----------------|--------|
-| `CREATE_SURVEY` | 创建问卷   |
-| `UPDATE_SURVEY` | 更新问卷   |
-| `DELETE_SURVEY` | 删除问卷   |
-| `EXPORT_SURVEY` | 导出问卷数据 |
-| `CREATE_VOTE`   | 创建投票   |
-| `UPDATE_VOTE`   | 更新投票   |
-| `DELETE_VOTE`   | 删除投票   |
-| `LOGIN`         | 用户登录   |
-| `REGISTER`      | 用户注册   |
+| 操作类型                | 说明        |
+|---------------------|-----------|
+| `CREATE_SURVEY`     | 创建问卷      |
+| `UPDATE_SURVEY`     | 更新问卷      |
+| `DELETE_SURVEY`     | 删除问卷      |
+| `EXPORT_SURVEY`     | 导出问卷数据    |
+| `CREATE_VOTE`       | 创建投票      |
+| `UPDATE_VOTE`       | 更新投票      |
+| `DELETE_VOTE`       | 删除投票      |
+| `USER_LOGIN`        | 用户登录成功    |
+| `USER_REGISTERED`   | 用户注册成功    |
+| `LOGIN_FAILED`      | 登录失败（含限流） |
+| `REGISTER_FAILED`   | 注册失败（含限流） |
+| `USER_PROFILE_UPDATED` | 用户更新个人信息  |
 
 **审计日志字段**：
 
@@ -1616,6 +1633,10 @@ Nginx：
 - 拖拽手柄图标（☰）排序分组和分组内题目
 - 每个题目卡片：类型选择、标题输入、必填开关
 - 单选/多选题额外显示选项列表（可增删）
+- **高级设置**（默认折叠，点击展开）：
+  - 多选题：最少/最多选项数设置（同一行显示）
+  - 数字题：最小/最大值设置（同一行显示）
+  - 所有题型：条件逻辑（跳题规则）设置
 - 复制题目功能
 - 保存时自动更新分组和题目的 `sortOrder`
 
