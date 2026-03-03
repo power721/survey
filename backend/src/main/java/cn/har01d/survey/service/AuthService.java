@@ -27,15 +27,17 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final SystemConfigService configService;
+    private final AuditLogService auditLogService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider,
-                       SystemConfigService configService) {
+                       SystemConfigService configService, AuditLogService auditLogService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.configService = configService;
+        this.auditLogService = auditLogService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -61,6 +63,8 @@ public class AuthService {
                 .build();
         userRepository.save(user);
 
+        auditLogService.log("USER_REGISTERED", "User", user.getId(), "User registered: " + user.getUsername(), user);
+
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole().name());
         return new AuthResponse(token, user.getUsername(), user.getNickname(), resolveAvatar(user), user.getRole().name());
     }
@@ -74,6 +78,9 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new BusinessException("auth.user.not.found"));
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole().name());
+
+        auditLogService.log("USER_LOGIN", "User", user.getId(), "User logged in: " + user.getUsername(), user);
+
         return new AuthResponse(token, user.getUsername(), user.getNickname(), resolveAvatar(user), user.getRole().name());
     }
 
@@ -100,8 +107,16 @@ public class AuthService {
             throw new BusinessException("auth.not.authenticated", HttpStatus.UNAUTHORIZED);
         }
 
+        StringBuilder changes = new StringBuilder();
+
         if (request.getNickname() != null) {
-            user.setNickname(!request.getNickname().isBlank() ? request.getNickname().trim() : generateNickname());
+            String oldNickname = user.getNickname();
+            String newNickname = !request.getNickname().isBlank() ? request.getNickname().trim() : generateNickname();
+            user.setNickname(newNickname);
+            if (!newNickname.equals(oldNickname)) {
+                if (changes.length() > 0) changes.append(", ");
+                changes.append("nickname: '").append(oldNickname).append("' -> '").append(newNickname).append("'");
+            }
         }
 
         String email = request.getEmail() != null && !request.getEmail().isBlank() ? request.getEmail().trim() : null;
@@ -109,13 +124,25 @@ public class AuthService {
             if (userRepository.existsByEmail(email)) {
                 throw new BusinessException("auth.email.exists", HttpStatus.CONFLICT);
             }
+            String oldEmail = user.getEmail();
             user.setEmail(email);
+            if (changes.length() > 0) changes.append(", ");
+            changes.append("email: '").append(oldEmail != null ? oldEmail : "").append("' -> '").append(email).append("'");
         } else if (request.getEmail() != null && request.getEmail().isBlank()) {
+            String oldEmail = user.getEmail();
             user.setEmail(null);
+            if (changes.length() > 0) changes.append(", ");
+            changes.append("email: '").append(oldEmail != null ? oldEmail : "").append("' -> (empty)");
         }
 
         if (request.getAvatar() != null) {
-            user.setAvatar(request.getAvatar().isBlank() ? null : request.getAvatar().trim());
+            String oldAvatar = user.getAvatar();
+            String newAvatar = request.getAvatar().isBlank() ? null : request.getAvatar().trim();
+            user.setAvatar(newAvatar);
+            if ((oldAvatar == null && newAvatar != null) || (oldAvatar != null && !oldAvatar.equals(newAvatar))) {
+                if (changes.length() > 0) changes.append(", ");
+                changes.append("avatar updated");
+            }
         }
 
         if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
@@ -123,9 +150,17 @@ public class AuthService {
                 throw new BusinessException("auth.old.password.incorrect");
             }
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            if (changes.length() > 0) changes.append(", ");
+            changes.append("password changed");
         }
 
         userRepository.save(user);
+
+        if (changes.length() > 0) {
+            auditLogService.log("USER_PROFILE_UPDATED", "User", user.getId(),
+                    "User " + user.getUsername() + " updated profile: " + changes.toString(), user);
+        }
+
         return toDto(user);
     }
 

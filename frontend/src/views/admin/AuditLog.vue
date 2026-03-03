@@ -84,8 +84,11 @@ const actionOptions = [
   {label: t('audit.actions.CREATE_VOTE'), value: 'CREATE_VOTE'},
   {label: t('audit.actions.UPDATE_VOTE'), value: 'UPDATE_VOTE'},
   {label: t('audit.actions.DELETE_VOTE'), value: 'DELETE_VOTE'},
-  {label: t('audit.actions.LOGIN'), value: 'LOGIN'},
-  {label: t('audit.actions.REGISTER'), value: 'REGISTER'},
+  {label: t('audit.actions.USER_LOGIN'), value: 'USER_LOGIN'},
+  {label: t('audit.actions.USER_REGISTERED'), value: 'USER_REGISTERED'},
+  {label: t('audit.actions.LOGIN_FAILED'), value: 'LOGIN_FAILED'},
+  {label: t('audit.actions.REGISTER_FAILED'), value: 'REGISTER_FAILED'},
+  {label: t('audit.actions.USER_PROFILE_UPDATED'), value: 'USER_PROFILE_UPDATED'},
 ]
 
 const entityTypeOptions = [
@@ -113,8 +116,11 @@ const columns = [
         CREATE_VOTE: 'success',
         UPDATE_VOTE: 'warning',
         DELETE_VOTE: 'error',
-        LOGIN: 'default',
-        REGISTER: 'warning',
+        USER_LOGIN: 'success',
+        USER_REGISTERED: 'info',
+        LOGIN_FAILED: 'error',
+        REGISTER_FAILED: 'error',
+        USER_PROFILE_UPDATED: 'warning',
       }
       return h(NTag, {
         type: (colorMap[row.action] || 'default') as "default" | "primary" | "info" | "success" | "warning" | "error",

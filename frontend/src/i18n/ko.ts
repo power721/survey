@@ -293,8 +293,11 @@ export default {
             CREATE_VOTE: '투표 생성',
             UPDATE_VOTE: '투표 업데이트',
             DELETE_VOTE: '투표 삭제',
-            LOGIN: '로그인',
-            REGISTER: '등록',
+            USER_LOGIN: '사용자 로그인',
+            USER_REGISTERED: '사용자 등록',
+            LOGIN_FAILED: '로그인 실패',
+            REGISTER_FAILED: '등록 실패',
+            USER_PROFILE_UPDATED: '프로필 업데이트',
         },
     },
 }

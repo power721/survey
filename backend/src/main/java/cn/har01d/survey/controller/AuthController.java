@@ -20,6 +20,7 @@ import cn.har01d.survey.dto.auth.RegisterRequest;
 import cn.har01d.survey.dto.auth.UpdateProfileRequest;
 import cn.har01d.survey.dto.auth.UserDto;
 import cn.har01d.survey.exception.BusinessException;
+import cn.har01d.survey.service.AuditLogService;
 import cn.har01d.survey.service.AuthService;
 import cn.har01d.survey.service.SystemConfigService;
 
@@ -30,11 +31,14 @@ public class AuthController {
     private final AuthService authService;
     private final RateLimitService rateLimitService;
     private final SystemConfigService configService;
+    private final AuditLogService auditLogService;
 
-    public AuthController(AuthService authService, RateLimitService rateLimitService, SystemConfigService configService) {
+    public AuthController(AuthService authService, RateLimitService rateLimitService,
+                         SystemConfigService configService, AuditLogService auditLogService) {
         this.authService = authService;
         this.rateLimitService = rateLimitService;
         this.configService = configService;
+        this.auditLogService = auditLogService;
     }
 
     private int getLoginMaxAttempts() {
@@ -54,10 +58,18 @@ public class AuthController {
                                                               HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
         if (!rateLimitService.isAllowed("register:" + ip, 5, 3600_000)) {
+            auditLogService.log("REGISTER_FAILED", "User", null,
+                    "Registration failed (rate limit): " + request.getUsername() + " from " + ip, null);
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
-        AuthResponse response = authService.register(request);
-        return ResponseEntity.ok(ApiResponse.ok("Registration successful", response));
+        try {
+            AuthResponse response = authService.register(request);
+            return ResponseEntity.ok(ApiResponse.ok("Registration successful", response));
+        } catch (Exception e) {
+            auditLogService.log("REGISTER_FAILED", "User", null,
+                    "Registration failed for user: " + request.getUsername() + " from " + ip + " - " + e.getMessage(), null);
+            throw e;
+        }
     }
 
     @PostMapping("/login")
@@ -65,10 +77,18 @@ public class AuthController {
                                                            HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
         if (!rateLimitService.isAllowed("login:" + ip, getLoginMaxAttempts(), 60_000)) {
+            auditLogService.log("LOGIN_FAILED", "User", null,
+                    "Login failed (rate limit): " + request.getUsername() + " from " + ip, null);
             throw new BusinessException("error.rate.limit", HttpStatus.TOO_MANY_REQUESTS);
         }
-        AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
+        try {
+            AuthResponse response = authService.login(request);
+            return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
+        } catch (Exception e) {
+            auditLogService.log("LOGIN_FAILED", "User", null,
+                    "Login failed for user: " + request.getUsername() + " from " + ip + " - " + e.getMessage(), null);
+            throw e;
+        }
     }
 
     @GetMapping("/profile")

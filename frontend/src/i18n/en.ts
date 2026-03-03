@@ -293,8 +293,11 @@ export default {
             CREATE_VOTE: 'Create Vote',
             UPDATE_VOTE: 'Update Vote',
             DELETE_VOTE: 'Delete Vote',
-            LOGIN: 'Login',
-            REGISTER: 'Register',
+            USER_LOGIN: 'User Login',
+            USER_REGISTERED: 'User Registered',
+            LOGIN_FAILED: 'Login Failed',
+            REGISTER_FAILED: 'Registration Failed',
+            USER_PROFILE_UPDATED: 'Profile Updated',
         },
     },
 }

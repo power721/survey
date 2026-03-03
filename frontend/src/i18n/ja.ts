@@ -293,8 +293,11 @@ export default {
             CREATE_VOTE: '投票作成',
             UPDATE_VOTE: '投票更新',
             DELETE_VOTE: '投票削除',
-            LOGIN: 'ログイン',
-            REGISTER: '登録',
+            USER_LOGIN: 'ユーザーログイン',
+            USER_REGISTERED: 'ユーザー登録',
+            LOGIN_FAILED: 'ログイン失敗',
+            REGISTER_FAILED: '登録失敗',
+            USER_PROFILE_UPDATED: 'プロフィール更新',
         },
     },
 }
